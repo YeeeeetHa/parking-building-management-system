@@ -43,16 +43,33 @@ public class SlotSocket {
 
         try (Connection conn = DbUtils.getConnection()) {
 
-            String sql = "SELECT row_number, col_number, status FROM ParkingSlot";
+            String sql = "SELECT slot_code, status FROM Parking_slot";
             PreparedStatement ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                int r = rs.getInt("row_number");
-                int c = rs.getInt("col_number");
-                int s = rs.getInt("status");
+                String slotCode = rs.getString("slot_code");
+                String statusStr = rs.getString("status");
 
-                grid[r][c] = s;
+                // slot_code expected like 'A-01' or 'B-3'
+                if (slotCode == null) continue;
+                String[] parts = slotCode.split("-");
+                if (parts.length < 2) continue;
+
+                char rowChar = parts[0].trim().isEmpty() ? 'A' : parts[0].trim().charAt(0);
+                int row = Character.toUpperCase(rowChar) - 'A';
+
+                int col;
+                try {
+                    col = Integer.parseInt(parts[1].replaceAll("[^0-9]", "")) - 1;
+                } catch (NumberFormatException nfe) {
+                    continue;
+                }
+
+                if (row < 0 || row >= grid.length || col < 0 || col >= grid[row].length) continue;
+
+                int s = (statusStr != null && statusStr.equalsIgnoreCase("Occupied")) ? 1 : 0;
+                grid[row][col] = s;
             }
 
         } catch (Exception e) {
