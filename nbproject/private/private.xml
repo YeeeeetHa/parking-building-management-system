@@ -3,8 +3,23 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/.JohanKM/Documents/JavaProjects/Parking_Slot/web/customer-login.html</file>
-            <file>file:/D:/.JohanKM/Documents/JavaProjects/Parking_Slot/web/login.html</file>
+            <file>file:/D:/parking-building-management-system/web/META-INF/context.xml</file>
+            <file>file:/D:/parking-building-management-system/src/java/dao/DriverDAO.java</file>
+            <file>file:/D:/parking-building-management-system/src/java/websocket/SlotSocket.java</file>
+            <file>file:/D:/parking-building-management-system/src/java/dao/StaffDAO.java</file>
+            <file>file:/D:/parking-building-management-system/src/java/utils/TokenProvider.java</file>
+            <file>file:/D:/parking-building-management-system/web/WEB-INF/login.html</file>
+            <file>file:/D:/parking-building-management-system/web/WEB-INF/customer-login.html</file>
+            <file>file:/D:/parking-building-management-system/src/java/controller/DriverAPIController.java</file>
+            <file>file:/D:/parking-building-management-system/web/WEB-INF/web.xml</file>
+            <file>file:/D:/parking-building-management-system/src/java/dto/Staff.java</file>
+            <file>file:/D:/parking-building-management-system/web/WEB-INF/home.html</file>
+            <file>file:/D:/parking-building-management-system/src/java/utils/InputValidator.java</file>
+            <file>file:/D:/parking-building-management-system/src/java/utils/StaffRole.java</file>
+            <file>file:/D:/parking-building-management-system/src/java/dto/Driver.java</file>
+            <file>file:/D:/parking-building-management-system/src/java/controller/LoginAPIController.java</file>
+            <file>file:/D:/parking-building-management-system/src/java/controller/SlotStatusController.java</file>
+            <file>file:/D:/parking-building-management-system/src/java/utils/DbUtils.java</file>
         </group>
     </open-files>
 </project-private>

@@ -568,6 +568,25 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 align-items:center;
                 gap:4px;
             }
+            .slot {
+                width:50px;
+                height:50px;
+                border-radius:8px;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                font-size:12px;
+                font-weight:600;
+                color:white;
+            }
+
+            .available {
+                background:#10B981;
+            }
+
+            .occupied {
+                background:#EF4444;
+            }
         </style>
     </head>
     <body>
@@ -608,6 +627,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
         </div>
 
         <!-- Stats -->
+        <div id="parkingGrid" style="
+             display:grid;
+             grid-template-columns: repeat(5, 50px);
+             gap:8px;
+             justify-content:center;
+             margin:20px 0;
+             "></div>
         <div class="stats-row">
             <div class="stat-card occupied">
                 <div class="stat-icon">
@@ -765,6 +791,43 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
         </div>
 
         <script>
+            const socket = new WebSocket("ws://localhost:8080/Parking_Slot/ws/slots");
+
+            socket.onmessage = function (event) {
+                const grid = JSON.parse(event.data);
+
+                renderGrid(grid);
+
+                let occupied = 0;
+                let total = 0;
+
+                grid.forEach(row => {
+                    row.forEach(cell => {
+                        total++;
+                        if (cell === 1)
+                            occupied++;
+                    });
+                });
+
+                const available = total - occupied;
+                applyStats(occupied, available, total, []);
+            };
+
+
+            // RENDER GRID
+            function renderGrid(grid) {
+                const container = document.getElementById("parkingGrid");
+                container.innerHTML = "";
+
+                grid.forEach((row, i) => {
+                    row.forEach((cell, j) => {
+                        const div = document.createElement("div");
+                        div.className = "slot " + (cell === 0 ? "available" : "occupied");
+                        div.textContent = String.fromCharCode(65 + i) + "-" + (j + 1);
+                        container.appendChild(div);
+                    });
+                });
+            }
             async function loadStats() {
                 try {
                     const res = await fetch('api/v1/slots/summary');
