@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SmartParking Backend Login Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 50px; background: #121212; color: #e0e0e0; }
+        .container { max-width: 450px; background: #1e1e1e; padding: 30px; border-radius: 8px; border: 1px solid #333; }
+        h2 { margin-top: 0; color: #3b82f6; }
+        label { display: block; margin: 15px 0 5px; font-weight: bold; color: #aaa; }
+        input { width: 100%; padding: 10px; background: #2d2d2d; border: 1px solid #444; border-radius: 4px; color: #fff; font-size: 16px; box-sizing: border-box; }
+        button { margin-top: 20px; width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #1d4ed8; }
+        .box { margin-top: 20px; padding: 15px; border-radius: 4px; display: none; font-family: monospace; }
+        .success { background: #14532d; color: #4ade80; border: 1px solid #166534; }
+        .error { background: #7f1d1d; color: #fca5a5; border: 1px solid #991b1b; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>SmartParking BE Tester</h2>
+    <p style="color:#888; font-size:14px;">Testing direct text string credentials against your live SQL Server records.</p>
+    
+    <label>Staff Name</label>
+    <input type="text" id="name" value="Nguyen Admin">
+    
+    <label>Password</label>
+    <input type="password" id="password" value="123">
+    
+    <button onclick="runTest()">Execute Login Test</button>
+    
+    <div id="resultBox" class="box"></div>
+</div>
+
+<script>
+    async function runTest() {
+    const nameVal = document.getElementById('name').value;
+    const passVal = document.getElementById('password').value;
+    const resultBox = document.getElementById('resultBox');
+    
+    // 1. Format the data as standard URL parameters instead of raw JSON
+    const params = new URLSearchParams();
+    params.append('name', nameVal);
+    params.append('password', passVal);
+
+    resultBox.style.display = 'block';
+    resultBox.className = 'box';
+    resultBox.innerText = 'Sending request...';
+
+    try {
+        // 2. Post the form data matching what request.getParameter() expects
+        const response = await fetch('api/v1/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            resultBox.className = 'box success';
+            resultBox.innerText = `[Status: ${response.status} OK]\n\nResponse:\n` + JSON.stringify(data, null, 4);
+        } else {
+            resultBox.className = 'box error';
+            resultBox.innerText = `[Status: ${response.status} Unauthorized]\n\nResponse:\n` + JSON.stringify(data, null, 4);
+        }
+    } catch (err) {
+        resultBox.className = 'box error';
+        resultBox.innerText = 'Connection Error: ' + err.message;
+    }
+}
+</script>
+
+</body>
+</html>
