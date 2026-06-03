@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context path="/Parking_Slot">
+
+    <Resource name="jdbc/SmartParkingDB" 
+              auth="Container" 
+              type="javax.sql.DataSource"
+              driverClassName="com.microsoft.sqlserver.jdbc.SQLServerDriver"
+              url="jdbc:sqlserver://localhost:1433;databaseName=SmartParkingDB;encrypt=true;trustServerCertificate=true;"
+              username="sa" 
+              password="YourSecurePassword123" 
+              maxTotal="20" 
+              maxIdle="10" 
+              maxWaitMillis="-1"/>
+
+</Context>

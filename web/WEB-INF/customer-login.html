@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit this template
+-->
+<html lang="en">
+    <!--
+        Customer / Driver Registration Page (customer-login.html)
+        Operator-facing form accessed from the "Customer" button on home.html.
+        Workflow overview:
+          1. Staff member clicks "Customer" on home.html → lands here.
+          2. Fills in driver info: Full Name, License Plate, Phone (required),
+             and optionally Email and Address.
+          3. Client-side validation runs on blur + on submit.
+          4. On valid submit, data is POSTed to POST /api/v1/drivers/register
+             as URL-encoded form parameters (matching DriverAPIController's
+             request.getParameter() calls).
+          5. HTTP 201 → success overlay shown, form cleared.
+             HTTP 409 → inline error: license plate already exists.
+             Other error / network failure → generic error alert shown.
+    -->
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Customer Registration — FPT Parking Lot Management System</title>
+        <!-- Google Fonts: Inter — same font used across all pages in this project -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <style>
+            /* ── Reset & base ── */
+            *, *::before, *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                font-family: 'Inter', sans-serif;
+                min-height: 100vh;
+                background: linear-gradient(135deg, #EEF0FB 0%, #E8EAF6 40%, #E0F2F1 100%);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 0;
+            }
+
+            /* ── Navbar ── */
+            .navbar {
+                position: sticky;
+                top: 0;
+                z-index: 50;
+                width: 100%;
+                background: rgba(255, 255, 255, 0.75);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+                padding: 0 2rem;
+                height: 58px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                animation: slideDown 0.4s ease both;
+            }
+
+            @keyframes slideDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            /* Brand logo block */
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                text-decoration: none;
+            }
+            .brand-icon {
+                width: 34px;
+                height: 34px;
+                background: #1B6E6E;
+                border-radius: 9px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #fff;
+                font-size: 15px;
+                font-weight: 700;
+                flex-shrink: 0;
+            }
+            .brand-name {
+                font-size: 15px;
+                font-weight: 700;
+                color: #1A2340;
+            }
+            .brand-sub  {
+                font-size: 10px;
+                color: #8A94A6;
+                margin-top: 1px;
+            }
+
+            /* Right-side nav buttons */
+            .nav-right {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            /* Shared nav button base style */
+            .btn-nav {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                padding: 6px 13px;
+                border-radius: 8px;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                text-decoration: none;
+                transition: all 0.18s;
+                border: 1.5px solid transparent;
+            }
+            /* Teal filled variant — used for primary nav action */
+            .btn-nav.primary {
+                background: #1B6E6E;
+                color: #fff;
+            }
+            .btn-nav.primary:hover {
+                background: #155858;
+            }
+            /* Outlined variant — used for secondary nav action */
+            .btn-nav.secondary {
+                background: #fff;
+                color: #4B5563;
+                border-color: #E5E7EB;
+            }
+            .btn-nav.secondary:hover {
+                background: #F9FAFB;
+                border-color: #D1D5DB;
+            }
+
+            /* ── Page content wrapper ── */
+            .page-content {
+                width: 100%;
+                max-width: 520px; /* fit more fields comfortably */
+                padding: 2rem 1.5rem 3rem;
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+                animation: fadeUp 0.45s 0.05s ease both;
+            }
+
+            @keyframes fadeUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(16px);
+                }
+                to   {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            /* ── Page header ── */
+            .page-header {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+            /* Small breadcrumb label above the main title */
+            .page-eyebrow {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 11px;
+                font-weight: 600;
+                color: #1B6E6E;
+                text-transform: uppercase;
+                letter-spacing: 0.07em;
+            }
+            .page-title {
+                font-size: 22px;
+                font-weight: 700;
+                color: #1A2340;
+                line-height: 1.2;
+                letter-spacing: -0.02em;
+            }
+            .page-sub {
+                font-size: 13px;
+                color: #6B7280;
+                line-height: 1.6;
+                margin-top: 2px;
+            }
+
+            /* ── Main card ── */
+            .card {
+                background: #fff;
+                border-radius: 16px;
+                box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+                padding: 2rem 2rem 2rem;
+                width: 100%;
+            }
+
+            /* ── Section divider inside the card ── */
+            .section-label {
+                font-size: 10px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: #9CA3AF;
+                margin-bottom: 0.85rem;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            /* Decorative line after section label */
+            .section-label::after {
+                content: '';
+                flex: 1;
+                height: 1px;
+                background: #F3F4F6;
+            }
+
+            /* ── Alert banners (error / success) ── */
+            .alert {
+                border-radius: 8px;
+                padding: 10px 14px;
+                font-size: 13px;
+                display: none; /* hidden by default, shown via .show class */
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 1rem;
+            }
+            .alert.show {
+                display: flex;
+            }
+            
+            .alert-error {
+                background: #FEF2F2;
+                border: 1px solid #FECACA;
+                color: #DC2626;
+            }
+            
+            .alert-success {
+                background: #F0FDF4;
+                border: 1px solid #BBF7D0;
+                color: #16A34A;
+            }
+
+            /* ── Individual form field wrapper ── */
+            .field {
+                margin-bottom: 1rem;
+            }
+            
+            label {
+                display: block;
+                font-size: 12px;
+                font-weight: 600;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+                color: #4B5563;
+                margin-bottom: 6px;
+            }
+
+            /* Optional badge next to label */
+            .label-opt {
+                font-size: 10px;
+                font-weight: 500;
+                color: #9CA3AF;
+                text-transform: none;
+                letter-spacing: 0;
+                margin-left: 4px;
+            }
+
+            /* Required star indicator */
+            .label-req {
+                color: #EF4444;
+                margin-left: 2px;
+                font-size: 13px;
+                line-height: 1;
+            }
+
+            /* Input icon wrapper — positions icon absolutely inside the input */
+            .input-wrap {
+                position: relative;
+            }
+
+            /* Left icon inside input */
+            .input-wrap .ico {
+                position: absolute;
+                left: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #9CA3AF;
+                pointer-events: none;
+                display: flex;
+            }
+
+            /* All text inputs */
+            input[type="text"],
+            input[type="tel"],
+            input[type="email"] {
+                width: 100%;
+                height: 44px;
+                border: 1.5px solid #E5E7EB;
+                border-radius: 8px;
+                background: #F9FAFB;
+                color: #111827;
+                font-size: 14px;
+                font-family: 'Inter', sans-serif;
+                padding: 0 12px 0 38px; /* left padding leaves room for the icon */
+                outline: none;
+                transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+            }
+
+            /* Focus state: teal ring + white bg */
+            input:focus {
+                border-color: #1B6E6E;
+                background: #fff;
+                box-shadow: 0 0 0 3px rgba(27, 110, 110, 0.1);
+            }
+
+            input::placeholder {
+                color: #D1D5DB;
+            }
+
+            /* ── Validation state classes ── */
+            
+            .field-error input {
+                border-color: #EF4444;
+                background: #FFF9F9;
+            }
+            .field-error input:focus {
+                box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+            }
+            
+            .field-ok input {
+                border-color: #10B981;
+            }
+
+            /* Inline error message beneath the input — hidden unless .field-error is present */
+            .err-msg {
+                font-size: 11.5px;
+                color: #EF4444;
+                margin-top: 4px;
+                display: none;
+                align-items: center;
+                gap: 4px;
+            }
+            .field-error .err-msg {
+                display: flex;
+            }
+
+            /* Hint text beneath optional fields */
+            .field-hint {
+                font-size: 11px;
+                color: #9CA3AF;
+                margin-top: 4px;
+            }
+
+            /* ── Submit button ── */
+            .btn-submit {
+                width: 100%;
+                height: 46px;
+                background: #1B6E6E;
+                color: #fff;
+                border: none;
+                border-radius: 8px;
+                font-size: 15px;
+                font-weight: 600;
+                font-family: 'Inter', sans-serif;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                transition: background 0.2s, transform 0.1s, opacity 0.2s;
+                margin-top: 0.5rem;
+            }
+            .btn-submit:hover:not(:disabled) {
+                background: #155858;
+            }
+            .btn-submit:active:not(:disabled) {
+                transform: scale(0.98);
+            }
+            .btn-submit:disabled {
+                opacity: 0.65;
+                cursor: not-allowed;
+            }
+
+            /* Loading spinner — shown when request is in-flight */
+            .spinner {
+                width: 18px;
+                height: 18px;
+                border: 2.5px solid rgba(255, 255, 255, 0.35);
+                border-top-color: #fff;
+                border-radius: 50%;
+                display: none;
+                animation: spin 0.65s linear infinite;
+            }
+            /* While loading: hide button text, show spinner */
+            .btn-submit.loading .btn-text {
+                display: none;
+            }
+            .btn-submit.loading .spinner  {
+                display: block;
+            }
+
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            /* ── Reset link beneath submit button ── */
+            .form-footer {
+                text-align: center;
+                font-size: 13px;
+                color: #6B7280;
+                margin-top: 0.5rem;
+            }
+            .form-footer a {
+                color: #1B6E6E;
+                font-weight: 600;
+                text-decoration: none;
+            }
+            .form-footer a:hover {
+                text-decoration: underline;
+            }
+
+            /* ── Success overlay — full-screen confirmation ── */
+            .overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(255, 255, 255, 0.90);
+                backdrop-filter: blur(4px);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 14px;
+                z-index: 99;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.35s;
+            }
+            .overlay.show {
+                opacity: 1;
+                pointer-events: all;
+            }
+
+            /* Green checkmark circle inside the overlay */
+            .overlay-check {
+                width: 56px;
+                height: 56px;
+                background: #ECFDF5;
+                border: 2px solid #6EE7B7;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: popIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+            }
+            @keyframes popIn {
+                from {
+                    opacity: 0;
+                    transform: scale(0.6);
+                }
+                to {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+            }
+            .overlay p {
+                font-size: 15px;
+                font-weight: 600;
+                color: #1A2340;
+            }
+            .overlay small {
+                font-size: 12px;
+                color: #9CA3AF;
+            }
+
+            /* "Register another" option */
+            .btn-overlay {
+                margin-top: 6px;
+                padding: 8px 20px;
+                border-radius: 8px;
+                background: #1B6E6E;
+                color: #fff;
+                font-size: 13px;
+                font-weight: 600;
+                font-family: 'Inter', sans-serif;
+                border: none;
+                cursor: pointer;
+                transition: background 0.18s;
+            }
+            .btn-overlay:hover {
+                background: #155858;
+            }
+
+            /* "Return to Home Screen" option */
+            .btn-overlay-secondary {
+                margin-top: 6px;
+                padding: 8px 20px;
+                border-radius: 8px;
+                background: #fff;
+                color: #4B5563;
+                border: 1.5px solid #E5E7EB;
+                font-size: 13px;
+                font-weight: 600;
+                font-family: 'Inter', sans-serif;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                transition: all 0.18s;
+            }
+            .btn-overlay-secondary:hover {
+                background: #F9FAFB;
+                border-color: #D1D5DB;
+            }
+
+            /* ── Page footer ── */
+            .footer {
+                width: 100%;
+                max-width: 520px;
+                padding: 0 1.5rem 2rem;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .footer-left  {
+                font-size: 11px;
+                color: #C4C9D4;
+            }
+            .footer-right {
+                font-size: 11px;
+                color: #9CA3AF;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            /* Small pulsing green dot — "system operational" indicator */
+            .live-dot {
+                width: 6px;
+                height: 6px;
+                background: #22C55E;
+                border-radius: 50%;
+                animation: pulse 2s ease-in-out infinite;
+            }
+            @keyframes pulse {
+                0%, 100% {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+                50% {
+                    opacity: 0.5;
+                    transform: scale(1.4);
+                }
+            }
+        </style>
+    </head>
+    <body>
+
+        <!-- ================================================================
+             SUCCESS OVERLAY
+             Shown after a driver is successfully registered.
+             Staff can dismiss it to register another driver.
+        ================================================================ -->
+        <div class="overlay" id="overlay">
+            <div class="overlay-check">
+                <!-- Checkmark SVG -->
+                <svg width="26" height="26" viewBox="0 0 24 24"
+                     fill="none" stroke="#059669" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+                </svg>
+            </div>
+            <p id="overlayMsg">Driver registered!</p>
+            <small id="overlayPlate"></small>
+            <div style="display: flex; gap: 10px; margin-top: 6px;">
+                <!-- Clicking this resets the form so staff can register the next driver immediately -->
+                <button class="btn-overlay" id="overlayDismiss">Register Another Driver</button>
+                <!-- Option to return to the home screen -->
+                <a href="home.html" class="btn-overlay-secondary">Back to Home</a>
+            </div>
+        </div>
+
+        <!-- ================================================================
+             NAVBAR
+             Links: brand → home.html | Home → home.html | Staff Login → login.html
+        ================================================================ -->
+        <nav class="navbar">
+            <!-- Brand/logo links back to the home page -->
+            <a class="brand" href="home.html" title="Back to SmartParking Home">
+                <div class="brand-icon">P</div>
+                <div>
+                    <div class="brand-name">SmartParking</div>
+                    <div class="brand-sub">Management System</div>
+                </div>
+            </a>
+
+            <div class="nav-right">
+                <!-- Back to home button (outlined / secondary style) -->
+                <a href="home.html" class="btn-nav secondary">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                    <polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                    Home
+                </a>
+            </div>
+        </nav>
+
+        <!-- ================================================================
+             PAGE CONTENT
+             Contains the page header and the registration card form.
+        ================================================================ -->
+        <div class="page-content">
+
+            <!-- Page header: breadcrumb eyebrow + title + subtitle -->
+            <div class="page-header">
+                <span class="page-eyebrow">
+                    <!-- Person-add icon -->
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="8.5" cy="7" r="4"/>
+                    <line x1="20" y1="8" x2="20" y2="14"/>
+                    <line x1="23" y1="11" x2="17" y2="11"/>
+                    </svg>
+                    Driver Registration
+                </span>
+                <h1 class="page-title">Register New Driver</h1>
+                <p class="page-sub">
+                    Enter the driver's information below. Fields marked
+                    <span style="color:#EF4444; font-weight:600;">*</span> are required.
+                </p>
+            </div>
+
+            <!-- ============================================================
+                 REGISTRATION CARD
+                 Contains two logical sections:
+                   • Driver Information  — fullName, phone, email, address
+                   • Vehicle Information — licensePlate
+            ============================================================ -->
+            <div class="card">
+
+                <!-- ── Global alert banner (error) ──
+                     Shown when the API returns an error (e.g., 409 duplicate plate)
+                     or a network failure occurs. Hidden by default. -->
+                <div class="alert alert-error" id="alertErr" role="alert">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    <span id="alertErrText">Something went wrong.</span>
+                </div>
+
+                <!-- The actual registration form
+                     handle all validation manually in JS -->
+                <form id="registerForm" novalidate>
+
+                    <!-- ── SECTION: Driver Information ── -->
+                    <div class="section-label">Driver Information</div>
+
+                    <!-- ── Field: Full Name (required) ── -->
+                    <div class="field" id="fFullName">
+                        <label for="fullName">
+                            Driver Name <span class="label-req" aria-hidden="true">*</span>
+                        </label>
+                        <div class="input-wrap">
+                            <!-- Person icon -->
+                            <span class="ico">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                     stroke="currentColor" stroke-width="2"
+                                     stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                                </svg>
+                            </span>
+                            <input
+                                type="text"
+                                id="fullName"
+                                name="fullName"
+                                placeholder="e.g. Nguyen Van An"
+                                maxlength="100"
+                                autocomplete="name"
+                                aria-required="true"
+                                aria-describedby="fullNameErr"
+                                />
+                        </div>
+                        <!-- Inline error message (visible only when .field-error is on #fFullName) -->
+                        <div class="err-msg" id="fullNameErr" role="alert">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                            <span id="fullNameErrTxt">Driver name is required.</span>
+                        </div>
+                    </div>
+
+                    <!-- ── Field: Phone Number (required) ──
+                         Validated as Vietnamese mobile format: 10–11 digits, may start with 0 or +84 -->
+                    <div class="field" id="fPhone">
+                        <label for="phone">
+                            Phone Number <span class="label-req" aria-hidden="true">*</span>
+                        </label>
+                        <div class="input-wrap">
+                            <!-- Phone icon -->
+                            <span class="ico">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                     stroke="currentColor" stroke-width="2"
+                                     stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07
+                                      19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67
+                                      A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72
+                                      12.84 12.84 0 0 0 .7 2.81
+                                      2 2 0 0 1-.45 2.11L8.09 9.91
+                                      a16 16 0 0 0 6 6l1.27-1.27
+                                      a2 2 0 0 1 2.11-.45
+                                      12.84 12.84 0 0 0 2.81.7
+                                      A2 2 0 0 1 22 16.92z"/>
+                                </svg>
+                            </span>
+                            <input
+                                type="tel"
+                                id="phone"
+                                name="phone"
+                                placeholder="e.g. 0901234567"
+                                maxlength="15"
+                                autocomplete="tel"
+                                aria-required="true"
+                                aria-describedby="phoneErr"
+                                />
+                        </div>
+                        <div class="err-msg" id="phoneErr" role="alert">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                            <span id="phoneErrTxt">Phone number is required.</span>
+                        </div>
+                    </div>
+
+                    <!-- ── Field: Email (optional) ──  -->
+                    <div class="field" id="fEmail">
+                        <label for="email">
+                            Email <span class="label-opt">(optional)</span>
+                        </label>
+                        <div class="input-wrap">
+                            <!-- At-sign / email icon -->
+                            <span class="ico">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                     stroke="currentColor" stroke-width="2"
+                                     stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4
+                                      c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                <polyline points="22,6 12,13 2,6"/>
+                                </svg>
+                            </span>
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                placeholder="e.g. driver@email.com"
+                                maxlength="100"
+                                autocomplete="email"
+                                aria-describedby="emailErr"
+                                />
+                        </div>
+                        <div class="err-msg" id="emailErr" role="alert">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                            <span id="emailErrTxt">Enter a valid email address.</span>
+                        </div>
+                    </div>
+
+                    <!-- ── Field: Address (optional) ──  -->
+                    <div class="field" id="fAddress">
+                        <label for="address">
+                            Address <span class="label-opt">(optional)</span>
+                        </label>
+                        <div class="input-wrap">
+                            <!-- Map-pin icon -->
+                            <span class="ico">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                     stroke="currentColor" stroke-width="2"
+                                     stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                                </svg>
+                            </span>
+                            <input
+                                type="text"
+                                id="address"
+                                name="address"
+                                placeholder="e.g. 123 Nguyen Hue, District 1, HCMC"
+                                maxlength="255"
+                                autocomplete="address-line1"
+                                aria-describedby="addressErr"
+                                />
+                        </div>
+                        <div class="err-msg" id="addressErr" role="alert">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                            <span id="addressErrTxt">Address contains invalid characters.</span>
+                        </div>
+                    </div>
+
+                    <!-- ── SECTION: Vehicle Information ── -->
+                    <div class="section-label" style="margin-top: 0.5rem;">Vehicle Information</div>
+
+                    <!-- ── Field: Vehicle Type (required) ── -->
+                    <div class="field" id="fVehicleType">
+                        <label for="vehicleType">
+                            Vehicle Type <span class="label-req" aria-hidden="true">*</span>
+                        </label>
+                        <div class="input-wrap">
+                            <span class="ico">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                     stroke="currentColor" stroke-width="2"
+                                     stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                </svg>
+                            </span>
+                            <select id="vehicleType" name="vehicleType" style="width: 100%; height: 44px; border: 1.5px solid #E5E7EB; border-radius: 8px; background: #F9FAFB; color: #111827; font-size: 14px; font-family: 'Inter', sans-serif; padding: 0 12px 0 38px; outline: none; appearance: none; transition: border-color 0.2s, background 0.2s, box-shadow 0.2s; cursor: pointer;">
+                                <option value="1">Sedan</option>
+                                <option value="2">SUV / Truck</option>
+                                <option value="3">Motorbike</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- ── Field: License Plate (required) ──
+                         Must be unique. 
+                         The API returns HTTP 409 with "License plate already exists" if a duplicate is submitted. -->
+                    <div class="field" id="fPlate">
+                        <label for="licensePlate">
+                            License Plate <span class="label-req" aria-hidden="true">*</span>
+                        </label>
+                        <div class="input-wrap">
+                            <!-- Car / ID-card icon -->
+                            <span class="ico">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                     stroke="currentColor" stroke-width="2"
+                                     stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="1" y="3" width="15" height="13" rx="2"/>
+                                <path d="M16 8h4l3 4v4h-7V8z"/>
+                                <circle cx="5.5" cy="18.5" r="2.5"/>
+                                <circle cx="18.5" cy="18.5" r="2.5"/>
+                                </svg>
+                            </span>
+                            <input
+                                type="text"
+                                id="licensePlate"
+                                name="licensePlate"
+                                placeholder="e.g. 59A-123.45"
+                                maxlength="20"
+                                autocomplete="off"
+                                aria-required="true"
+                                aria-describedby="plateErr"
+                                style="text-transform: uppercase; font-family: 'Courier New', monospace; letter-spacing: 0.05em;"
+                                />
+                        </div>
+                        <p class="field-hint">Vietnamese format: 51A-123.45 or 29B1-123.45</p>
+                        <div class="err-msg" id="plateErr" role="alert">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                            <span id="plateErrTxt">License plate is required.</span>
+                        </div>
+                    </div>
+
+                    <!-- ── Submit button ──
+                         Shows a spinner while the API call is in flight.
+                         Disabled while loading to prevent double-submit. -->
+                    <button type="submit" class="btn-submit" id="submitBtn">
+                        <span class="btn-text">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2.5"
+                                 stroke-linecap="round" stroke-linejoin="round"
+                                 style="display:inline-block;vertical-align:middle;margin-right:5px;margin-top:-2px;">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="8.5" cy="7" r="4"/>
+                            <line x1="20" y1="8" x2="20" y2="14"/>
+                            <line x1="23" y1="11" x2="17" y2="11"/>
+                            </svg>
+                            Register Driver
+                        </span>
+                        <span class="spinner"></span>
+                    </button>
+                </form>
+
+                <!-- Reset / cancel hint below the button -->
+                <div class="form-footer">
+                    <a href="#" id="resetLink">Clear all fields</a>
+                    &nbsp;·&nbsp;
+                    <!-- Back to Home links to home.html — the entry point that brought us here -->
+                    <a href="home.html">Back to Home</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================================================
+             PAGE FOOTER — same layout as home.html footer
+        ================================================================ -->
+        <div class="footer">
+            <div class="footer-left">SmartParking v1.0</div>
+            <div class="footer-right">
+                <div class="live-dot"></div>
+                System operational
+            </div>
+        </div>
+
+        <!-- ================================================================
+             JAVASCRIPT — Client-side validation + API submission
+             Design principles:
+               • Validation runs on-blur for each field individually
+               • Full validation runs again on submit (bitwise & to trigger all)
+               • API is called with fetch(), data sent as URLSearchParams
+                 (because DriverAPIController uses request.getParameter())
+               • Loading state disables button and shows spinner
+               • On success: overlay appears, form clears
+               • On 409 conflict: inline error in license-plate field
+               • On network/server error: top-level alert banner
+        ================================================================ -->
+        <script>
+            // The registration endpoint — maps to @WebServlet "/api/v1/drivers/register"
+            const API_URL = 'api/v1/drivers/register';
+
+            // ── DOM element references ──
+            const form = document.getElementById('registerForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const alertErr = document.getElementById('alertErr');
+            const alertErrT = document.getElementById('alertErrText');
+            const overlay = document.getElementById('overlay');
+            const overlayMsg = document.getElementById('overlayMsg');
+            const overlayPlate = document.getElementById('overlayPlate');
+
+            // Field wrappers (used to set field-error / field-ok classes)
+            const fFullName = document.getElementById('fFullName');
+            const fPhone = document.getElementById('fPhone');
+            const fEmail = document.getElementById('fEmail');
+            const fAddress = document.getElementById('fAddress');
+            const fPlate = document.getElementById('fPlate');
+
+            // Actual <input> elements
+            const inFullName = document.getElementById('fullName');
+            const inPhone = document.getElementById('phone');
+            const inEmail = document.getElementById('email');
+            const inAddress = document.getElementById('address');
+            const inPlate = document.getElementById('licensePlate');
+            const inVehicleType = document.getElementById('vehicleType');
+
+            // Error text <span> elements
+            const fullNameErrTxt = document.getElementById('fullNameErrTxt');
+            const phoneErrTxt = document.getElementById('phoneErrTxt');
+            const emailErrTxt = document.getElementById('emailErrTxt');
+            const addressErrTxt = document.getElementById('addressErrTxt');
+            const plateErrTxt = document.getElementById('plateErrTxt');
+
+            // ── Characters not allowed in any text field (SQL-injection / XSS guard) ──
+            // Mirrors the ILLEGAL array in login.html
+            const ILLEGAL = ["'", '"', ';', '--', '<', '>'];
+            function hasIllegal(s) {
+                return ILLEGAL.some(c => s.includes(c));
+            }
+
+            // ── Validation state helpers (same pattern as login.html setErr/setOk/clearField) ──
+            // Mark a field as invalid: add red border class, set error message text
+            function setErr(fieldEl, errTxtEl, msg) {
+                fieldEl.classList.remove('field-ok');
+                fieldEl.classList.add('field-error');
+                errTxtEl.textContent = msg;
+                return false; // always returns false so callers can chain with ||
+            }
+
+            // Mark a field as valid: add green border class
+            function setOk(fieldEl) {
+                fieldEl.classList.remove('field-error');
+                fieldEl.classList.add('field-ok');
+            }
+
+            // Remove both validation state classes (used when user starts typing again)
+            function clearField(fieldEl) {
+                fieldEl.classList.remove('field-error', 'field-ok');
+            }
+
+            // ── Individual field validators ──
+            // Full Name: required, max 100 chars, no illegal chars
+            function validateFullName() {
+                const v = inFullName.value.trim();
+                if (!v) return setErr(fFullName, fullNameErrTxt, 'Driver name is required.');
+                if (v.length > 100) return setErr(fFullName, fullNameErrTxt, 'Too long (max 100 characters).');
+                if (hasIllegal(v)) return setErr(fFullName, fullNameErrTxt, 'Contains invalid characters.');
+                setOk(fFullName);
+                return true;
+            }
+
+            // Phone: required, 10–15 digits (accepts leading 0 or +84 prefix), no illegal chars
+            function validatePhone() {
+                const v = inPhone.value.trim();
+                if (!v) return setErr(fPhone, phoneErrTxt, 'Phone number is required.');
+                if (hasIllegal(v)) return setErr(fPhone, phoneErrTxt, 'Contains invalid characters.');
+                // Basic numeric check: digits only (with optional leading + for international)
+                const cleaned = v.replace(/\s+/g, ''); // strip whitespace
+                if (!/^\+?\d{10,15}$/.test(cleaned))
+                    return setErr(fPhone, phoneErrTxt, 'Enter a valid phone number (10–15 digits).');
+                setOk(fPhone);
+                return true;
+            }
+
+            // Email: optional, but if filled must be a plausible email format
+            function validateEmail() {
+                const v = inEmail.value.trim();
+                if (!v) {
+                    // optional
+                    clearField(fEmail);
+                    return true;
+                }
+                if (hasIllegal(v)) return setErr(fEmail, emailErrTxt, 'Contains invalid characters.');
+                if (v.length > 100) return setErr(fEmail, emailErrTxt, 'Too long (max 100 characters).');
+                // Simple email pattern check (server will also validate via DB constraint)
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))
+                    return setErr(fEmail, emailErrTxt, 'Enter a valid email address (e.g. name@example.com).');
+                setOk(fEmail);
+                return true;
+            }
+
+            // Address: optional, no illegal chars, max 255 chars
+            function validateAddress() {
+                const v = inAddress.value.trim();
+                if (!v) {
+                    // optional
+                    clearField(fAddress);
+                    return true;
+                }
+                if (hasIllegal(v)) return setErr(fAddress, addressErrTxt, 'Contains invalid characters.');
+                if (v.length > 255) return setErr(fAddress, addressErrTxt, 'Too long (max 255 characters).');
+                setOk(fAddress);
+                return true;
+            }
+
+            // License Plate: required, max 20 chars, no illegal chars
+            // (format hint shown beneath field; strict format enforcement left to the server)
+            function validatePlate() {
+                const v = inPlate.value.trim();
+                if (!v) return setErr(fPlate, plateErrTxt, 'License plate is required.');
+                if (v.length > 20) return setErr(fPlate, plateErrTxt, 'Too long (max 20 characters).');
+                if (hasIllegal(v)) return setErr(fPlate, plateErrTxt, 'Contains invalid characters.');
+                setOk(fPlate);
+                return true;
+            }
+
+            // ── Blur listeners — validate each field as soon as the user leaves it ──
+            // This gives immediate inline feedback before the user clicks Submit.
+            inFullName.addEventListener('blur', validateFullName);
+            inPhone.addEventListener('blur', validatePhone);
+            inEmail.addEventListener('blur', validateEmail);
+            inAddress.addEventListener('blur', validateAddress);
+            inPlate.addEventListener('blur', validatePlate);
+
+            // ── Input listeners — clear the error state as the user types ──
+            // Also hides the global alert banner so it doesn't persist unnecessarily.
+            [inFullName, inPhone, inEmail, inAddress, inPlate].forEach(input => {
+                input.addEventListener('input', () => {
+                    // Only clear the field-level state, not the ok marker
+                    const fieldMap = {
+                        fullName: fFullName,
+                        phone: fPhone,
+                        email: fEmail,
+                        address: fAddress,
+                        licensePlate: fPlate
+                    };
+                    clearField(fieldMap[input.id]);
+                    alertErr.classList.remove('show'); // hide global error banner while typing
+                });
+            });
+
+            // ── Loading state toggle ──
+            // Disables button + swaps text for spinner during API call
+            function setLoading(on) {
+                submitBtn.disabled = on;
+                submitBtn.classList.toggle('loading', on);
+            }
+
+            // ── Reset the form to its initial blank state ──
+            // Called after successful registration (via overlay button) or by the "Clear" link
+            function resetForm() {
+                form.reset();
+                // Remove all validation state classes from each field wrapper
+                [fFullName, fPhone, fEmail, fAddress, fPlate].forEach(clearField);
+                // Hide the global error banner
+                alertErr.classList.remove('show');
+                // Return focus to the first field so staff can begin typing immediately
+                inFullName.focus();
+            }
+
+            // ── "Clear all fields" link handler ──
+            document.getElementById('resetLink').addEventListener('click', (e) => {
+                e.preventDefault();
+                resetForm();
+            });
+
+            // ── Overlay "Register Another Driver" button ──
+            // Hides the success overlay and resets the form for the next entry
+            document.getElementById('overlayDismiss').addEventListener('click', () => {
+                overlay.classList.remove('show');
+                resetForm();
+            });
+
+            // ── Form submit handler ──
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault(); // prevent native browser navigation
+                // Hide any previous global error
+                alertErr.classList.remove('show');
+                // Run all validators at once.
+                // Using bitwise AND (&) instead of logical AND (&&) ensures every
+                // validator runs even if an earlier one already returned false —
+                // this way all fields show their errors simultaneously.
+                const valid = validateFullName() & validatePhone() & validateEmail() & validateAddress() & validatePlate();
+                if (!valid) return; // at least one field has an error — stop here
+
+                // ── Build the form payload ──
+                // DriverAPIController reads parameters with request.getParameter(),
+                // so we must encode the body as application/x-www-form-urlencoded,
+                // NOT as JSON.
+                const params = new URLSearchParams();
+                params.append('fullName', inFullName.value.trim());
+                params.append('phone', inPhone.value.trim());
+                params.append('email', inEmail.value.trim());    // empty string if not filled
+                params.append('address', inAddress.value.trim());  // empty string if not filled
+                params.append('licensePlate', inPlate.value.trim().toUpperCase()); // normalize to uppercase
+                params.append('vehicleType', inVehicleType.value);
+                setLoading(true); // disable button + show spinner
+
+                try {
+                    // ── Send request to the registration API ──
+                    const res = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                        body: params.toString()
+                    });
+                    if (res.status === 201) {
+                        // ── SUCCESS: HTTP 201 Created ──
+                        // The server wrote the driver to the DB successfully.
+                        const plate = inPlate.value.trim().toUpperCase();
+                        overlayMsg.textContent = 'Driver registered successfully!';
+                        overlayPlate.textContent = `License plate: ${plate} has been added to the system.`;
+                        overlay.classList.add('show'); // show the full-screen success overlay
+                        // Note: form reset happens when staff clicks "Register Another Driver"
+                    } else if (res.status === 409) {
+                        // ── CONFLICT: HTTP 409 — duplicate license plate ──
+                        // The DB UQ_Vehicle_Plate constraint was violated.
+                        // Show the error inline on the license-plate field.
+                        setErr(fPlate, plateErrTxt, 'This license plate is already registered in the system.');
+                        inPlate.focus();
+                    } else {
+                        // ── OTHER SERVER ERROR ──
+                        // E.g. 500 Internal Server Error from an unexpected DB issue.
+                        // Read the plain-text response body from the server if available.
+                        let msg = 'An error occurred on the server. Please try again.';
+                        try {
+                            const txt = await res.text();
+                            if (txt)
+                                msg = txt;
+                        } catch (_) { /* ignore read errors */ }
+                        alertErrT.textContent = msg;
+                        alertErr.classList.add('show');
+                    }
+                } catch (err) {
+                    // ── NETWORK ERROR ──
+                    // The fetch itself failed (no network, server down, etc.)
+                    alertErrT.textContent = 'Cannot reach the server. Please check your connection.';
+                    alertErr.classList.add('show');
+                } finally {
+                    // Always re-enable the button after the request completes
+                    setLoading(false);
+                }
+            });
+
+            // Auto-uppercase the license plate input while the user types
+            inPlate.addEventListener('input', () => {
+                const pos = inPlate.selectionStart;
+                inPlate.value = inPlate.value.toUpperCase();
+                inPlate.setSelectionRange(pos, pos);
+            });
+
+            // Fetch and allocate vehicle types from database dynamically
+            async function loadVehicleTypes() {
+                try {
+                    const res = await fetch(API_URL);
+                    if (res.ok) {
+                        const types = await res.json();
+                        if (types && types.length > 0) {
+                            const select = document.getElementById('vehicleType');
+                            select.innerHTML = '';
+                            types.forEach(t => {
+                                const opt = document.createElement('option');
+                                opt.value = t.id;
+                                opt.textContent = t.name;
+                                select.appendChild(opt);
+                            });
+                        }
+                    }
+                } catch (err) {
+                    // Fail silently, keeping default hardcoded options
+                }
+            }
+            document.addEventListener('DOMContentLoaded', loadVehicleTypes);
+        </script>
+    </body>
+</html>
