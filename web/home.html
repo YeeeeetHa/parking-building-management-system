@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartParking - Staff Control Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --teal:    #1B6E6E;
+  --teal2:   #155858;
+  --teal-l:  #F0FAFA;
+  --red:     #EF4444;
+  --green:   #10B981;
+  --amber:   #F59E0B;
+  --bg:      linear-gradient(135deg,#EEF0FB 0%,#E8EAF6 40%,#E0F2F1 100%);
+  --card:    #fff;
+  --border:  #E5E7EB;
+  --text:    #1A2340;
+  --muted:   #6B7280;
+}
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  padding: 2rem;
+  min-height: 100vh;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px;
+  margin: 0 auto 2rem auto;
+}
+.header h1 { font-size: 1.75rem; font-weight: 700; color: #111827; }
+.layout-grid {
+  display: grid;
+  grid-template-columns: 1fr 450px;
+  gap: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+@media (max-width: 1024px) {
+  .layout-grid { grid-template-columns: 1fr; }
+}
+.card {
+  background: var(--card);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  padding: 1.75rem;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.02);
+  margin-bottom: 2rem;
+}
+.card h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+/* Grid CSS */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.75rem;
+}
+.slot {
+  aspect-ratio: 1.2;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-weight: 600;
+  cursor: pointer;
+  color: white;
+  transition: transform 0.2s;
+}
+.slot:hover { transform: scale(1.03); }
+.slot.empty { background: var(--green); }
+.slot.occupied { background: var(--red); cursor: not-allowed; }
+.slot.maintenance { background: var(--amber); }
+
+/* Forms UI */
+.form-group { margin-bottom: 1.25rem; }
+.form-group label { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; }
+.form-control {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 1.25rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-primary { background: var(--teal); color: #fff; }
+.btn-primary:hover { background: var(--teal2); }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-outline:hover { background: #F3F4F6; }
+
+.alert-toast {
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: none;
+}
+.alert-success { background: #DEF7EC; color: #03543F; }
+</style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Staff Control Management</h1>
+    <div>
+      <a href="customer-home.html" class="btn btn-outline">Logout to Customer Portal</a>
+    </div>
+  </div>
+
+  <div class="layout-grid">
+    <div>
+      <div class="card">
+        <h2>Interactive Lot Grid Status Control</h2>
+        <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 1rem;">
+          Click on any <strong>Empty</strong> or <strong>Maintenance</strong> space below to change its status.
+        </p>
+        
+        <div id="slotAlert" class="alert-toast alert-success">Status modified successfully!</div>
+
+        <div class="grid-container" id="staffGrid">
+          </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>Update Hourly Tariff Price</h2>
+        <div id="priceAlert" class="alert-toast alert-success">Tariff Prices updated successfully!</div>
+        <form id="priceForm">
+          <div class="form-group">
+            <label for="priceCar">Car Price (Dong / hr)</label>
+            <input type="number" step="0.01" id="priceCar" class="form-control" value="2.00">
+          </div>
+          <div class="form-group">
+            <label for="priceMotor">Motorbike Price (Dong / hr)</label>
+            <input type="number" step="0.01" id="priceMotor" class="form-control" value="0.50">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;">Save New Price</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Operation Parameters & Working Hours</h2>
+        <div id="timeAlert" class="alert-toast alert-success">Working hours updated successfully!</div>
+        <form id="timeForm">
+          <div class="form-group">
+            <label for="openTime">Opening Time</label>
+            <input type="time" id="openTime" class="form-control" value="06:00">
+          </div>
+          <div class="form-group">
+            <label for="closeTime">Closing Time</label>
+            <input type="time" id="closeTime" class="form-control" value="23:30">
+          </div>
+          <div class="form-group">
+            <label for="lotAddress">Facility Location Address</label>
+            <input type="text" id="lotAddress" class="form-control" value="E2a-7 D1 Street, High-Tech Park, Long Thanh My, Thu Duc, Ho Chi Minh City">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;">Apply Facility Parameters</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // Dynamic UI update scripts 
+  async function loadStaffGridData() {
+    try {
+      const res = await fetch('api/v1/home/summary');
+      if (!res.ok) return;
+      const data = await res.json();
+      
+      const grid = document.getElementById('staffGrid');
+      grid.innerHTML = '';
+      
+      if (data.vehicles) {
+        data.vehicles.forEach(v => {
+          const div = document.createElement('div');
+          let statusClass = v.status.toLowerCase();
+          
+          div.className = `slot ${statusClass}`;
+          div.innerHTML = `<div>${v.slot_id}</div><div style="font-size:0.7rem; font-weight:normal;">${v.status}</div>`;
+          
+          // Disable clicking occupied slots to avoid active ticket bugs
+          if(statusClass !== 'occupied') {
+            div.onclick = () => toggleSlotStatus(v.slot_id, v.status);
+          }
+          grid.appendChild(div);
+        });
+      }
+    } catch(e) { console.error("Grid load failed", e); }
+  }
+
+  // Handle slot toggle manipulation rule
+  async function toggleSlotStatus(slotId, currentStatus) {
+    const nextStatus = currentStatus === 'Empty' ? 'Maintenance' : 'Empty';
+    try {
+      const res = await fetch('http://localhost:8080/api/v1/slots/update-status', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ slot_id: slotId, status: nextStatus })
+      });
+      showToast('slotAlert');
+      loadStaffGridData();
+    } catch(e) { console.error(e); }
+  }
+
+  // Handle Pricing submit logic
+  document.getElementById('priceForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const carRate = document.getElementById('priceCar').value;
+    const motorRate = document.getElementById('priceMotor').value;
+    
+    localStorage.setItem('cached_car_rate', carRate);
+    localStorage.setItem('cached_motor_rate', motorRate);
+    showToast('priceAlert');
+  });
+
+  // Handle time form changes logic
+  document.getElementById('timeForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    localStorage.setItem('parking_open_time', document.getElementById('openTime').value);
+    localStorage.setItem('parking_close_time', document.getElementById('closeTime').value);
+    localStorage.setItem('parking_address', document.getElementById('lotAddress').value);
+    showToast('timeAlert');
+  });
+
+  function showToast(id) {
+    const el = document.getElementById(id);
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 3000);
+  }
+
+  // Fetch presets on load execution
+  if(localStorage.getItem('cached_car_rate')) document.getElementById('priceCar').value = localStorage.getItem('cached_car_rate');
+  if(localStorage.getItem('cached_motor_rate')) document.getElementById('priceMotor').value = localStorage.getItem('cached_motor_rate');
+  if(localStorage.getItem('parking_open_time')) document.getElementById('openTime').value = localStorage.getItem('parking_open_time');
+  if(localStorage.getItem('parking_close_time')) document.getElementById('closeTime').value = localStorage.getItem('parking_close_time');
+  if(localStorage.getItem('parking_address')) document.getElementById('lotAddress').value = localStorage.getItem('parking_address');
+
+  loadStaffGridData();
+  </script>
+</body>
+</html>

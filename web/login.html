@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit this template
+-->
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Staff Login - Smart Parking</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <style>
+            *, *::before, *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                font-family: 'Inter', sans-serif;
+                min-height: 100vh;
+                background: linear-gradient(135deg, #EEF0FB 0%, #E8EAF6 40%, #E0F2F1 100%);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 1.5rem;
+            }
+
+            .card {
+                background: #fff;
+                border-radius: 16px;
+                box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+                padding: 2.5rem 2rem;
+                width: 100%;
+                max-width: 400px;
+                animation: fadeUp 0.4s ease both;
+            }
+
+            @keyframes fadeUp {
+                from {
+                    opacity:0;
+                    transform:translateY(16px);
+                }
+                to   {
+                    opacity:1;
+                    transform:translateY(0);
+                }
+            }
+
+            /* Header */
+            .logo-wrap {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                margin-bottom: 1.75rem;
+                gap: 10px;
+            }
+
+            .logo-icon {
+                width: 52px;
+                height: 52px;
+                background: #1B6E6E;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #fff;
+                font-size: 22px;
+                font-weight: 700;
+                letter-spacing: -1px;
+            }
+
+            .logo-title {
+                font-size: 20px;
+                font-weight: 700;
+                color: #1A2340;
+            }
+
+            .logo-sub {
+                font-size: 13px;
+                color: #8A94A6;
+                margin-top: -6px;
+            }
+
+            /* Alert */
+            .alert {
+                border-radius: 8px;
+                padding: 10px 14px;
+                font-size: 13px;
+                display: none;
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 1rem;
+            }
+            .alert.show {
+                display: flex;
+            }
+            .alert-error {
+                background: #FEF2F2;
+                border: 1px solid #FECACA;
+                color: #DC2626;
+            }
+            .alert-success {
+                background: #F0FDF4;
+                border: 1px solid #BBF7D0;
+                color: #16A34A;
+            }
+
+            /* Fields */
+            .field {
+                margin-bottom: 1rem;
+            }
+
+            label {
+                display: block;
+                font-size: 12px;
+                font-weight: 600;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+                color: #4B5563;
+                margin-bottom: 6px;
+            }
+
+            .input-wrap {
+                position: relative;
+            }
+
+            .input-wrap .ico {
+                position: absolute;
+                left: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #9CA3AF;
+                pointer-events: none;
+                display: flex;
+            }
+
+            input[type="text"],
+            input[type="password"] {
+                width: 100%;
+                height: 44px;
+                border: 1.5px solid #E5E7EB;
+                border-radius: 8px;
+                background: #F9FAFB;
+                color: #111827;
+                font-size: 14px;
+                font-family: 'Inter', sans-serif;
+                padding: 0 12px 0 38px;
+                outline: none;
+                transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+            }
+
+            input:focus {
+                border-color: #1B6E6E;
+                background: #fff;
+                box-shadow: 0 0 0 3px rgba(27,110,110,0.1);
+            }
+
+            input::placeholder {
+                color: #D1D5DB;
+            }
+
+            .toggle-pass {
+                position: absolute;
+                right: 10px;
+                top: 50%;
+                transform: translateY(-50%);
+                background: none;
+                border: none;
+                cursor: pointer;
+                color: #9CA3AF;
+                display: flex;
+                padding: 4px;
+                border-radius: 4px;
+                transition: color 0.15s;
+            }
+            .toggle-pass:hover {
+                color: #4B5563;
+            }
+
+            input[type="password"],
+            input.pass-text {
+                padding-right: 38px;
+            }
+
+            /* Validation states */
+            .field-error input {
+                border-color: #EF4444;
+                background: #FFF9F9;
+            }
+            .field-error input:focus {
+                box-shadow: 0 0 0 3px rgba(239,68,68,0.1);
+            }
+            .field-ok input {
+                border-color: #10B981;
+            }
+
+            .err-msg {
+                font-size: 11.5px;
+                color: #EF4444;
+                margin-top: 4px;
+                display: none;
+                align-items: center;
+                gap: 4px;
+            }
+            .field-error .err-msg {
+                display: flex;
+            }
+
+            /* Remember + forgot row */
+            .row-mid {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 1.25rem;
+            }
+
+            .remember {
+                display: flex;
+                align-items: center;
+                gap: 7px;
+                cursor: pointer;
+                font-size: 13px;
+                color: #4B5563;
+                user-select: none;
+            }
+
+            .remember input[type="checkbox"] {
+                width: 15px;
+                height: 15px;
+                accent-color: #1B6E6E;
+                cursor: pointer;
+                padding: 0;
+                border-radius: 3px;
+            }
+
+            .forgot {
+                font-size: 13px;
+                font-weight: 600;
+                color: #1B6E6E;
+                text-decoration: none;
+            }
+            .forgot:hover {
+                text-decoration: underline;
+            }
+
+            /* Button */
+            .btn-login {
+                width: 100%;
+                height: 46px;
+                background: #1B6E6E;
+                color: #fff;
+                border: none;
+                border-radius: 8px;
+                font-size: 15px;
+                font-weight: 600;
+                font-family: 'Inter', sans-serif;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                transition: background 0.2s, transform 0.1s, opacity 0.2s;
+            }
+            .btn-login:hover:not(:disabled) {
+                background: #155858;
+            }
+            .btn-login:active:not(:disabled) {
+                transform: scale(0.98);
+            }
+            .btn-login:disabled {
+                opacity: 0.65;
+                cursor: not-allowed;
+            }
+
+            .spinner {
+                width: 18px;
+                height: 18px;
+                border: 2.5px solid rgba(255,255,255,0.35);
+                border-top-color: #fff;
+                border-radius: 50%;
+                display: none;
+                animation: spin 0.65s linear infinite;
+            }
+            .btn-login.loading .btn-text {
+                display: none;
+            }
+            .btn-login.loading .spinner {
+                display: block;
+            }
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            /* Divider */
+            .divider {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin: 1.25rem 0;
+                font-size: 12px;
+                color: #D1D5DB;
+            }
+            .divider::before,.divider::after {
+                content:'';
+                flex:1;
+                height:1px;
+                background:#E5E7EB;
+            }
+
+            /* Footer link */
+            .footer-note {
+                text-align: center;
+                font-size: 13px;
+                color: #6B7280;
+                margin-top: 0.25rem;
+            }
+            .footer-note a {
+                color: #1B6E6E;
+                font-weight: 600;
+                text-decoration: none;
+            }
+            .footer-note a:hover {
+                text-decoration: underline;
+            }
+
+            /* Redirect overlay */
+            .overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(255,255,255,0.9);
+                backdrop-filter: blur(4px);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 14px;
+                z-index: 99;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.35s;
+            }
+            .overlay.show {
+                opacity: 1;
+                pointer-events: all;
+            }
+            .overlay-check {
+                width: 56px;
+                height: 56px;
+                background: #ECFDF5;
+                border: 2px solid #6EE7B7;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: popIn 0.4s cubic-bezier(0.22,1,0.36,1) both;
+            }
+            @keyframes popIn {
+                from{
+                    opacity:0;
+                    transform:scale(0.6)
+                }
+                to{
+                    opacity:1;
+                    transform:scale(1)
+                }
+            }
+            .overlay p {
+                font-size: 15px;
+                font-weight: 600;
+                color: #1A2340;
+            }
+            .overlay small {
+                font-size: 12px;
+                color: #9CA3AF;
+            }
+
+            .btn-nav {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                padding: 6px 13px;
+                border-radius: 8px;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                text-decoration: none;
+                transition: all 0.18s;
+                border: 1.5px solid transparent;
+            }
+            /* Outlined variant — used for secondary nav action */
+            .btn-nav.secondary {
+                background: #fff;
+                color: #4B5563;
+                border-color: #E5E7EB;
+            }
+            .btn-nav.secondary:hover {
+                background: #F9FAFB;
+                border-color: #D1D5DB;
+            }
+        </style>
+    </head>
+    <body>
+
+        <div class="overlay" id="overlay">
+            <div class="overlay-check">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <p>Login successful!</p>
+            <small>Redirecting to your dashboard…</small>
+        </div>
+
+        <div class="card">
+            <div class="logo-wrap">
+                <div class="logo-icon">P</div>
+                <div class="logo-title">SParking Management Login</div>
+                <div class="logo-sub">Staff Only</div>
+            </div>
+            <div class="alert alert-error" id="alertErr" role="alert">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span id="alertErrText">Invalid credentials.</span>
+            </div>
+
+            <form id="loginForm" novalidate>
+
+                <div class="field" id="fName">
+                    <label for="name">Username</label>
+                    <div class="input-wrap">
+                        <span class="ico">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </span>
+                        <input type="text" id="name" name="name" placeholder="Enter your username" maxlength="100" autocomplete="username" aria-required="true" aria-describedby="nameErr"/>
+                    </div>
+                    <div class="err-msg" id="nameErr" role="alert">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <span id="nameErrTxt">Username is required.</span>
+                    </div>
+                </div>
+
+                <div class="field" id="fPass">
+                    <label for="password">Password</label>
+                    <div class="input-wrap">
+                        <span class="ico">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        </span>
+                        <input type="password" id="password" name="password" placeholder="Enter your password" maxlength="30" autocomplete="current-password" aria-required="true" aria-describedby="passErr"/>
+                        <button type="button" class="toggle-pass" id="togglePass" aria-label="Show password">
+                            <svg id="eyeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="err-msg" id="passErr" role="alert">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <span id="passErrTxt">Password is required.</span>
+                    </div>
+                </div>
+
+                <div class="row-mid">
+                    <label class="remember">
+                        <input type="checkbox" id="rememberMe"> Remember me
+                    </label>
+                    <a href="forgot-password.html" class="forgot">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="btn-login" id="submitBtn">
+                    <span class="btn-text">Login</span>
+                    <div class="spinner"></div>
+                </button>
+
+                <div style="display: flex; justify-content: center; margin-top: 1.5rem;">
+                    <a href="home.html" class="btn-nav secondary">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9 22 9 12 15 12 15 22"/>
+                        </svg>
+                        Back to Home
+                    </a>
+                </div>
+
+            </form>
+        </div>
+
+        <script>
+            const API_URL = 'api/v1/auth/login';
+            const SESSION_KEY = 'sp_session';
+
+            /* ── Redirect if already logged in ── */
+            (function () {
+                try {
+                    const raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
+                    if (raw) {
+                        const s = JSON.parse(raw);
+                        if (s && s.authenticated)
+                            window.location.href = getDashUrl(s.role);
+                    }
+                } catch (e) {
+                }
+            })();
+
+            function getDashUrl(role) {
+                const map = {admin: '/Parking_Slot/home.html'};
+                return map[role] || '/home.html';
+            }
+
+            const nameInput = document.getElementById('name');
+            const passInput = document.getElementById('password');
+            const fName = document.getElementById('fName');
+            const fPass = document.getElementById('fPass');
+            const nameErrTxt = document.getElementById('nameErrTxt');
+            const passErrTxt = document.getElementById('passErrTxt');
+            const alertErr = document.getElementById('alertErr');
+            const alertErrT = document.getElementById('alertErrText');
+            const submitBtn = document.getElementById('submitBtn');
+            const togglePass = document.getElementById('togglePass');
+            const eyeIcon = document.getElementById('eyeIcon');
+            const overlay = document.getElementById('overlay');
+            const rememberMe = document.getElementById('rememberMe');
+
+            const EYE_OPEN = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+            const EYE_CLOSED = `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`;
+
+            togglePass.addEventListener('click', () => {
+                const show = passInput.type === 'password';
+                passInput.type = show ? 'text' : 'password';
+                eyeIcon.innerHTML = show ? EYE_CLOSED : EYE_OPEN;
+                togglePass.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+            });
+
+            const ILLEGAL = ["'", '"', ';', '--', '<', '>'];
+            function hasIllegal(s) {
+                return ILLEGAL.some(c => s.includes(c));
+            }
+
+            function validateName() {
+                const v = nameInput.value.trim();
+                if (!v)
+                    return setErr(fName, nameErrTxt, 'Username is required.');
+                if (v.length > 100)
+                    return setErr(fName, nameErrTxt, 'Too long (max 100 chars).');
+                if (hasIllegal(v))
+                    return setErr(fName, nameErrTxt, 'Contains invalid characters.');
+                setOk(fName);
+                return true;
+            }
+
+            function validatePass() {
+                const v = passInput.value.trim();
+                if (!v)
+                    return setErr(fPass, passErrTxt, 'Password is required.');
+                if (v.length > 30)
+                    return setErr(fPass, passErrTxt, 'Too long (max 30 chars).');
+                if (hasIllegal(v))
+                    return setErr(fPass, passErrTxt, 'Contains invalid characters.');
+                setOk(fPass);
+                return true;
+            }
+
+            function setErr(field, el, msg) {
+                field.classList.remove('field-ok');
+                field.classList.add('field-error');
+                el.textContent = msg;
+                return false;
+            }
+            function setOk(field) {
+                field.classList.remove('field-error');
+                field.classList.add('field-ok');
+            }
+            function clearField(field) {
+                field.classList.remove('field-error', 'field-ok');
+            }
+
+            nameInput.addEventListener('input', () => {
+                clearField(fName);
+                alertErr.classList.remove('show');
+            });
+            passInput.addEventListener('input', () => {
+                clearField(fPass);
+                alertErr.classList.remove('show');
+            });
+            nameInput.addEventListener('blur', validateName);
+            passInput.addEventListener('blur', validatePass);
+
+            function setLoading(on) {
+                submitBtn.disabled = on;
+                submitBtn.classList.toggle('loading', on);
+            }
+
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                alertErr.classList.remove('show');
+                if (!validateName() | !validatePass())
+                    return; // bitwise OR runs both
+
+                const name = nameInput.value.trim();
+                const password = passInput.value.trim();
+
+                setLoading(true);
+                try {
+                    const res = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({name, password})
+                    });
+                    const data = await res.json();
+
+                    if (res.ok && data.success) {
+                        const session = {
+                            authenticated: true,
+                            name: data.name || name,
+                            role: data.role || 'attendant',
+                            staff_id: data.staff_id || null,
+                            loginTime: new Date().toISOString()
+                        };
+                        const store = rememberMe.checked ? localStorage : sessionStorage;
+                        store.setItem(SESSION_KEY, JSON.stringify(session));
+
+                        overlay.classList.add('show');
+                        setTimeout(() => {
+                            window.location.href = getDashUrl(session.role);
+                        }, 1600);
+
+                    } else if (res.status === 400) {
+                        alertErrT.textContent = 'Input contains invalid characters.';
+                        alertErr.classList.add('show');
+                        setLoading(false);
+                    } else {
+                        alertErrT.textContent = data.message || 'Invalid username or password.';
+                        alertErr.classList.add('show');
+                        passInput.value = '';
+                        clearField(fPass);
+                        passInput.focus();
+                        setLoading(false);
+                    }
+                } catch (err) {
+                    alertErrT.textContent = 'Cannot reach the server. Check your connection.';
+                    alertErr.classList.add('show');
+                    setLoading(false);
+                }
+            });
+
+            /* ── Auth guard — paste this snippet at top of every protected page ── */
+            window.requireAuth = function (allowedRoles) {
+                try {
+                    const raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
+                    const s = JSON.parse(raw || '{}');
+                    if (!s.authenticated) {
+                        window.location.href = '/login.html';
+                        return null;
+                    }
+                    if (allowedRoles && !allowedRoles.includes(s.role)) {
+                        window.location.href = '/unauthorized.html';
+                        return null;
+                    }
+                    return s;
+                } catch (e) {
+                    window.location.href = '/login.html';
+                    return null;
+                }
+            };
+            // Inside your login.html form submission script
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                alertErr.classList.remove('show');
+
+                const username = userInput.value.trim();
+                const password = passInput.value.trim();
+
+                try {
+                    const response = await fetch('http://localhost:8080/api/v1/auth/login', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({username: username, password: password})
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        // Save the staff session so home.html knows who they are
+                        sessionStorage.setItem("SESSION_KEY", JSON.stringify({
+                            authenticated: true,
+                            username: username,
+                            role: data.role || 'attendant'
+                        }));
+
+                        // This line performs the magic arrow from your diagram!
+                        window.location.href = '/home.html';
+                    } else {
+                        // Display error if credentials are wrong (HTTP 401)
+                        alertErrT.textContent = data.message || 'Invalid username or password.';
+                        alertErr.classList.add('show');
+                        passInput.value = '';
+                        passInput.focus();
+                        setLoading(false);
+                    }
+                } catch (err) {
+                    alertErrT.textContent = 'Cannot reach the server. Check your connection.';
+                    alertErr.classList.add('show');
+                    setLoading(false);
+                }
+            });
+        </script>
+    </body>
+</html>
