@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import utils.DbUtils;
+import utils.InputValidator;
 
 /*
  * DriverDAO — Data Access Object for driver/vehicle registration
@@ -19,14 +20,23 @@ import utils.DbUtils;
  * Any SQL exceptions are thrown upward — the controller decides what HTTP status to send back.
  */
 public class DriverDAO {
+
     /*
      * registerDriver inserts a new row into the Driver table using a PreparedStatement.
      * Using PreparedStatement (not Statement) is important — it protects against SQL injection
      * since the values are bound as parameters, not concatenated into the query string.
      * Throws Exception (not caught here) so the caller (DriverAPIController) can inspect
      * the SQLException message and decide whether to return 409 or 500.
-    */
+     */
     public boolean registerDriver(Driver driver) throws Exception {
+        if (driver == null) {
+            throw new IllegalArgumentException("Driver cannot be null");
+        }
+
+        if (!InputValidator.isValidLicensePlate(driver.getLicensePlate())) {
+            throw new IllegalArgumentException("Invalid license plate");
+        }
+
         Connection con = null;
         PreparedStatement psCustomer = null;
         PreparedStatement psVehicle = null;
