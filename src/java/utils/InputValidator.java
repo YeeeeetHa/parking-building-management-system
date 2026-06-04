@@ -18,12 +18,30 @@ public class InputValidator {
     // Returns true if the input is safe to use, false if it looks sketchy.
     // maxLength lets callers enforce field-specific size limits (username=100, password=30, etc.).
     public static boolean isValidLoginInput(String input, int maxLength) {
-        if (input == null) return false;
+        if (input == null) {
+            return false;
+        }
         input = input.trim();
-        if (input.isEmpty() || input.length() > maxLength) return false;
+        if (input.isEmpty() || input.length() > maxLength) {
+            return false;
+        }
         // Blacklist block: Blocks dangerous database manipulation symbols 
         // but perfectly allows spaces for "Nguyen Admin" and numbers like "123"
-        if (input.contains("'") || input.contains("\"") || input.contains(";") || input.contains("--")) return false;
+        if (input.contains("'") || input.contains("\"") || input.contains(";") || input.contains("--")) {
+            return false;
+        }
         return true;
+    }
+
+    public static boolean isValidLicensePlate(String plate) {
+        if (plate == null || plate.trim().isEmpty()) {
+            return false;
+        }
+
+        plate = plate.trim().toUpperCase();
+
+        return plate.matches(
+                "^[0-9]{2}[A-Z]-[0-9]{3}\\.[0-9]{2}$"
+        );
     }
 }

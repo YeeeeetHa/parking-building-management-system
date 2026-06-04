@@ -13,6 +13,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import utils.InputValidator;
 
 /*
  * DriverAPIController — handles POST /api/v1/drivers/register
@@ -30,7 +31,7 @@ public class DriverAPIController extends HttpServlet {
 
     // doPost is triggered when the registration form hits Submit
     protected void doPost(HttpServletRequest request,
-                          HttpServletResponse response)
+            HttpServletResponse response)
             throws ServletException, IOException {
 
         // Pull each form field out of the request — the frontend sends these as
@@ -48,6 +49,12 @@ public class DriverAPIController extends HttpServlet {
             }
         } catch (NumberFormatException e) {
             // ignore, keep default
+        }
+
+        if (!InputValidator.isValidLicensePlate(licensePlate)) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().write("Invalid license plate format");
+            return;
         }
         // Pack everything into a DriverDTO so the DAO layer doesn't need to know
         // anything about the HTTP request — clean separation of concerns
@@ -92,7 +99,7 @@ public class DriverAPIController extends HttpServlet {
         response.setHeader("Access-Control-Allow-Origin", "*");
         response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
         response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-        
+
         DriverDAO dao = new DriverDAO();
         try {
             java.util.List<String[]> list = dao.getVehicleTypes();
