@@ -8,11 +8,7 @@
             <explicit-platform explicit-source-supported="true"/>
             <web-module-libraries>
                 <library dirs="200">
-                    <file>${file.reference.javax.servlet-api-4.0.1.jar}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library dirs="200">
-                    <file>${file.reference.postgresql-42.2.16.jar}</file>
+                    <file>${file.reference.sqljdbc4.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
             </web-module-libraries>

@@ -1,898 +1,273 @@
-<!DOCTYPE html>
-<!--
-Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
-Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit this template
--->
+  <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>FPT Parking Lot — Welcome</title>
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-        <style>
-            *, *::before, *::after {
-                box-sizing: border-box;
-                margin: 0;
-                padding: 0;
-            }
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartParking - Staff Control Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --teal:    #1B6E6E;
+  --teal2:   #155858;
+  --teal-l:  #F0FAFA;
+  --red:     #EF4444;
+  --green:   #10B981;
+  --amber:   #F59E0B;
+  --bg:      linear-gradient(135deg,#EEF0FB 0%,#E8EAF6 40%,#E0F2F1 100%);
+  --card:    #fff;
+  --border:  #E5E7EB;
+  --text:    #1A2340;
+  --muted:   #6B7280;
+}
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  padding: 2rem;
+  min-height: 100vh;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px;
+  margin: 0 auto 2rem auto;
+}
+.header h1 { font-size: 1.75rem; font-weight: 700; color: #111827; }
+.layout-grid {
+  display: grid;
+  grid-template-columns: 1fr 450px;
+  gap: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+@media (max-width: 1024px) {
+  .layout-grid { grid-template-columns: 1fr; }
+}
+.card {
+  background: var(--card);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  padding: 1.75rem;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.02);
+  margin-bottom: 2rem;
+}
+.card h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+/* Grid CSS */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.75rem;
+}
+.slot {
+  aspect-ratio: 1.2;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-weight: 600;
+  cursor: pointer;
+  color: white;
+  transition: transform 0.2s;
+}
+.slot:hover { transform: scale(1.03); }
+.slot.empty { background: var(--green); }
+.slot.occupied { background: var(--red); cursor: not-allowed; }
+.slot.maintenance { background: var(--amber); }
 
-            body {
-                font-family: 'Inter', sans-serif;
-                min-height: 100vh;
-                background: linear-gradient(135deg, #EEF0FB 0%, #E8EAF6 40%, #E0F2F1 100%);
-                color: #1A2340;
-            }
+/* Forms UI */
+.form-group { margin-bottom: 1.25rem; }
+.form-group label { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; }
+.form-control {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 1.25rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-primary { background: var(--teal); color: #fff; }
+.btn-primary:hover { background: var(--teal2); }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-outline:hover { background: #F3F4F6; }
 
-            /* ── Navbar ── */
-            .navbar {
-                position: sticky;
-                top: 0;
-                z-index: 50;
-                width: 100%;
-                background: rgba(255,255,255,0.75);
-                backdrop-filter: blur(12px);
-                -webkit-backdrop-filter: blur(12px);
-                border-bottom: 1px solid rgba(229,231,235,0.8);
-                padding: 0 2rem;
-                height: 58px;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                animation: slideDown 0.4s ease both;
-            }
+.alert-toast {
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: none;
+}
+.alert-success { background: #DEF7EC; color: #03543F; }
+</style>
+</head>
+<body>
 
-            @keyframes slideDown {
-                from{
-                    opacity:0;
-                    transform:translateY(-10px)
-                }
-                to{
-                    opacity:1;
-                    transform:translateY(0)
-                }
-            }
+  <div class="header">
+    <h1>Staff Control Management</h1>
+    <div>
+      <a href="customer-home.html" class="btn btn-outline">Logout to Customer Portal</a>
+    </div>
+  </div>
 
-            .brand {
-                display:flex;
-                align-items:center;
-                gap:10px;
-                text-decoration:none;
-            }
-            .brand-icon {
-                width:34px;
-                height:34px;
-                background:#1B6E6E;
-                border-radius:9px;
-                display:flex;
-                align-items:center;
-                justify-content:center;
-                color:#fff;
-                font-size:15px;
-                font-weight:700;
-                flex-shrink:0;
-            }
-            .brand-name {
-                font-size:15px;
-                font-weight:700;
-                color:#1A2340;
-            }
-            .brand-sub  {
-                font-size:10px;
-                color:#8A94A6;
-                margin-top:1px;
-            }
+  <div class="layout-grid">
+    <div>
+      <div class="card">
+        <h2>Interactive Lot Grid Status Control</h2>
+        <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 1rem;">
+          Click on any <strong>Empty</strong> or <strong>Maintenance</strong> space below to change its status.
+        </p>
+        
+        <div id="slotAlert" class="alert-toast alert-success">Status modified successfully!</div>
 
-            .nav-right {
-                display:flex;
-                align-items:center;
-                gap:8px;
-            }
+        <div class="grid-container" id="staffGrid">
+          </div>
+      </div>
+    </div>
 
-            .live-pill {
-                display:flex;
-                align-items:center;
-                gap:5px;
-                background:#F0FDF4;
-                border:1px solid #BBF7D0;
-                border-radius:20px;
-                padding:4px 10px;
-                font-size:11px;
-                font-weight:500;
-                color:#16A34A;
-                margin-right:4px;
-            }
-            .live-dot {
-                width:6px;
-                height:6px;
-                background:#22C55E;
-                border-radius:50%;
-                animation: pulse 2s ease-in-out infinite;
-            }
-            @keyframes pulse {
-                0%,100%{
-                    opacity:1;
-                    transform:scale(1)
-                }
-                50%{
-                    opacity:.5;
-                    transform:scale(1.4)
-                }
-            }
+    <div>
+      <div class="card">
+        <h2>Update Hourly Tariff Price</h2>
+        <div id="priceAlert" class="alert-toast alert-success">Tariff Prices updated successfully!</div>
+        <form id="priceForm">
+          <div class="form-group">
+            <label for="priceCar">Car Price (Dong / hr)</label>
+            <input type="number" step="0.01" id="priceCar" class="form-control" value="2.00">
+          </div>
+          <div class="form-group">
+            <label for="priceMotor">Motorbike Price (Dong / hr)</label>
+            <input type="number" step="0.01" id="priceMotor" class="form-control" value="0.50">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;">Save New Price</button>
+        </form>
+      </div>
 
-            .btn-nav {
-                display:flex;
-                align-items:center;
-                gap:5px;
-                padding:6px 13px;
-                border-radius:8px;
-                font-size:12px;
-                font-weight:600;
-                cursor:pointer;
-                text-decoration:none;
-                transition:all 0.18s;
-                border: 1.5px solid transparent;
-            }
-            .btn-nav.staff {
-                background:#1B6E6E;
-                color:#fff;
-            }
-            .btn-nav.staff:hover {
-                background:#155858;
-            }
-            .btn-nav.customer {
-                background:#fff;
-                color:#4B5563;
-                border-color:#E5E7EB;
-            }
-            .btn-nav.customer:hover {
-                background:#F9FAFB;
-                border-color:#D1D5DB;
-            }
+      <div class="card">
+        <h2>Operation Parameters & Working Hours</h2>
+        <div id="timeAlert" class="alert-toast alert-success">Working hours updated successfully!</div>
+        <form id="timeForm">
+          <div class="form-group">
+            <label for="openTime">Opening Time</label>
+            <input type="time" id="openTime" class="form-control" value="06:00">
+          </div>
+          <div class="form-group">
+            <label for="closeTime">Closing Time</label>
+            <input type="time" id="closeTime" class="form-control" value="23:30">
+          </div>
+          <div class="form-group">
+            <label for="lotAddress">Facility Location Address</label>
+            <input type="text" id="lotAddress" class="form-control" value="E2a-7 D1 Street, High-Tech Park, Long Thanh My, Thu Duc, Ho Chi Minh City">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;">Apply Facility Parameters</button>
+        </form>
+      </div>
+    </div>
+  </div>
 
-            /* ── Hero ── */
-            .hero {
-                max-width: 780px;
-                margin: 0 auto;
-                padding: 3rem 1.5rem 1.5rem;
-                text-align: center;
-                animation: fadeUp 0.5s 0.05s ease both;
-            }
+  <script>
+  // Dynamic UI update scripts 
+  async function loadStaffGridData() {
+    try {
+      const res = await fetch('api/v1/home/summary');
+      if (!res.ok) return;
+      const data = await res.json();
+      
+      const grid = document.getElementById('staffGrid');
+      grid.innerHTML = '';
+      
+      if (data.vehicles) {
+        data.vehicles.forEach(v => {
+          const div = document.createElement('div');
+          let statusClass = v.status.toLowerCase();
+          
+          div.className = `slot ${statusClass}`;
+          div.innerHTML = `<div>${v.slot_id}</div><div style="font-size:0.7rem; font-weight:normal;">${v.status}</div>`;
+          
+          // Disable clicking occupied slots to avoid active ticket bugs
+          if(statusClass !== 'occupied') {
+            div.onclick = () => toggleSlotStatus(v.slot_id, v.status);
+          }
+          grid.appendChild(div);
+        });
+      }
+    } catch(e) { console.error("Grid load failed", e); }
+  }
 
-            @keyframes fadeUp {
-                from{
-                    opacity:0;
-                    transform:translateY(16px)
-                }
-                to{
-                    opacity:1;
-                    transform:translateY(0)
-                }
-            }
+  // Handle slot toggle manipulation rule
+  async function toggleSlotStatus(slotId, currentStatus) {
+    const nextStatus = currentStatus === 'Empty' ? 'Maintenance' : 'Empty';
+    try {
+      const res = await fetch('http://localhost:8080/api/v1/slots/update-status', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ slot_id: slotId, status: nextStatus })
+      });
+      showToast('slotAlert');
+      loadStaffGridData();
+    } catch(e) { console.error(e); }
+  }
 
-            .hero-eyebrow {
-                display:inline-flex;
-                align-items:center;
-                gap:6px;
-                background:#fff;
-                border:1px solid #E5E7EB;
-                border-radius:20px;
-                padding:5px 14px;
-                font-size:11px;
-                font-weight:600;
-                color:#1B6E6E;
-                text-transform:uppercase;
-                letter-spacing:0.07em;
-                margin-bottom:1rem;
-            }
+  // Handle Pricing submit logic
+  document.getElementById('priceForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const carRate = document.getElementById('priceCar').value;
+    const motorRate = document.getElementById('priceMotor').value;
+    
+    localStorage.setItem('cached_car_rate', carRate);
+    localStorage.setItem('cached_motor_rate', motorRate);
+    showToast('priceAlert');
+  });
 
-            .hero h1 {
-                font-size:38px;
-                font-weight:700;
-                line-height:1.12;
-                letter-spacing:-0.025em;
-                margin-bottom:12px;
-                color:#1A2340;
-            }
-            .hero h1 em {
-                font-style:normal;
-                color:#1B6E6E;
-            }
+  // Handle time form changes logic
+  document.getElementById('timeForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    localStorage.setItem('parking_open_time', document.getElementById('openTime').value);
+    localStorage.setItem('parking_close_time', document.getElementById('closeTime').value);
+    localStorage.setItem('parking_address', document.getElementById('lotAddress').value);
+    showToast('timeAlert');
+  });
 
-            .hero-sub {
-                font-size:14px;
-                color:#6B7280;
-                line-height:1.7;
-                max-width:420px;
-                margin:0 auto 2rem;
-            }
+  function showToast(id) {
+    const el = document.getElementById(id);
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 3000);
+  }
 
-            /* ── Stats row ── */
-            .stats-row {
-                max-width:780px;
-                margin:0 auto;
-                padding:0 1.5rem 1.5rem;
-                display:grid;
-                grid-template-columns:repeat(3,1fr);
-                gap:14px;
-                animation: fadeUp 0.5s 0.1s ease both;
-            }
+  // Fetch presets on load execution
+  if(localStorage.getItem('cached_car_rate')) document.getElementById('priceCar').value = localStorage.getItem('cached_car_rate');
+  if(localStorage.getItem('cached_motor_rate')) document.getElementById('priceMotor').value = localStorage.getItem('cached_motor_rate');
+  if(localStorage.getItem('parking_open_time')) document.getElementById('openTime').value = localStorage.getItem('parking_open_time');
+  if(localStorage.getItem('parking_close_time')) document.getElementById('closeTime').value = localStorage.getItem('parking_close_time');
+  if(localStorage.getItem('parking_address')) document.getElementById('lotAddress').value = localStorage.getItem('parking_address');
 
-            .stat-card {
-                background:#fff;
-                border-radius:16px;
-                padding:1.4rem 1rem 1.2rem;
-                text-align:center;
-                border:1px solid #E5E7EB;
-                position:relative;
-                overflow:hidden;
-                transition: transform 0.18s, box-shadow 0.18s;
-            }
-            .stat-card:hover {
-                transform:translateY(-3px);
-                box-shadow:0 8px 24px rgba(0,0,0,0.08);
-            }
-
-            .stat-card::before {
-                content:'';
-                position:absolute;
-                top:0;
-                left:0;
-                right:0;
-                height:3px;
-                border-radius:16px 16px 0 0;
-            }
-            .stat-card.occupied::before  {
-                background:linear-gradient(90deg,#F87171,#EF4444);
-            }
-            .stat-card.available::before {
-                background:linear-gradient(90deg,#34D399,#10B981);
-            }
-            .stat-card.total::before     {
-                background:linear-gradient(90deg,#2DD4BF,#1B6E6E);
-            }
-
-            .stat-icon {
-                width:40px;
-                height:40px;
-                border-radius:10px;
-                display:flex;
-                align-items:center;
-                justify-content:center;
-                margin:0 auto 10px;
-            }
-            .stat-card.occupied  .stat-icon {
-                background:#FEF2F2;
-            }
-            .stat-card.available .stat-icon {
-                background:#F0FDF4;
-            }
-            .stat-card.total     .stat-icon {
-                background:#F0FAFA;
-            }
-
-            .stat-number {
-                font-size:32px;
-                font-weight:700;
-                line-height:1;
-                margin-bottom:3px;
-            }
-            .stat-card.occupied  .stat-number {
-                color:#EF4444;
-            }
-            .stat-card.available .stat-number {
-                color:#10B981;
-            }
-            .stat-card.total     .stat-number {
-                color:#1B6E6E;
-            }
-
-            .stat-label {
-                font-size:11px;
-                font-weight:600;
-                text-transform:uppercase;
-                letter-spacing:0.06em;
-                color:#9CA3AF;
-            }
-
-            .stat-trend {
-                display:inline-flex;
-                align-items:center;
-                gap:3px;
-                margin-top:6px;
-                font-size:11px;
-                font-weight:500;
-                padding:2px 7px;
-                border-radius:20px;
-            }
-            .stat-trend.up   {
-                background:#FEF2F2;
-                color:#EF4444;
-            }
-            .stat-trend.down {
-                background:#F0FDF4;
-                color:#10B981;
-            }
-            .stat-trend.neu  {
-                background:#F0F9FF;
-                color:#0EA5E9;
-            }
-
-            /* ── Main content grid ── */
-            .content-grid {
-                max-width:780px;
-                margin:0 auto;
-                padding:0 1.5rem 1.5rem;
-                display:grid;
-                grid-template-columns:1fr 1fr;
-                gap:14px;
-                animation: fadeUp 0.5s 0.15s ease both;
-            }
-
-            /* ── Zone card ── */
-            .zone-card {
-                background:#fff;
-                border-radius:16px;
-                padding:1.25rem 1.25rem;
-                border:1px solid #E5E7EB;
-                grid-column: 1 / -1;
-            }
-
-            .card-header {
-                display:flex;
-                align-items:center;
-                justify-content:space-between;
-                margin-bottom:1rem;
-            }
-            .card-title {
-                font-size:13px;
-                font-weight:600;
-                color:#1A2340;
-                display:flex;
-                align-items:center;
-                gap:7px;
-            }
-            .card-title svg {
-                color:#1B6E6E;
-                flex-shrink:0;
-            }
-            .card-badge {
-                font-size:10px;
-                font-weight:600;
-                text-transform:uppercase;
-                letter-spacing:0.06em;
-                padding:3px 8px;
-                border-radius:20px;
-                background:#F0FAFA;
-                color:#1B6E6E;
-                border:1px solid #CCECEC;
-            }
-
-            .zone-rows {
-                display:flex;
-                flex-direction:column;
-                gap:10px;
-            }
-
-            .zone-row {
-                display:flex;
-                align-items:center;
-                gap:12px;
-            }
-
-            .zone-info {
-                width:72px;
-                flex-shrink:0;
-            }
-            .zone-name {
-                font-size:12px;
-                font-weight:700;
-                color:#374151;
-            }
-            .zone-type {
-                font-size:10px;
-                color:#9CA3AF;
-                margin-top:1px;
-            }
-
-            .zone-bar-wrap {
-                flex:1;
-                height:9px;
-                background:#F3F4F6;
-                border-radius:99px;
-                overflow:hidden;
-            }
-            .zone-bar {
-                height:100%;
-                border-radius:99px;
-                transition:width 1.2s cubic-bezier(0.22,1,0.36,1);
-            }
-            .zone-bar.red   {
-                background:linear-gradient(90deg,#F87171,#EF4444);
-            }
-            .zone-bar.amber {
-                background:linear-gradient(90deg,#FCD34D,#F59E0B);
-            }
-            .zone-bar.green {
-                background:linear-gradient(90deg,#6EE7B7,#10B981);
-            }
-
-            .zone-meta {
-                display:flex;
-                align-items:center;
-                gap:8px;
-                flex-shrink:0;
-            }
-            .zone-count {
-                font-size:11px;
-                font-weight:600;
-                color:#6B7280;
-                width:40px;
-                text-align:right;
-            }
-            .zone-chip {
-                font-size:10px;
-                font-weight:600;
-                padding:2px 7px;
-                border-radius:99px;
-                white-space:nowrap;
-            }
-            .chip-high  {
-                background:#FEF2F2;
-                color:#EF4444;
-            }
-            .chip-mid   {
-                background:#FFFBEB;
-                color:#D97706;
-            }
-            .chip-low   {
-                background:#F0FDF4;
-                color:#16A34A;
-            }
-
-            /* ── Info cards ── */
-            .info-card {
-                background:#fff;
-                border-radius:16px;
-                padding:1.25rem;
-                border:1px solid #E5E7EB;
-            }
-
-            .info-list {
-                display:flex;
-                flex-direction:column;
-                gap:9px;
-                margin-top:0.25rem;
-            }
-
-            .info-item {
-                display:flex;
-                align-items:center;
-                gap:10px;
-                padding:9px 10px;
-                border-radius:10px;
-                background:#F9FAFB;
-                border:1px solid #F3F4F6;
-            }
-            .info-dot {
-                width:8px;
-                height:8px;
-                border-radius:50%;
-                flex-shrink:0;
-            }
-            .info-text {
-                font-size:12px;
-                color:#374151;
-                flex:1;
-                font-weight:500;
-            }
-            .info-val  {
-                font-size:12px;
-                font-weight:700;
-                color:#1A2340;
-            }
-
-            /* ── Recent activity ── */
-            .activity-list {
-                display:flex;
-                flex-direction:column;
-                gap:8px;
-                margin-top:0.25rem;
-            }
-
-            .activity-item {
-                display:flex;
-                align-items:center;
-                gap:10px;
-                padding:9px 10px;
-                border-radius:10px;
-                border-left:3px solid transparent;
-            }
-            .activity-item.entry {
-                background:#F0FDF4;
-                border-color:#10B981;
-            }
-            .activity-item.exit  {
-                background:#FEF2F2;
-                border-color:#EF4444;
-            }
-
-            .activity-plate {
-                font-size:11px;
-                font-weight:700;
-                color:#1A2340;
-                background:#fff;
-                border:1px solid #E5E7EB;
-                padding:2px 7px;
-                border-radius:5px;
-                font-family:monospace;
-                flex-shrink:0;
-            }
-            .activity-info {
-                flex:1;
-            }
-            .activity-zone {
-                font-size:11px;
-                color:#6B7280;
-            }
-            .activity-time {
-                font-size:10px;
-                color:#9CA3AF;
-                margin-left:auto;
-                flex-shrink:0;
-            }
-
-            /* ── Footer ── */
-            .footer {
-                max-width:780px;
-                margin:0 auto;
-                padding:0.5rem 1.5rem 2rem;
-                display:flex;
-                align-items:center;
-                justify-content:space-between;
-                animation: fadeUp 0.5s 0.2s ease both;
-            }
-            .footer-left {
-                font-size:11px;
-                color:#C4C9D4;
-            }
-            .footer-right {
-                display:flex;
-                align-items:center;
-                gap:6px;
-                font-size:11px;
-                color:#9CA3AF;
-            }
-            .footer-status {
-                display:flex;
-                align-items:center;
-                gap:4px;
-            }
-            .slot {
-                width:50px;
-                height:50px;
-                border-radius:8px;
-                display:flex;
-                align-items:center;
-                justify-content:center;
-                font-size:12px;
-                font-weight:600;
-                color:white;
-            }
-
-            .available {
-                background:#10B981;
-            }
-
-            .occupied {
-                background:#EF4444;
-            }
-        </style>
-    </head>
-    <body>
-
-        <!-- Navbar -->
-        <nav class="navbar">
-            <a class="brand" href="#">
-                <div class="brand-icon">P</div>
-                <div>
-                    <div class="brand-name">SmartParking</div>
-                    <div class="brand-sub">Management System</div>
-                </div>
-            </a>
-            <div class="nav-right">
-                <div class="live-pill">
-                    <div class="live-dot"></div>
-                    Live
-                </div>
-                <a href="customer-login.html" class="btn-nav customer">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                    Customer
-                </a>
-                <a href="login.html" class="btn-nav staff">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                    Staff Login
-                </a>
-            </div>
-        </nav>
-
-        <!-- Hero -->
-        <div class="hero">
-            <div class="hero-eyebrow">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                Real-time availability
-            </div>
-            <h1>Smart parking for<br><em>every driver</em></h1>
-            <p class="hero-sub">Live slot tracking across all zones. Check availability before you arrive and plan your visit with ease.</p>
-        </div>
-
-        <!-- Stats -->
-        <div id="parkingGrid" style="
-             display:grid;
-             grid-template-columns: repeat(5, 50px);
-             gap:8px;
-             justify-content:center;
-             margin:20px 0;
-             "></div>
-        <div class="stats-row">
-            <div class="stat-card occupied">
-                <div class="stat-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h6M3 15h6"/></svg>
-                </div>
-                <div class="stat-number" id="numOccupied">—</div>
-                <div class="stat-label">Occupied</div>
-                <div class="stat-trend up" id="trendOcc">↑ in use</div>
-            </div>
-            <div class="stat-card available">
-                <div class="stat-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><polyline points="9 11 12 14 22 4"/></svg>
-                </div>
-                <div class="stat-number" id="numAvailable">—</div>
-                <div class="stat-label">Available</div>
-                <div class="stat-trend down" id="trendAvail">↓ free now</div>
-            </div>
-            <div class="stat-card total">
-                <div class="stat-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1B6E6E" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
-                </div>
-                <div class="stat-number" id="numTotal">—</div>
-                <div class="stat-label">Total Slots</div>
-                <div class="stat-trend neu">3 zones</div>
-            </div>
-        </div>
-
-        <!-- Content grid -->
-        <div class="content-grid">
-            <!-- Zone breakdown (full width) -->
-            <div class="zone-card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                        Zone availability
-                    </div>
-                    <div class="card-badge" id="lastUpdated">Updating…</div>
-                </div>
-                <div class="zone-rows">
-                    <div class="zone-row">
-                        <div class="zone-info">
-                            <div class="zone-name">ZONE-A</div>
-                            <div class="zone-type">Sedan · Ground</div>
-                        </div>
-                        <div class="zone-bar-wrap"><div class="zone-bar red" id="barA" style="width:0%"></div></div>
-                        <div class="zone-meta">
-                            <div class="zone-count" id="countA">—/—</div>
-                            <div class="zone-chip chip-high" id="chipA">Full</div>
-                        </div>
-                    </div>
-                    <div class="zone-row">
-                        <div class="zone-info">
-                            <div class="zone-name">ZONE-B</div>
-                            <div class="zone-type">SUV · Basement</div>
-                        </div>
-                        <div class="zone-bar-wrap"><div class="zone-bar amber" id="barB" style="width:0%"></div></div>
-                        <div class="zone-meta">
-                            <div class="zone-count" id="countB">—/—</div>
-                            <div class="zone-chip chip-mid" id="chipB">Busy</div>
-                        </div>
-                    </div>
-                    <div class="zone-row">
-                        <div class="zone-info">
-                            <div class="zone-name">ZONE-C</div>
-                            <div class="zone-type">Motorbike · Roof</div>
-                        </div>
-                        <div class="zone-bar-wrap"><div class="zone-bar green" id="barC" style="width:0%"></div></div>
-                        <div class="zone-meta">
-                            <div class="zone-count" id="countC">—/—</div>
-                            <div class="zone-chip chip-low" id="chipC">Open</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Parking info -->
-            <div class="info-card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                        Parking info
-                    </div>
-                </div>
-                <div class="info-list">
-                    <div class="info-item">
-                        <div class="info-dot" style="background:#1B6E6E"></div>
-                        <div class="info-text">Sedan (ZONE-A)</div>
-                        <div class="info-val">15K / hr</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-dot" style="background:#F59E0B"></div>
-                        <div class="info-text">SUV / Truck (ZONE-B)</div>
-                        <div class="info-val">20K / hr</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-dot" style="background:#10B981"></div>
-                        <div class="info-text">Motorbike (ZONE-C)</div>
-                        <div class="info-val">5K / hr</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-dot" style="background:#6366F1"></div>
-                        <div class="info-text">Opening hours</div>
-                        <div class="info-val">06:00 – 22:00</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent activity -->
-            <div class="info-card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                        Recent activity
-                    </div>
-                </div>
-                <div class="activity-list" id="activityList">
-                    <div class="activity-item entry">
-                        <div class="activity-plate">59A-123.45</div>
-                        <div class="activity-info">
-                            <div class="info-text">Check-in · ZONE-A</div>
-                            <div class="activity-zone">Toyota Vios · Silver</div>
-                        </div>
-                        <div class="activity-time">~4h ago</div>
-                    </div>
-                    <div class="activity-item entry">
-                        <div class="activity-plate">51G-987.65</div>
-                        <div class="activity-info">
-                            <div class="info-text">Check-in · ZONE-B</div>
-                            <div class="activity-zone">Ford Ranger · Black</div>
-                        </div>
-                        <div class="activity-time">~2h ago</div>
-                    </div>
-                    <div class="activity-item entry">
-                        <div class="activity-plate">59P-555.55</div>
-                        <div class="activity-info">
-                            <div class="info-text">Check-in · ZONE-C</div>
-                            <div class="activity-zone">Honda SH 150i · White</div>
-                        </div>
-                        <div class="activity-time">~1h ago</div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Footer -->
-        <div class="footer">
-            <div class="footer-left">SmartParking v1.0 — Sprint 1</div>
-            <div class="footer-right">
-                <div class="footer-status">
-                    <div class="live-dot" style="width:6px;height:6px;background:#22C55E;border-radius:50%;animation:pulse 2s ease-in-out infinite"></div>
-                    System operational
-                </div>
-            </div>
-        </div>
-
-        <script>
-            const socket = new WebSocket("ws://localhost:8080/Parking_Slot/ws/slots");
-
-            socket.onmessage = function (event) {
-                const grid = JSON.parse(event.data);
-
-                renderGrid(grid);
-
-                let occupied = 0;
-                let total = 0;
-
-                grid.forEach(row => {
-                    row.forEach(cell => {
-                        total++;
-                        if (cell === 1)
-                            occupied++;
-                    });
-                });
-
-                const available = total - occupied;
-                applyStats(occupied, available, total, []);
-            };
-
-
-            // RENDER GRID
-            function renderGrid(grid) {
-                const container = document.getElementById("parkingGrid");
-                container.innerHTML = "";
-
-                grid.forEach((row, i) => {
-                    row.forEach((cell, j) => {
-                        const div = document.createElement("div");
-                        div.className = "slot " + (cell === 0 ? "available" : "occupied");
-                        div.textContent = String.fromCharCode(65 + i) + "-" + (j + 1);
-                        container.appendChild(div);
-                    });
-                });
-            }
-            async function loadStats() {
-                try {
-                    const res = await fetch('api/v1/slots/summary');
-                    const data = await res.json();
-                    applyStats(data.occupied, data.available, data.total, data.zones);
-                } catch (e) {
-                    applyStats(3, 2, 6, [
-                        {name: 'ZONE-A', occupied: 2, total: 3},
-                        {name: 'ZONE-B', occupied: 1, total: 2},
-                        {name: 'ZONE-C', occupied: 1, total: 1}
-                    ]);
-                }
-            }
-
-            function applyStats(occupied, available, total, zones) {
-                animateCount('numOccupied', occupied);
-                animateCount('numAvailable', available);
-                animateCount('numTotal', total);
-
-                document.getElementById('trendOcc').textContent = '↑ ' + occupied + ' in use';
-                document.getElementById('trendAvail').textContent = '↓ ' + available + ' free';
-
-                const barIds = ['barA', 'barB', 'barC'];
-                const countIds = ['countA', 'countB', 'countC'];
-                const chipIds = ['chipA', 'chipB', 'chipC'];
-                const barCls = ['red', 'amber', 'green'];
-
-                zones.forEach((z, i) => {
-                    const pct = z.total > 0 ? Math.round((z.occupied / z.total) * 100) : 0;
-                    const bar = document.getElementById(barIds[i]);
-                    bar.style.width = pct + '%';
-                    bar.className = 'zone-bar ' + barCls[i];
-                    document.getElementById(countIds[i]).textContent = z.occupied + '/' + z.total;
-                    const chip = document.getElementById(chipIds[i]);
-                    if (pct >= 80) {
-                        chip.textContent = 'Full';
-                        chip.className = 'zone-chip chip-high';
-                    } else if (pct >= 40) {
-                        chip.textContent = 'Busy';
-                        chip.className = 'zone-chip chip-mid';
-                    } else {
-                        chip.textContent = 'Open';
-                        chip.className = 'zone-chip chip-low';
-                    }
-                });
-
-                const now = new Date();
-                document.getElementById('lastUpdated').textContent =
-                        'Updated ' + now.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
-            }
-
-            function animateCount(id, target) {
-                const el = document.getElementById(id);
-                let cur = 0;
-                const step = Math.max(1, Math.ceil(target / 20));
-                const t = setInterval(() => {
-                    cur = Math.min(cur + step, target);
-                    el.textContent = cur;
-                    if (cur >= target)
-                        clearInterval(t);
-                }, 40);
-            }
-
-            loadStats();
-            setInterval(loadStats, 30000);
-        </script>
-    </body>
+  loadStaffGridData();
+  </script>
+</body>
 </html>
+<!-- Duong -->
