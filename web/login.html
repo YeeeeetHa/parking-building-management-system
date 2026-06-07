@@ -475,7 +475,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
             </form>
         </div>
 
-        <script>
+       <script>
             const API_URL = 'api/v1/auth/login';
             const SESSION_KEY = 'sp_session';
 
@@ -491,9 +491,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 }
             })();
 
+            // FIXED: Added /Parking_Slot prefix so Tomcat context path is never lost
             function getDashUrl(role) {
-                const map = {admin: '/admin/dashboard.html', manager: '/manager/dashboard.html', attendant: '/attendant/dashboard.html'};
-                return map[role] || '/dashboard.html';
+                const map = {
+                    admin: '/Parking_Slot/admin/dashboard.html', 
+                    manager: '/Parking_Slot/manager/dashboard.html', 
+                    attendant: '/Parking_Slot/attendant/dashboard.html'
+                };
+                return map[role] || '/Parking_Slot/dashboard.html';
             }
 
             const nameInput = document.getElementById('name');
@@ -582,7 +587,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
             document.getElementById('loginForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 alertErr.classList.remove('show');
-                if (!validateName() | !validatePass()) return; // bitwise OR runs both
+                if (!validateName() | !validatePass()) return;
 
                 const name = nameInput.value.trim();
                 const password = passInput.value.trim();
@@ -606,6 +611,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                         };
                         const store = rememberMe.checked ? localStorage : sessionStorage;
                         store.setItem(SESSION_KEY, JSON.stringify(session));
+                        
+                        // FIXED: Added token storage synchronization line for dashboard auth header tracking
+                        if (data.access_token) {
+                            (rememberMe.checked ? localStorage : sessionStorage).setItem('access_token', data.access_token);
+                        }
 
                         overlay.classList.add('show');
                         setTimeout(() => {
@@ -631,22 +641,22 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 }
             });
 
-            /* ── Auth guard — paste this snippet at top of every protected page ── */
+            /* ── Auth guard — FIXED prefix routing mapping structure ── */
             window.requireAuth = function (allowedRoles) {
                 try {
                     const raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
                     const s = JSON.parse(raw || '{}');
                     if (!s.authenticated) {
-                        window.location.href = '/login.html';
+                        window.location.href = '/Parking_Slot/login.html';
                         return null;
                     }
                     if (allowedRoles && !allowedRoles.includes(s.role)) {
-                        window.location.href = '/unauthorized.html';
+                        window.location.href = '/Parking_Slot/unauthorized.html';
                         return null;
                     }
                     return s;
                 } catch (e) {
-                    window.location.href = '/login.html';
+                    window.location.href = '/Parking_Slot/login.html';
                     return null;
                 }
             };
