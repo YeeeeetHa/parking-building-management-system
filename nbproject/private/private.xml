@@ -3,15 +3,9 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/parking-building-management-system/web/home.html</file>
-            <file>file:/D:/parking-building-management-system/web/customer-home.html</file>
-            <file>file:/D:/parking-building-management-system/web/WEB-INF/web.xml</file>
-            <file>file:/D:/parking-building-management-system/web/customer-login.html</file>
-            <file>file:/D:/parking-building-management-system/src/java/controller/LoginAPIController.java</file>
-            <file>file:/D:/parking-building-management-system/src/java/controller/StaffDashboardController.java</file>
-            <file>file:/D:/parking-building-management-system/web/login.html</file>
-            <file>file:/D:/parking-building-management-system/web/admin/dashboard.html</file>
-            <file>file:/D:/parking-building-management-system/src/java/controller/DriverAPIController.java</file>
+            <file>file:/C:/Users/Walter%20Otter/Documents/SWP391/parking-building-management-system/src/java/controller/DriverAPIController.java</file>
+            <file>file:/C:/Users/Walter%20Otter/Documents/SWP391/parking-building-management-system/src/java/utils/InputValidator.java</file>
+            <file>file:/C:/Users/Walter%20Otter/Documents/SWP391/parking-building-management-system/src/java/dao/DriverDAO.java</file>
         </group>
     </open-files>
 </project-private>
