@@ -17,14 +17,12 @@ import java.sql.SQLException;
  */
 public class DbUtils {
     
-    private static final String DB_NAME = "SmartParkingDB"; 
     private static final String DB_USER = "sa";
     private static final String DB_PASSWORD = "12345"; 
-    
-    private static final String URL = "jdbc:sqlserver://localhost:1433;databaseName=" + DB_NAME 
-                                    + ";encrypt=true;trustServerCertificate=true;";
+    private static final String URL = "jdbc:sqlserver://localhost:1433;databaseName=" 
+    + "SmartParkingDB" + ";encrypt=true;trustServerCertificate=true;";
 
-    // Returns a fresh DB connection — callers are responsible for closing it when done
+    // Returns a fresh DB connection
     public static Connection getConnection() throws ClassNotFoundException, SQLException {
         Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
         return DriverManager.getConnection(URL, DB_USER, DB_PASSWORD);
