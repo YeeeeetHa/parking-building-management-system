@@ -1,4 +1,10 @@
 -- ===========================================================================
+-- NOTICE
+-- This database may be outdated as later sprint arrives
+-- Please refer to the project database creators for more detail
+-- ===========================================================================
+
+-- ===========================================================================
 -- DATABASE INITIALIZATION
 -- ===========================================================================
 IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'SmartParkingDB')
