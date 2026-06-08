@@ -30,7 +30,7 @@ import javax.servlet.http.*;
  *   401 → wrong password or inactive account
  *   200 → login OK, returns { success, access_token, staff_id, name, role }
  */
-@WebServlet(name = "LoginApiController", urlPatterns = {"/api/v1/auth/login"})
+@WebServlet(name = "LoginAPIController", urlPatterns = {"/api/v1/auth/login"})
 public class LoginAPIController extends HttpServlet {
     // One shared StaffService instance per servlet lifetime — holds the token store in memory
     private final StaffDAO staffService = new StaffDAO();
