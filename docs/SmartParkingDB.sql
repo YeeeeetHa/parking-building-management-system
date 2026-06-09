@@ -22,6 +22,7 @@ GO
 IF OBJECT_ID('dbo.Payment', 'U')          IS NOT NULL DROP TABLE dbo.Payment;
 IF OBJECT_ID('dbo.Parking_log', 'U')       IS NOT NULL DROP TABLE dbo.Parking_log;
 IF OBJECT_ID('dbo.Parking_image', 'U')     IS NOT NULL DROP TABLE dbo.Parking_image;
+IF OBJECT_ID('dbo.Booking', 'U')           IS NOT NULL DROP TABLE dbo.Booking;
 IF OBJECT_ID('dbo.Ticket', 'U')            IS NOT NULL DROP TABLE dbo.Ticket;
 IF OBJECT_ID('dbo.Pricing_rules', 'U')     IS NOT NULL DROP TABLE dbo.Pricing_rules;
 IF OBJECT_ID('dbo.Parking_slot', 'U')      IS NOT NULL DROP TABLE dbo.Parking_slot;
@@ -139,6 +140,19 @@ CREATE TABLE dbo.Ticket (
     CONSTRAINT FK_Ticket_Vehicle FOREIGN KEY (vehicle_id) REFERENCES dbo.Vehicle(vehicle_id),
     CONSTRAINT FK_Ticket_Staff_In FOREIGN KEY (check_in_by) REFERENCES dbo.Staff(staff_id),
     CONSTRAINT FK_Ticket_Staff_Out FOREIGN KEY (check_out_by) REFERENCES dbo.Staff(staff_id)
+);
+
+CREATE TABLE dbo.Booking (
+    booking_id       INT IDENTITY(1,1)  NOT NULL,
+    license_plate    VARCHAR(20)        NOT NULL,
+    vehicle_type_id  INT                NOT NULL,
+    slot_id          INT                NOT NULL,
+    target_time      DATETIME           NOT NULL,
+    created_at       DATETIME DEFAULT GETDATE() NOT NULL,
+    status           VARCHAR(20) DEFAULT 'active' NOT NULL, -- active, completed, canceled
+    CONSTRAINT PK_Booking PRIMARY KEY CLUSTERED (booking_id),
+    CONSTRAINT FK_Booking_Slot FOREIGN KEY (slot_id) REFERENCES dbo.Parking_slot(slot_id),
+    CONSTRAINT FK_Booking_VehicleType FOREIGN KEY (vehicle_type_id) REFERENCES dbo.Vehicle_type(vehicle_type_id)
 );
 
 CREATE TABLE dbo.Parking_log (

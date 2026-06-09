@@ -32,24 +32,23 @@ public class DriverDAO {
         if (driver == null) {
             throw new IllegalArgumentException("Driver cannot be null");
         }
-
         if (!InputValidator.isValidLicensePlate(driver.getLicensePlate())) {
             throw new IllegalArgumentException("Invalid license plate");
         }
 
-        Connection con = null;
+        Connection conn = null;
         PreparedStatement psCustomer = null;
         PreparedStatement psVehicle = null;
         ResultSet rs = null;
         boolean success = false;
 
         try {
-            con = DbUtils.getConnection();
-            con.setAutoCommit(false); // start transaction
+            conn = DbUtils.getConnection();
+            conn.setAutoCommit(false); // start transaction
             // 1. Insert into Customer
             String sqlCustomer = "INSERT INTO Customer(name, phone, email, address) VALUES(?,?,?,?)";
             // Use Statement.RETURN_GENERATED_KEYS to get the generated customer_id
-            psCustomer = con.prepareStatement(sqlCustomer, Statement.RETURN_GENERATED_KEYS);
+            psCustomer = conn.prepareStatement(sqlCustomer, Statement.RETURN_GENERATED_KEYS);
             psCustomer.setString(1, driver.getFullName());
             psCustomer.setString(2, driver.getPhone());
             psCustomer.setString(3, driver.getEmail());
@@ -61,7 +60,7 @@ public class DriverDAO {
                     int customerId = rs.getInt(1);
                     // 2. Insert into Vehicle
                     String sqlVehicle = "INSERT INTO Vehicle(customer_id, vehicle_type_id, license_plate) VALUES(?,?,?)";
-                    psVehicle = con.prepareStatement(sqlVehicle);
+                    psVehicle = conn.prepareStatement(sqlVehicle);
                     psVehicle.setInt(1, customerId);
                     psVehicle.setInt(2, driver.getVehicleType());
                     psVehicle.setString(3, driver.getLicensePlate());
@@ -69,15 +68,15 @@ public class DriverDAO {
                 }
             }
             if (success) {
-                con.commit();
+                conn.commit();
             } else {
-                con.rollback();
+                conn.rollback();
             }
             return success;
         } catch (Exception e) {
-            if (con != null) {
+            if (conn != null) {
                 try {
-                    con.rollback();
+                    conn.rollback();
                 } catch (Exception ex) {
                 }
             }
@@ -92,9 +91,9 @@ public class DriverDAO {
             if (psVehicle != null) {
                 psVehicle.close();
             }
-            if (con != null) {
-                con.setAutoCommit(true);
-                con.close();
+            if (conn != null) {
+                conn.setAutoCommit(true);
+                conn.close();
             }
         }
     }

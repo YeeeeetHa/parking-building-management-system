@@ -3,17 +3,37 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ParkSecure Admin - Bootstrap Version</title>
+    <title>FPT Parking Lot Management System — Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* Minimal overrides for specific branding colors and sidebar scaling */
-        body { background-color: #16161a; color: #ffffff; }
-        .bg-sidebar { background-color: #1e1e24; min-width: 260px; max-width: 260px; }
-        .bg-card-custom { background-color: #22222a; border: 1px solid #2d2d35; }
-        .text-muted-custom { color: #888892 !important; }
-        .accent-teal { color: #4ade80; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 40%, #ccfbf1 100%);
+            color: #1e293b;
+            min-height: 100vh;
+        }
+        
+        /* Updated Sidebar to match light theme */
+        .bg-sidebar { background-color: #ffffff; min-width: 260px; max-width: 260px; }
+        .bg-card-custom { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .text-muted-custom { color: #64748b !important; }
+        .accent-teal { color: #0f766e; }
+        .nav-link { color: #475569; font-weight: 500; }
+        .nav-link:hover { color: #0f766e; background-color: #f1f5f9; border-radius: 8px; }
+        .nav-link.active { background-color: #ccfbf1 !important; color: #0f766e !important; font-weight: 600; border-radius: 8px; box-shadow: none; }
+        
+        .hero-eyebrow {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            color: #0f766e;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
         
         /* Custom Parking Grid Map Layout styles */
         .parking-grid {
@@ -25,198 +45,257 @@
             grid-column: span 10;
             text-align: center;
             padding: 12px 0;
-            color: #888892;
+            color: #64748b;
             font-size: 0.8rem;
             letter-spacing: 4px;
-            border-top: 1px dashed #444;
-            border-bottom: 1px dashed #444;
+            border-top: 1px dashed #cbd5e1;
+            border-bottom: 1px dashed #cbd5e1;
             margin: 10px 0;
         }
         .slot {
-            background: #25252e;
-            border: 1px solid #363642;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
             padding: 12px 4px;
             text-align: center;
             font-size: 0.75rem;
             font-weight: bold;
             border-radius: 4px;
-            color: #14b8a6;
+            color: #0f766e;
         }
-        .slot.occupied { background: #064e3b; border-color: #115e59; color: #2dd4bf; }
-        .slot.reserved { background: #78350f; border-color: #b45309; color: #fbbf24; }
-        .slot.maintenance { background: #7f1d1d; border-color: #b91c1c; color: #f87171; }
+        .slot.occupied { background: #fee2e2; border-color: #fca5a5; color: #b91c1c; }
+        .slot.reserved { background: #fef3c7; border-color: #fde68a; color: #b45309; }
+        .slot.maintenance { background: #f1f5f9; border-color: #cbd5e1; color: #64748b; }
     </style>
 </head>
 <body class="d-flex min-vh-100">
 
     <aside class="bg-sidebar p-3 d-flex flex-column justify-content-between border-end border-secondary border-opacity-25">
         <div>
-            <div class="brand mb-4">
-                <h2 class="h5 m-0 fw-bold">ParkSecure Admin</h2>
-                <p class="small text-muted-custom m-0">Dormitory Control</p>
+            <div class="brand mb-4 d-flex align-items-center gap-2">
+                <div class="brand-icon" style="width: 32px; height: 32px; background: #0f766e; color: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700;">P</div>
+                <div>
+                    <h2 class="h6 m-0 fw-bold">SmartParking</h2>
+                    <p class="small text-muted-custom m-0" style="font-size: 0.7rem;">Management System</p>
+                </div>
             </div>
-            <ul class="nav flex-column gap-1">
+            <ul class="nav flex-column gap-1" id="sidebar-nav">
                 <li class="nav-item">
-                    <a class="nav-link active bg-success bg-opacity-75 text-black fw-bold rounded shadow-sm" href="#">Dashboard</a>
+                    <a class="nav-link active" href="#" onclick="showSection('dashboard')"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a>
                 </li>
-                <li class="nav-item"><a class="nav-link text-white-50" href="#">Parking Management</a></li>
-                <li class="nav-item"><a class="nav-link text-white-50" href="#">Vehicle Tracking</a></li>
-                <li class="nav-item"><a class="nav-link text-white-50" href="#">Bookings</a></li>
-                <li class="nav-item"><a class="nav-link text-white-50" href="#">Reports</a></li>
-                <li class="nav-item"><a class="nav-link text-white-50" href="#">System Config</a></li>
+                <!-- Appended booking section for advance reservations -->
+                <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('bookings')"><i class="bi bi-calendar-check-fill me-2"></i>Bookings</a></li>
+                <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-car-front-fill me-2"></i>Parking Management</a></li>
+                <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-geo-alt-fill me-2"></i>Vehicle Tracking</a></li>
+                <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-file-earmark-bar-graph-fill me-2"></i>Reports</a></li>
+                <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-gear-fill me-2"></i>System Config</a></li>
             </ul>
         </div>
         <div>
-            <button class="btn btn-sm btn-outline-danger w-100 mb-3 fw-bold" onclick="logoutAdmin()"><i class="bi bi-box-arrow-left"></i> Logout</button>
-            <button class="btn btn-teal w-100 fw-bold mt-auto" style="background-color: #0f766e; color: white;">Add New Entry</button>
+            <a href="/Parking_Slot/login.html" class="btn btn-sm btn-outline-danger w-100 mb-3 fw-bold" onclick="sessionStorage.clear(); localStorage.clear();"><i class="bi bi-box-arrow-left"></i> Logout</a>
+            <button class="btn w-100 fw-bold mt-auto" style="background-color: #0f766e; color: white;">Add New Entry</button>
         </div>
     </aside>
 
-    <main class="flex-grow-1 p-4 overflow-x-hidden">
-        
+    <main class="flex-grow-1 p-4 overflow-y-auto">
         <header class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3 fw-semibold m-0">System Overview</h1>
+            <h1 class="h3 fw-bold text-dark m-0" id="page-title">System Overview</h1>
             <div class="d-flex align-items-center gap-3">
-                <div class="input-group">
-                    <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-search"></i></span>
-                    <input type="text" class="form-control bg-dark border-secondary text-white" placeholder="Search vehicles or slots...">
+                <div class="input-group" style="width: 300px;">
+                    <span class="input-group-text bg-white border-secondary-subtle"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" class="form-control border-secondary-subtle" placeholder="Search vehicles or slots...">
                 </div>
-                <div class="bg-secondary rounded-circle" style="width: 32px; height: 32px;"></div>
+                <div class="bg-secondary-subtle rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                    <i class="bi bi-person-fill text-secondary"></i>
+                </div>
             </div>
         </header>
 
-        <div class="alert alert-danger bg-danger bg-opacity-10 border-danger text-white d-flex justify-content-between align-items-center p-3 mb-4" role="alert">
-            <div>
-                <h6 class="alert-heading fw-bold text-danger m-0 mb-1"><i class="bi bi-exclamation-triangle-fill me-2"></i>Almost Full Alert</h6>
-                <p class="small m-0 text-danger-emphasis text-opacity-75">Occupancy has reached 76%. Floor 1 is currently at maximum capacity.</p>
+        <div id="section-dashboard">
+            <div class="alert alert-danger bg-danger-subtle border-danger-subtle text-danger d-flex justify-content-between align-items-center p-3 mb-4 rounded-4" role="alert">
+                <div>
+                    <h6 class="alert-heading fw-bold m-0 mb-1"><i class="bi bi-exclamation-triangle-fill me-2"></i>Almost Full Alert</h6>
+                    <p class="small m-0 text-danger-emphasis">Occupancy has reached 76%. Floor 1 is currently at maximum capacity.</p>
+                </div>
+                <button class="btn btn-danger btn-sm fw-bold">Manage Capacity</button>
             </div>
-            <button class="btn btn-danger btn-sm fw-bold">Manage Capacity</button>
+
+            <section class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="bg-card-custom p-4 h-100 d-flex flex-column position-relative overflow-hidden">
+                        <span class="small text-muted fw-bold text-uppercase">Total Slots <i class="bi bi-layers ms-1"></i></span>
+                        <h3 class="fs-2 fw-bold my-2 text-break" style="color: #0f766e;">500</h3>
+                        <div class="mt-auto">
+                            <span class="small text-muted-custom">Global capacity</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="bg-card-custom p-4 h-100 d-flex flex-column position-relative overflow-hidden">
+                        <span class="small text-muted fw-bold text-uppercase">Available <i class="bi bi-check-circle-fill text-success ms-1"></i></span>
+                        <h3 class="fs-2 fw-bold my-2 text-success text-break">120</h3>
+                        <div class="mt-auto">
+                            <div class="progress bg-success-subtle mb-2" style="height: 6px;">
+                                <div class="progress-bar bg-success" style="width: 24%"></div>
+                            </div>
+                            <span class="small text-success d-block">24% Left</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="bg-card-custom p-4 h-100 d-flex flex-column position-relative overflow-hidden">
+                        <span class="small text-muted fw-bold text-uppercase">Occupied <i class="bi bi-car-front-fill ms-1"></i></span>
+                        <h3 class="fs-2 fw-bold my-2 text-danger text-break">380</h3>
+                        <div class="mt-auto">
+                            <div class="progress bg-danger-subtle mb-2" style="height: 6px;">
+                                <div class="progress-bar bg-danger" style="width: 76%"></div>
+                            </div>
+                            <span class="small text-danger d-block">76% Utilization</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="bg-card-custom p-4 h-100 d-flex flex-column position-relative overflow-hidden">
+                        <span class="small text-muted fw-bold text-uppercase">Today's Revenue <i class="bi bi-cash-coin ms-1"></i></span>
+                        <h3 class="fs-2 fw-bold my-2 text-dark text-break">$1,250.00</h3>
+                        <div class="mt-auto">
+                            <span class="badge bg-success-subtle text-success"><i class="bi bi-graph-up-arrow me-1"></i>+12% from yesterday</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="row g-3 mb-4">
+                <div class="col-md-8">
+                    <div class="bg-card-custom p-4 h-100">
+                        <h5 class="mb-4 fw-bold text-dark">Occupancy by Floor</h5>
+                        
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between small mb-2"><span class="fw-semibold">Floor 1</span><span class="text-muted-custom">180/200 Slots</span></div>
+                            <div class="progress bg-light" style="height: 12px; border-radius: 6px;">
+                                <div class="progress-bar bg-danger" style="width: 90%;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between small mb-2"><span class="fw-semibold">Floor 2</span><span class="text-muted-custom">120/150 Slots</span></div>
+                            <div class="progress bg-light" style="height: 12px; border-radius: 6px;">
+                                <div class="progress-bar bg-warning" style="width: 80%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between small mb-2"><span class="fw-semibold">Floor 3</span><span class="text-muted-custom">80/150 Slots</span></div>
+                            <div class="progress bg-light" style="height: 12px; border-radius: 6px;">
+                                <div class="progress-bar bg-success" style="width: 53%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="bg-card-custom p-4 h-100">
+                        <h5 class="mb-3 fw-bold text-dark">Vehicle Types</h5>
+                        <div class="p-4 text-center rounded-4 mb-4" style="background-color: #f0fdf4; border: 1px solid #bbf7d0;">
+                            <h2 class="display-5 fw-bold m-0 text-success">380</h2>
+                            <span class="small fw-semibold text-success">Total Active</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-3 pb-2 border-bottom text-dark">
+                            <span class="fw-medium"><i class="bi bi-circle-fill text-primary me-2"></i>Cars</span><strong>266 (70%)</strong>
+                        </div>
+                        <div class="d-flex justify-content-between small text-dark">
+                            <span class="fw-medium"><i class="bi bi-circle-fill text-warning me-2"></i>Motorbikes</span><strong>114 (30%)</strong>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-card-custom p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h5 class="m-0 fw-bold text-dark">Parking Map Preview</h5>
+                        <p class="small text-muted-custom m-0">Current live status of Zone A (Main Entrance)</p>
+                    </div>
+                    <button class="btn btn-light border btn-sm fw-medium text-dark">View Full Map <i class="bi bi-arrow-up-right ms-1"></i></button>
+                </div>
+
+                <div class="parking-grid mb-4">
+                    <div class="slot occupied">A-01</div>
+                    <div class="slot occupied">A-02</div>
+                    <div class="slot">A-03</div>
+                    <div class="slot occupied">A-04</div>
+                    <div class="slot occupied">A-05</div>
+                    <div class="slot reserved">A-06</div>
+                    <div class="slot occupied">A-07</div>
+                    <div class="slot">A-08</div>
+                    <div class="slot">A-09</div>
+                    <div class="slot occupied">A-10</div>
+
+                    <div class="driveway-divider">DRIVEWAY</div>
+
+                    <div class="slot occupied">B-01</div>
+                    <div class="slot maintenance">B-02</div>
+                    <div class="slot occupied">B-03</div>
+                    <div class="slot">B-04</div>
+                    <div class="slot occupied">B-05</div>
+                    <div class="slot occupied">B-06</div>
+                    <div class="slot occupied">B-07</div>
+                    <div class="slot">B-08</div>
+                    <div class="slot occupied">B-09</div>
+                    <div class="slot occupied">B-10</div>
+                </div>
+
+                <div class="d-flex flex-wrap gap-4 small text-dark fw-medium">
+                    <div class="d-flex align-items-center"><span class="badge bg-light border me-2" style="width: 16px; height: 16px;">&nbsp;</span> Available</div>
+                    <div class="d-flex align-items-center"><span class="badge me-2" style="background-color: #fee2e2; border: 1px solid #fca5a5; width: 16px; height: 16px;">&nbsp;</span> Occupied</div>
+                    <div class="d-flex align-items-center"><span class="badge me-2" style="background-color: #fef3c7; border: 1px solid #fde68a; width: 16px; height: 16px;">&nbsp;</span> Reserved</div>
+                    <div class="d-flex align-items-center"><span class="badge me-2" style="background-color: #f1f5f9; border: 1px solid #cbd5e1; width: 16px; height: 16px;">&nbsp;</span> Maintenance</div>
+                </div>
+            </section>
         </div>
 
-        <section class="row g-3 mb-4">
-            <div class="col-md-3">
-                <div class="card bg-card-custom text-white p-3 h-100">
-                    <span class="small text-muted-custom fw-bold text-uppercase tracking-wider">Total Slots <i class="bi bi-layers ms-1"></i></span>
-                    <h3 class="display-6 fw-bold my-2">500</h3>
-                    <span class="small text-muted-custom">Global capacity</span>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card bg-card-custom text-white p-3 h-100">
-                    <span class="small text-muted-custom fw-bold text-uppercase">Available <i class="bi bi-check-circle-fill text-info ms-1"></i></span>
-                    <h3 class="display-6 fw-bold my-2 text-info">120</h3>
-                    <div class="progress bg-dark" style="height: 4px;">
-                        <div class="progress-bar bg-info" style="width: 24%"></div>
-                    </div>
-                    <span class="small text-info mt-1">24% Left</span>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card bg-card-custom text-white p-3 h-100">
-                    <span class="small text-muted-custom fw-bold text-uppercase">Occupied <i class="bi bi-car-front-fill ms-1"></i></span>
-                    <h3 class="display-6 fw-bold my-2">380</h3>
-                    <span class="small text-danger">76% Utilization</span>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card bg-card-custom text-white p-3 h-100">
-                    <span class="small text-muted-custom fw-bold text-uppercase">Today's Revenue <i class="bi bi-cash-coin ms-1"></i></span>
-                    <h3 class="display-6 fw-bold my-2">$1,250.00</h3>
-                    <span class="small accent-teal"><i class="bi bi-graph-up-arrow me-1"></i>+12% from yesterday</span>
-                </div>
-            </div>
-        </section>
-
-        <section class="row g-3 mb-4">
-            <div class="col-md-8">
-                <div class="card bg-card-custom text-white p-4 h-100">
-                    <h5 class="mb-4 fw-bold">Occupancy by Floor</h5>
-                    
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between small mb-1"><span>Floor 1</span><span class="text-muted-custom">180/200 Slots</span></div>
-                        <div class="progress bg-success bg-opacity-25" style="height: 24px;">
-                            <div class="progress-bar" style="width: 90%; background-color: #064e3b;"></div>
-                            <div class="progress-bar bg-success" style="width: 10%;"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between small mb-1"><span>Floor 2</span><span class="text-muted-custom">120/150 Slots</span></div>
-                        <div class="progress bg-success bg-opacity-25" style="height: 24px;">
-                            <div class="progress-bar" style="width: 80%; background-color: #064e3b;"></div>
-                            <div class="progress-bar bg-success" style="width: 20%;"></div>
-                        </div>
-                    </div>
-
-                    <div class="mb-2">
-                        <div class="d-flex justify-content-between small mb-1"><span>Floor 3</span><span class="text-muted-custom">80/150 Slots</span></div>
-                        <div class="progress bg-success bg-opacity-25" style="height: 24px;">
-                            <div class="progress-bar" style="width: 53%; background-color: #064e3b;"></div>
-                            <div class="progress-bar bg-success" style="width: 47%;"></div>
-                        </div>
+        <div id="section-bookings" style="display: none;">
+            <div class="row">
+                <div class="col-md-8 mx-auto">
+                    <div class="bg-card-custom p-4">
+                        <h4 class="fw-bold mb-4 text-dark">Advance Booking Registration</h4>
+                        <div id="booking-alert" class="alert d-none" role="alert"></div>
+                        <form id="bookingForm" onsubmit="submitBooking(event)">
+                            <div class="mb-3">
+                                <label for="licensePlate" class="form-label fw-semibold text-dark">Target License Plate</label>
+                                <input type="text" class="form-control" id="licensePlate" name="licensePlate" placeholder="e.g. 59A-12345" required>
+                                <div class="form-text text-muted">Alphanumeric and hyphens only.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="vehicleType" class="form-label fw-semibold text-dark">Vehicle Type</label>
+                                <select class="form-select" id="vehicleType" name="vehicleType" required>
+                                    <option value="1">Sedan (4-seater)</option>
+                                    <option value="2">SUV / Truck (7-seater)</option>
+                                    <option value="3">Motorbike</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="slotId" class="form-label fw-semibold text-dark">Target Zone/Slot Selection</label>
+                                <select class="form-select" id="slotId" name="slotId" required>
+                                    <!-- In a real app, this would fetch available slots. Hardcoding for demo -->
+                                    <option value="2">A-02 (Zone A)</option>
+                                    <option value="8">A-08 (Zone A)</option>
+                                    <option value="9">A-09 (Zone A)</option>
+                                    <option value="14">B-04 (Zone B)</option>
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label for="targetTime" class="form-label fw-semibold text-dark">Scheduled Reservation Timestamp</label>
+                                <input type="datetime-local" class="form-control" id="targetTime" name="targetTime" required>
+                            </div>
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-light border" onclick="document.getElementById('bookingForm').reset()">Clear</button>
+                                <button type="submit" class="btn text-white" style="background-color: #0f766e;" id="submitBookingBtn">Confirm Reservation</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
-
-            <div class="col-md-4">
-                <div class="card bg-card-custom text-white p-4 h-100">
-                    <h5 class="mb-3 fw-bold">Vehicle Types</h5>
-                    <div class="p-3 text-center rounded border border-success border-opacity-50 mb-3" style="background-color: #142824;">
-                        <h2 class="display-5 fw-bold m-0">380</h2>
-                        <span class="small text-muted-custom">Total Active</span>
-                    </div>
-                    <div class="d-flex justify-content-between small mb-2 text-white-50">
-                        <span><i class="bi bi-circle-fill text-success me-2"></i>Cars</span><strong>266 (70%)</strong>
-                    </div>
-                    <div class="d-flex justify-content-between small text-white-50">
-                        <span><i class="bi bi-circle-fill text-info me-2"></i>Motorbikes</span><strong>114 (30%)</strong>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="card bg-card-custom text-white p-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div>
-                    <h5 class="m-0 fw-bold">Parking Map Preview</h5>
-                    <p class="small text-muted-custom m-0">Current live status of Zone A (Main Entrance)</p>
-                </div>
-                <button class="btn btn-outline-light btn-sm">View Full Map <i class="bi bi-arrow-up-right ms-1"></i></button>
-            </div>
-
-            <div class="parking-grid mb-3">
-                <div class="slot occupied">A-01</div>
-                <div class="slot occupied">A-02</div>
-                <div class="slot">A-03</div>
-                <div class="slot occupied">A-04</div>
-                <div class="slot occupied">A-05</div>
-                <div class="slot reserved">A-06</div>
-                <div class="slot occupied">A-07</div>
-                <div class="slot">A-08</div>
-                <div class="slot">A-09</div>
-                <div class="slot occupied">A-10</div>
-
-                <div class="driveway-divider">DRIVEWAY</div>
-
-                <div class="slot occupied">B-01</div>
-                <div class="slot maintenance">B-02</div>
-                <div class="slot occupied">B-03</div>
-                <div class="slot">B-04</div>
-                <div class="slot occupied">B-05</div>
-                <div class="slot occupied">B-06</div>
-                <div class="slot occupied">B-07</div>
-                <div class="slot">B-08</div>
-                <div class="slot occupied">B-09</div>
-                <div class="slot occupied">B-10</div>
-            </div>
-
-            <div class="d-flex flex-wrap gap-3 small text-muted-custom">
-                <div><span class="badge bg-dark border border-secondary me-1">&nbsp;</span> Available</div>
-                <div><span class="badge me-1" style="background-color: #064e3b;">&nbsp;</span> Occupied</div>
-                <div><span class="badge me-1" style="background-color: #78350f;">&nbsp;</span> Reserved</div>
-                <div><span class="badge me-1" style="background-color: #7f1d1d;">&nbsp;</span> Maintenance</div>
-            </div>
-        </section>
+        </div>
 
     </main>
 
@@ -234,13 +313,111 @@
                     }
                 }
             } catch(e) { console.error(e); }
-            console.log("Rendering core dark layout components safely.");
+            console.log("Rendering core layout components safely.");
         })();
 
-        function logoutAdmin() {
-            sessionStorage.clear();
-            localStorage.clear();
-            window.location.href = '../login.html'; 
+        // logoutAdmin() removed in favor of inline onclick handler on the anchor tag directly.
+
+        /*
+         * showSection — toggles the visibility of the main content areas
+         * It also updates the sidebar navigation to highlight the active tab.
+         */
+        function showSection(sectionId) {
+            document.getElementById('section-dashboard').style.display = 'none';
+            document.getElementById('section-bookings').style.display = 'none';
+            
+            document.querySelectorAll('#sidebar-nav .nav-link').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            if (sectionId === 'dashboard') {
+                document.getElementById('section-dashboard').style.display = 'block';
+                document.getElementById('page-title').innerText = 'System Overview';
+                document.querySelector('#sidebar-nav .nav-item:nth-child(1) .nav-link').classList.add('active');
+            } else if (sectionId === 'bookings') {
+                document.getElementById('section-bookings').style.display = 'block';
+                document.getElementById('page-title').innerText = 'Advance Reservations';
+                document.querySelector('#sidebar-nav .nav-item:nth-child(2) .nav-link').classList.add('active');
+            }
+        }
+
+        /*
+         * submitBooking — handles the advance reservation form submission
+         * Collects form inputs, runs basic validation, and sends a secure POST request to the backend.
+         */
+        async function submitBooking(event) {
+            event.preventDefault();
+            const alertBox = document.getElementById('booking-alert');
+            const submitBtn = document.getElementById('submitBookingBtn');
+            alertBox.classList.add('d-none');
+            
+            const licensePlate = document.getElementById('licensePlate').value;
+            const vehicleType = document.getElementById('vehicleType').value;
+            const slotId = document.getElementById('slotId').value;
+            const targetTime = document.getElementById('targetTime').value;
+
+            /*
+             * Local Validation
+             * Ensure the license plate only contains standard alphanumeric characters and hyphens.
+             */
+            const licensePlateRegex = /^[A-Za-z0-9-]+$/;
+            if (!licensePlateRegex.test(licensePlate)) {
+                alertBox.className = 'alert alert-danger';
+                alertBox.innerText = 'Validation Error: License Plate must contain only alphanumeric characters and hyphens.';
+                alertBox.classList.remove('d-none');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Processing...';
+
+            try {
+                const SESSION_KEY = 'sp_session';
+                let token = 'mock_token';
+                const raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
+                if (raw) {
+                    const session = JSON.parse(raw);
+                    if (session && session.token) {
+                        token = session.token;
+                    }
+                }
+
+                // Pack the form data securely for the POST request
+                const payload = new URLSearchParams();
+                payload.append('licensePlate', licensePlate);
+                payload.append('vehicleType', vehicleType);
+                payload.append('slotId', slotId);
+                payload.append('targetTime', targetTime);
+
+                const response = await fetch('../api/v1/bookings/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: payload.toString()
+                });
+
+                const textResult = await response.text();
+
+                if (response.ok) {
+                    alertBox.className = 'alert alert-success';
+                    alertBox.innerText = 'Reservation Confirmed: ' + textResult;
+                    alertBox.classList.remove('d-none');
+                    document.getElementById('bookingForm').reset();
+                } else {
+                    alertBox.className = 'alert alert-danger';
+                    alertBox.innerText = 'Booking Failed (' + response.status + '): ' + textResult;
+                    alertBox.classList.remove('d-none');
+                }
+            } catch (error) {
+                alertBox.className = 'alert alert-danger';
+                alertBox.innerText = 'Network Error: ' + error.message;
+                alertBox.classList.remove('d-none');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'Confirm Reservation';
+            }
         }
     </script>
 </body>
