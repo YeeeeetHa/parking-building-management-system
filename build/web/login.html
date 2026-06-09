@@ -1,13 +1,9 @@
 <!DOCTYPE html>
-<!--
-Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
-Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit this template
--->
 <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Staff Login — FPT Parking Lot Management System"</title>
+        <title>Staff Login — FPT Parking Lot Management System</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
         <style>
@@ -101,11 +97,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 border: 1px solid #FECACA;
                 color: #DC2626;
             }
-            .alert-success {
-                background: #F0FDF4;
-                border: 1px solid #BBF7D0;
-                color: #16A34A;
-            }
 
             /* Fields */
             .field {
@@ -179,8 +170,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 color: #4B5563;
             }
 
-            input[type="password"],
-            input.pass-text {
+            input[type="password"] {
                 padding-right: 38px;
             }
 
@@ -290,9 +280,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 display: block;
             }
             @keyframes spin {
-                to {
-                    transform: rotate(360deg);
-                }
+                to { transform: rotate(360deg); }
             }
 
             /* Divider */
@@ -312,20 +300,18 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
             }
 
             /* Footer link */
-            .footer-note {
-                text-align: center;
-                font-size: 13px;
-                color: #6B7280;
-                margin-top: 0.25rem;
+            .btn-nav {
+                display: inline-flex; align-items: center; gap: 5px;
+                padding: 6px 13px; border-radius: 8px;
+                font-size: 12px; font-weight: 600; cursor: pointer;
+                text-decoration: none; transition: all 0.18s;
+                border: 1.5px solid transparent;
             }
-            .footer-note a {
-                color: #1B6E6E;
-                font-weight: 600;
-                text-decoration: none;
+            .btn-nav.secondary {
+                background: #fff; color: #4B5563;
+                border-color: #E5E7EB;
             }
-            .footer-note a:hover {
-                text-decoration: underline;
-            }
+            .btn-nav.secondary:hover { background: #F9FAFB; border-color: #D1D5DB; }
 
             /* Redirect overlay */
             .overlay {
@@ -359,14 +345,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 animation: popIn 0.4s cubic-bezier(0.22,1,0.36,1) both;
             }
             @keyframes popIn {
-                from{
-                    opacity:0;
-                    transform:scale(0.6)
-                }
-                to{
-                    opacity:1;
-                    transform:scale(1)
-                }
+                from{ opacity:0; transform:scale(0.6) }
+                to{ opacity:1; transform:scale(1) }
             }
             .overlay p {
                 font-size: 15px;
@@ -377,20 +357,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 font-size: 12px;
                 color: #9CA3AF;
             }
-            
-            .btn-nav {
-                display: inline-flex; align-items: center; gap: 5px;
-                padding: 6px 13px; border-radius: 8px;
-                font-size: 12px; font-weight: 600; cursor: pointer;
-                text-decoration: none; transition: all 0.18s;
-                border: 1.5px solid transparent;
-            }
-            /* Outlined variant — used for secondary nav action */
-            .btn-nav.secondary {
-                background: #fff; color: #4B5563;
-                border-color: #E5E7EB;
-            }
-            .btn-nav.secondary:hover { background: #F9FAFB; border-color: #D1D5DB; }
         </style>
     </head>
     <body>
@@ -415,17 +381,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
             </div>
             
             <form id="loginForm" novalidate>
-                
                 <div class="field" id="fName">
                     <label for="name">Username</label>
                     <div class="input-wrap">
                         <span class="ico">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                         </span>
-                        <input type="text" id="name" name="name" placeholder="Enter your username" maxlength="100" autocomplete="username" aria-required="true" aria-describedby="nameErr"/>
+                        <input type="text" id="name" name="name" placeholder="Enter your username" maxlength="100" autocomplete="username" aria-required="true"/>
                     </div>
                     <div class="err-msg" id="nameErr" role="alert">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                         <span id="nameErrTxt">Username is required.</span>
                     </div>
                 </div>
@@ -436,15 +400,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                         <span class="ico">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                         </span>
-                        <input type="password" id="password" name="password" placeholder="Enter your password" maxlength="30" autocomplete="current-password" aria-required="true" aria-describedby="passErr"/>
+                        <input type="password" id="password" name="password" placeholder="Enter your password" maxlength="30" autocomplete="current-password" aria-required="true"/>
                         <button type="button" class="toggle-pass" id="togglePass" aria-label="Show password">
                             <svg id="eyeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                             </svg>
                         </button>
                     </div>
                     <div class="err-msg" id="passErr" role="alert">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                         <span id="passErrTxt">Password is required.</span>
                     </div>
                 </div>
@@ -462,24 +425,26 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 </button>
 
                 <div style="display: flex; justify-content: center; margin-top: 1.5rem;">
-                    <a href="home.html" class="btn-nav secondary">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                             stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <a href="main-home.html" class="btn-nav secondary">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
                             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
                             <polyline points="9 22 9 12 15 12 15 22"/>
                         </svg>
                         Back to Home
                     </a>
                 </div>
-                
             </form>
         </div>
 
-       <script>
-            const API_URL = 'api/v1/auth/login';
+        <script>
+    const API_URL = 'api/v1/auth/login';
             const SESSION_KEY = 'sp_session';
 
-            /* ── Redirect if already logged in ── */
+            /* ── FIXED REDIRECT LOOP: Relative path mapping to prevent context loss ── */
+function getDashUrl(role) {
+    return 'dashboard';
+}
+            /* ── Auto login check ── */
             (function () {
                 try {
                     const raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
@@ -487,19 +452,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                         const s = JSON.parse(raw);
                         if (s && s.authenticated) window.location.href = getDashUrl(s.role);
                     }
-                } catch (e) {
-                }
+                } catch (e) {}
             })();
-
-            // FIXED: Added /Parking_Slot prefix so Tomcat context path is never lost
-            function getDashUrl(role) {
-                const map = {
-                    admin: '/Parking_Slot/admin/dashboard.html', 
-                    manager: '/Parking_Slot/manager/dashboard.html', 
-                    attendant: '/Parking_Slot/attendant/dashboard.html'
-                };
-                return map[role] || '/Parking_Slot/dashboard.html';
-            }
 
             const nameInput = document.getElementById('name');
             const passInput = document.getElementById('password');
@@ -522,36 +476,18 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 const show = passInput.type === 'password';
                 passInput.type = show ? 'text' : 'password';
                 eyeIcon.innerHTML = show ? EYE_CLOSED : EYE_OPEN;
-                togglePass.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
             });
-
-            const ILLEGAL = ["'", '"', ';', '--', '<', '>'];
-            function hasIllegal(s) {
-                return ILLEGAL.some(c => s.includes(c));
-            }
 
             function validateName() {
                 const v = nameInput.value.trim();
-                if (!v)
-                    return setErr(fName, nameErrTxt, 'Username is required.');
-                if (v.length > 100)
-                    return setErr(fName, nameErrTxt, 'Too long (max 100 chars).');
-                if (hasIllegal(v))
-                    return setErr(fName, nameErrTxt, 'Contains invalid characters.');
-                setOk(fName);
-                return true;
+                if (!v) return setErr(fName, nameErrTxt, 'Username is required.');
+                setOk(fName); return true;
             }
 
             function validatePass() {
                 const v = passInput.value.trim();
-                if (!v)
-                    return setErr(fPass, passErrTxt, 'Password is required.');
-                if (v.length > 30)
-                    return setErr(fPass, passErrTxt, 'Too long (max 30 chars).');
-                if (hasIllegal(v))
-                    return setErr(fPass, passErrTxt, 'Contains invalid characters.');
-                setOk(fPass);
-                return true;
+                if (!v) return setErr(fPass, passErrTxt, 'Password is required.');
+                setOk(fPass); return true;
             }
 
             function setErr(field, el, msg) {
@@ -564,102 +500,61 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 field.classList.remove('field-error');
                 field.classList.add('field-ok');
             }
-            function clearField(field) {
-                field.classList.remove('field-error', 'field-ok');
-            }
 
-            nameInput.addEventListener('input', () => {
-                clearField(fName);
-                alertErr.classList.remove('show');
-            });
-            passInput.addEventListener('input', () => {
-                clearField(fPass);
-                alertErr.classList.remove('show');
-            });
-            nameInput.addEventListener('blur', validateName);
-            passInput.addEventListener('blur', validatePass);
-
-            function setLoading(on) {
-                submitBtn.disabled = on;
-                submitBtn.classList.toggle('loading', on);
-            }
+            nameInput.addEventListener('input', () => fName.classList.remove('field-error', 'field-ok'));
+            passInput.addEventListener('input', () => fPass.classList.remove('field-error', 'field-ok'));
 
             document.getElementById('loginForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                alertErr.classList.remove('show');
-                if (!validateName() | !validatePass()) return;
+                if (!validateName() || !validatePass()) return;
 
-                const name = nameInput.value.trim();
-                const password = passInput.value.trim();
+                submitBtn.disabled = true;
+                submitBtn.classList.add('loading');
 
-                setLoading(true);
+                // UNIFICATION FIX: Send payload as Form URL Encoded parameters so Java can parse it via request.getParameter()
+                const payload = new URLSearchParams();
+                payload.append("name", nameInput.value.trim());
+                payload.append("password", passInput.value.trim());
+
                 try {
                     const res = await fetch(API_URL, {
                         method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({name, password})
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                        body: payload.toString()
                     });
                     const data = await res.json();
 
-                    if (res.ok && data.success) {
+                    if (res.ok && (data.success === true || data.success === "true" || data.status === "success")) {
                         const session = {
                             authenticated: true,
-                            name: data.name || name,
-                            role: data.role || 'attendant',
-                            staff_id: data.staff_id || null,
+                            name: data.name || nameInput.value.trim(),
+                            role: (data.role || 'admin').toLowerCase(),
                             loginTime: new Date().toISOString()
                         };
                         const store = rememberMe.checked ? localStorage : sessionStorage;
                         store.setItem(SESSION_KEY, JSON.stringify(session));
-                        
-                        // FIXED: Added token storage synchronization line for dashboard auth header tracking
+
                         if (data.access_token) {
-                            (rememberMe.checked ? localStorage : sessionStorage).setItem('access_token', data.access_token);
+                            store.setItem('access_token', data.access_token);
                         }
 
                         overlay.classList.add('show');
                         setTimeout(() => {
                             window.location.href = getDashUrl(session.role);
-                        }, 1600);
-
-                    } else if (res.status === 400) {
-                        alertErrT.textContent = 'Input contains invalid characters.';
-                        alertErr.classList.add('show');
-                        setLoading(false);
+                        }, 1000);
                     } else {
                         alertErrT.textContent = data.message || 'Invalid username or password.';
                         alertErr.classList.add('show');
-                        passInput.value = '';
-                        clearField(fPass);
-                        passInput.focus();
-                        setLoading(false);
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('loading');
                     }
                 } catch (err) {
-                    alertErrT.textContent = 'Cannot reach the server. Check your connection.';
+                    alertErrT.textContent = 'Server communication error.';
                     alertErr.classList.add('show');
-                    setLoading(false);
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('loading');
                 }
             });
-
-            /* ── Auth guard — FIXED prefix routing mapping structure ── */
-            window.requireAuth = function (allowedRoles) {
-                try {
-                    const raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
-                    const s = JSON.parse(raw || '{}');
-                    if (!s.authenticated) {
-                        window.location.href = '/Parking_Slot/login.html';
-                        return null;
-                    }
-                    if (allowedRoles && !allowedRoles.includes(s.role)) {
-                        window.location.href = '/Parking_Slot/unauthorized.html';
-                        return null;
-                    }
-                    return s;
-                } catch (e) {
-                    window.location.href = '/Parking_Slot/login.html';
-                    return null;
-                }
-            };
         </script>
     </body>
 </html>

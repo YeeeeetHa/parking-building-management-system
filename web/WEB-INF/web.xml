@@ -4,10 +4,16 @@
          xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd">
     
     <welcome-file-list>
-        <welcome-file>home.html</welcome-file>
+        <welcome-file>main-home.html</welcome-file>
+        <welcome-file>index.html</welcome-file>
     </welcome-file-list>
 
     <session-config>
         <session-timeout>30</session-timeout>
     </session-config>
+    
+    <error-page>
+        <error-code>404</error-code>
+        <location>/main-home.html</location>
+    </error-page>
 </web-app>
