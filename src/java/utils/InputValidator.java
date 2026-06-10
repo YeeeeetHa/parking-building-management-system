@@ -37,11 +37,6 @@ public class InputValidator {
         if (plate == null || plate.trim().isEmpty()) {
             return false;
         }
-
-        plate = plate.trim().toUpperCase();
-
-        return plate.matches(
-                "^[0-9]{2}[A-Z]-[0-9]{3}\\.[0-9]{2}$"
-        );
+        return plate.trim().toUpperCase().matches("^[A-Z0-9\\.\\-\\ ]+$");
     }
 }

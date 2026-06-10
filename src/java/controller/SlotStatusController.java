@@ -30,37 +30,26 @@ public class SlotStatusController extends HttpServlet {
 
         try ( Connection conn = DbUtils.getConnection()) {
 
-            String sql = "SELECT row_number, col_number, status FROM ParkingSlot";
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
+            String sql = "SELECT slot_code, status FROM dbo.Parking_slot";
+            try (PreparedStatement ps = conn.prepareStatement(sql);
+                 ResultSet rs = ps.executeQuery()) {
 
-            int[][] grid = new int[5][5];
-
-            while (rs.next()) {
-                int r = rs.getInt("row_number");
-                int c = rs.getInt("col_number");
-                int s = rs.getInt("status");
-
-                grid[r][c] = s;
-            }
-
-            StringBuilder json = new StringBuilder("[");
-            for (int i = 0; i < grid.length; i++) {
-                json.append("[");
-                for (int j = 0; j < grid[i].length; j++) {
-                    json.append(grid[i][j]);
-                    if (j < grid[i].length - 1) {
+                StringBuilder json = new StringBuilder("[");
+                boolean first = true;
+                while (rs.next()) {
+                    if (!first) {
                         json.append(",");
                     }
+                    first = false;
+                    json.append("{");
+                    json.append("\"slot_code\":\"").append(rs.getString("slot_code")).append("\",");
+                    json.append("\"status\":\"").append(rs.getString("status")).append("\"");
+                    json.append("}");
                 }
                 json.append("]");
-                if (i < grid.length - 1) {
-                    json.append(",");
-                }
-            }
-            json.append("]");
 
-            out.print(json.toString());
+                out.print(json.toString());
+            }
 
         } catch (Exception e) {
             e.printStackTrace();

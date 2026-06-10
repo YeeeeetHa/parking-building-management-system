@@ -240,7 +240,13 @@ INSERT INTO dbo.Pricing_rules (vehicle_type_id, start_time, end_time, day_type, 
 (2, '06:00:00', '22:00:00', 'Weekday', 20000.00, 15000.00, 160000.00, 1, '2026-01-01', '2026-12-31'),
 (3, '06:00:00', '22:00:00', 'Weekday', 5000.00,  3000.00,  40000.00,  1, '2026-01-01', '2026-12-31');
 
--- 9. Seed System Operational Parking Tickets
+-- 9. Seed Advance Booking Registrations
+INSERT INTO dbo.Booking (license_plate, vehicle_type_id, slot_id, target_time, status) VALUES 
+('59A-123.45', 1, 2, '2026-08-15 10:00:00', 'active'),
+('51G-987.65', 2, 5, '2026-08-20 14:30:00', 'active'),
+('59Z-111.11', 1, 3, '2026-06-12 09:00:00', 'completed');
+
+-- 10. Seed System Operational Parking Tickets
 INSERT INTO dbo.Ticket (vehicle_id, check_in_by, entry_time, entry_image_url, license_plate_snapshot, qr_code, status, check_out_time, check_out_by, note) VALUES 
 (1, 3, DATEADD(hour, -4, GETDATE()), 'https://s3.parking/img/entry1.jpg', '59A12345', 'QR_HASH_TOKEN_XYZ001', 'completed', DATEADD(hour, -1, GETDATE()), 3, N'Regular departure'),
 (2, 3, DATEADD(hour, -2, GETDATE()), 'https://s3.parking/img/entry2.jpg', '51G98765', 'QR_HASH_TOKEN_XYZ002', 'active', NULL, NULL, NULL),

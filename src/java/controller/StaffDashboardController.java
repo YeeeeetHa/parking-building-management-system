@@ -13,15 +13,35 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import dao.StaffDAO;
 import java.sql.ResultSet;
 
 @WebServlet(name = "StaffDashboardController", urlPatterns = {"/api/v1/staff/dashboard"})
 public class StaffDashboardController extends HttpServlet {
 
+    private boolean authenticate(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Missing or invalid Authorization header");
+            return false;
+        }
+        String token = authHeader.substring(7);
+        StaffDAO staffDao = new StaffDAO();
+        if (!staffDao.isValidToken(token)) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Invalid or expired session token");
+            return false;
+        }
+        return true;
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("application/json;charset=UTF-8");
         response.setHeader("Access-Control-Allow-Origin", "*");
+
+        if (!authenticate(request, response)) return;
         
         try (PrintWriter out = response.getWriter()) {
             try (Connection conn = DbUtils.getConnection()) {
@@ -30,12 +50,12 @@ public class StaffDashboardController extends HttpServlet {
                 int totalSlots = 0;
                 int occupied = 0;
                 
-                String sqlTotal = "SELECT COUNT(*) AS cnt FROM ParkingSlot";
+                String sqlTotal = "SELECT COUNT(*) AS cnt FROM dbo.Parking_slot";
                 try (PreparedStatement ps = conn.prepareStatement(sqlTotal); ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) totalSlots = rs.getInt("cnt");
                 }
                 
-                String sqlOcc = "SELECT COUNT(*) AS cnt FROM ParkingSlot WHERE status = 1";
+                String sqlOcc = "SELECT COUNT(*) AS cnt FROM dbo.Parking_slot WHERE status = 'Occupied'";
                 try (PreparedStatement ps = conn.prepareStatement(sqlOcc); ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) occupied = rs.getInt("cnt");
                 }

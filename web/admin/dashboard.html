@@ -91,7 +91,7 @@
             </ul>
         </div>
         <div>
-            <a href="/Parking_Slot/login.html" class="btn btn-sm btn-outline-danger w-100 mb-3 fw-bold" onclick="sessionStorage.clear(); localStorage.clear();"><i class="bi bi-box-arrow-left"></i> Logout</a>
+            <a href="#" class="btn btn-sm btn-outline-danger w-100 mb-3 fw-bold" onclick="sessionStorage.clear(); localStorage.clear(); window.location.href = CONTEXT_PATH + '/login.html';"><i class="bi bi-box-arrow-left"></i> Logout</a>
             <button class="btn w-100 fw-bold mt-auto" style="background-color: #0f766e; color: white;">Add New Entry</button>
         </div>
     </aside>
@@ -254,44 +254,93 @@
         </div>
 
         <div id="section-bookings" style="display: none;">
-            <div class="row">
-                <div class="col-md-8 mx-auto">
-                    <div class="bg-card-custom p-4">
-                        <h4 class="fw-bold mb-4 text-dark">Advance Booking Registration</h4>
-                        <div id="booking-alert" class="alert d-none" role="alert"></div>
-                        <form id="bookingForm" onsubmit="submitBooking(event)">
-                            <div class="mb-3">
-                                <label for="licensePlate" class="form-label fw-semibold text-dark">Target License Plate</label>
-                                <input type="text" class="form-control" id="licensePlate" name="licensePlate" placeholder="e.g. 59A-12345" required>
-                                <div class="form-text text-muted">Alphanumeric and hyphens only.</div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="vehicleType" class="form-label fw-semibold text-dark">Vehicle Type</label>
-                                <select class="form-select" id="vehicleType" name="vehicleType" required>
-                                    <option value="1">Sedan (4-seater)</option>
-                                    <option value="2">SUV / Truck (7-seater)</option>
-                                    <option value="3">Motorbike</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="slotId" class="form-label fw-semibold text-dark">Target Zone/Slot Selection</label>
-                                <select class="form-select" id="slotId" name="slotId" required>
-                                    <!-- In a real app, this would fetch available slots. Hardcoding for demo -->
-                                    <option value="2">A-02 (Zone A)</option>
-                                    <option value="8">A-08 (Zone A)</option>
-                                    <option value="9">A-09 (Zone A)</option>
-                                    <option value="14">B-04 (Zone B)</option>
-                                </select>
-                            </div>
-                            <div class="mb-4">
-                                <label for="targetTime" class="form-label fw-semibold text-dark">Scheduled Reservation Timestamp</label>
-                                <input type="datetime-local" class="form-control" id="targetTime" name="targetTime" required>
-                            </div>
-                            <div class="d-flex justify-content-end gap-2">
-                                <button type="button" class="btn btn-light border" onclick="document.getElementById('bookingForm').reset()">Clear</button>
-                                <button type="submit" class="btn text-white" style="background-color: #0f766e;" id="submitBookingBtn">Confirm Reservation</button>
-                            </div>
-                        </form>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold m-0 text-dark">Advance Bookings</h4>
+                <div class="d-flex gap-3">
+                    <div class="input-group" style="width: 250px;">
+                        <span class="input-group-text bg-white border-secondary-subtle"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" class="form-control border-secondary-subtle" id="searchBookingPlate" placeholder="Search license plate..." oninput="filterBookings()">
+                    </div>
+                    <button class="btn text-white" style="background-color: #0f766e;" onclick="toggleBookingForm()"><i class="bi bi-plus-circle me-1"></i> Register Booking</button>
+                </div>
+            </div>
+
+            <div id="booking-alert" class="alert d-none" role="alert"></div>
+
+            <!-- Booking Registration Form (Hidden by default) -->
+            <div id="booking-form-container" class="bg-card-custom p-4 mb-4" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark m-0">New Registration</h5>
+                    <button type="button" class="btn-close" onclick="toggleBookingForm()"></button>
+                </div>
+                <form id="bookingForm" onsubmit="submitBooking(event)">
+                    <input type="hidden" id="editBookingId" name="editBookingId" value="">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="licensePlate" class="form-label fw-semibold text-dark">License Plate</label>
+                            <input type="text" class="form-control" id="licensePlate" name="licensePlate" placeholder="e.g., 59A-123.45" required>
+                            <div class="form-text">Alphanumeric, hyphens, dots, or spaces (e.g., 59A-123.45).</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="vehicleType" class="form-label fw-semibold text-dark">Vehicle Type</label>
+                            <select class="form-select" id="vehicleType" name="vehicleType" required>
+                                <option value="1">Sedan (4-seater)</option>
+                                <option value="2">SUV / Truck (7-seater)</option>
+                                <option value="3">Motorbike</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="slotId" class="form-label fw-semibold text-dark">Target Slot</label>
+                            <select class="form-select" id="slotId" name="slotId" required>
+                                <option value="2">A-02 (Zone A)</option>
+                                <option value="5">B-02 (Zone B)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="targetTime" class="form-label fw-semibold text-dark">Target Time</label>
+                            <input type="datetime-local" class="form-control" id="targetTime" name="targetTime" required>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-light border" onclick="document.getElementById('bookingForm').reset(); document.getElementById('editBookingId').value='';">Clear</button>
+                        <button type="submit" class="btn text-white" style="background-color: #0f766e;" id="submitBookingBtn">Save Reservation</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Booking Ledger Data Grid -->
+            <div id="booking-ledger-container" class="bg-card-custom overflow-hidden position-relative">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="bookingTable">
+                        <thead class="bg-light text-muted small">
+                            <tr>
+                                <th class="ps-4 py-3 fw-semibold border-bottom-0" style="width: 40px;">
+                                    <input class="form-check-input" type="checkbox" id="selectAllBookings" onchange="toggleSelectAll(this)">
+                                </th>
+                                <th class="py-3 fw-semibold border-bottom-0">ID</th>
+                                <th class="py-3 fw-semibold border-bottom-0">License Plate</th>
+                                <th class="py-3 fw-semibold border-bottom-0">Vehicle</th>
+                                <th class="py-3 fw-semibold border-bottom-0">Slot</th>
+                                <th class="py-3 fw-semibold border-bottom-0">Target Time</th>
+                                <th class="pe-4 py-3 fw-semibold border-bottom-0 text-end">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookingTableBody" class="border-top-0">
+                            <!-- Rows rendered via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-3 border-top d-flex justify-content-center bg-white" id="bookingPagination">
+                    <!-- Pagination rendered via JS -->
+                </div>
+                
+                <!-- Mass Action Taskbar -->
+                <div id="massActionBar" class="bg-dark text-white p-3 d-flex justify-content-between align-items-center position-absolute bottom-0 w-100" style="display: none !important; z-index: 10;">
+                    <div class="fw-bold"><span id="massSelectCount">0</span> rows selected</div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-success fw-semibold" onclick="massAction('checkin')"><i class="bi bi-box-arrow-in-right"></i> Check-In</button>
+                        <button class="btn btn-sm btn-warning text-dark fw-semibold" onclick="massAction('cancel')"><i class="bi bi-x-circle"></i> Cancel</button>
+                        <button class="btn btn-sm btn-danger fw-semibold" onclick="massAction('remove')"><i class="bi bi-trash"></i> Remove Selected</button>
                     </div>
                 </div>
             </div>
@@ -302,6 +351,17 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
+        // Dynamic Context Path Resolution
+        const CONTEXT_PATH = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 2));
+        
+        // State for Bookings
+        let bookingsData = [];
+        let filteredBookings = [];
+        let currentPage = 1;
+        const rowsPerPage = 10;
+        let expandedRowId = null;
+        let selectedBookings = new Set(); // Stores booking IDs
+
         (function() {
             const SESSION_KEY = 'sp_session';
             try {
@@ -316,12 +376,22 @@
             console.log("Rendering core layout components safely.");
         })();
 
-        // logoutAdmin() removed in favor of inline onclick handler on the anchor tag directly.
+        // Extracts active session token
+        function getAuthToken() {
+            let token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+            if (token) return token;
 
-        /*
-         * showSection — toggles the visibility of the main content areas
-         * It also updates the sidebar navigation to highlight the active tab.
-         */
+            const SESSION_KEY = 'sp_session';
+            try {
+                const raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
+                if (raw) {
+                    const session = JSON.parse(raw);
+                    if (session && session.token) return session.token;
+                }
+            } catch(e) {}
+            return 'mock_token';
+        }
+
         function showSection(sectionId) {
             document.getElementById('section-dashboard').style.display = 'none';
             document.getElementById('section-bookings').style.display = 'none';
@@ -338,33 +408,359 @@
                 document.getElementById('section-bookings').style.display = 'block';
                 document.getElementById('page-title').innerText = 'Advance Reservations';
                 document.querySelector('#sidebar-nav .nav-item:nth-child(2) .nav-link').classList.add('active');
+                fetchBookings(); // Load data when tab is opened
             }
         }
 
-        /*
-         * submitBooking — handles the advance reservation form submission
-         * Collects form inputs, runs basic validation, and sends a secure POST request to the backend.
-         */
+        function toggleBookingForm() {
+            const form = document.getElementById('booking-form-container');
+            if (form.style.display === 'none') {
+                form.style.display = 'block';
+                document.getElementById('bookingForm').reset();
+                document.getElementById('editBookingId').value = '';
+            } else {
+                form.style.display = 'none';
+            }
+        }
+
+        // --- BOOKING API & RENDER PIPELINE ---
+
+        async function fetchBookings() {
+            try {
+                const res = await fetch(CONTEXT_PATH + '/api/v1/bookings/list', {
+                    headers: { 'Authorization': 'Bearer ' + getAuthToken() }
+                });
+
+                if (res.status === 401) {
+                    sessionStorage.clear();
+                    localStorage.clear();
+                    window.location.href = CONTEXT_PATH + '/login.html';
+                    return;
+                }
+
+                if (res.ok) {
+                    bookingsData = await res.json();
+                    
+                    // Sort descending by target time (most recent upcoming first)
+                    bookingsData.sort((a, b) => new Date(b.targetTime) - new Date(a.targetTime));
+                    
+                    // Ensure selectedBookings only keeps IDs that actually exist
+                    const activeIds = new Set(bookingsData.map(b => b.bookingId));
+                    selectedBookings.forEach(id => {
+                        if (!activeIds.has(id)) selectedBookings.delete(id);
+                    });
+
+                    filterBookings();
+                }
+            } catch (err) {
+                console.error("Failed to fetch bookings:", err);
+            }
+        }
+
+        function filterBookings() {
+            const query = document.getElementById('searchBookingPlate').value.toLowerCase();
+            filteredBookings = bookingsData.filter(b => b.licensePlate.toLowerCase().includes(query));
+            currentPage = 1;
+            renderBookingTable();
+        }
+
+        function toggleSelectAll(checkbox) {
+            if (checkbox.checked) {
+                // Select all in current view, or all filtered? Let's do all filtered.
+                filteredBookings.forEach(b => selectedBookings.add(b.bookingId));
+            } else {
+                selectedBookings.clear();
+            }
+            renderBookingTable();
+        }
+
+        function toggleRowSelection(id, event) {
+            event.stopPropagation(); // Prevents expanding the row
+            if (selectedBookings.has(id)) {
+                selectedBookings.delete(id);
+            } else {
+                selectedBookings.add(id);
+            }
+            renderBookingTable();
+        }
+
+        function renderBookingTable() {
+            const tbody = document.getElementById('bookingTableBody');
+            tbody.innerHTML = '';
+            
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            const paginated = filteredBookings.slice(start, end);
+
+            // Update Header Checkbox State
+            const selectAllCb = document.getElementById('selectAllBookings');
+            if (filteredBookings.length > 0 && filteredBookings.every(b => selectedBookings.has(b.bookingId))) {
+                selectAllCb.checked = true;
+            } else {
+                selectAllCb.checked = false;
+            }
+
+            if (paginated.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No reservations found.</td></tr>';
+                renderPagination();
+                renderMassActionBar();
+                return;
+            }
+
+            paginated.forEach(b => {
+                const tr = document.createElement('tr');
+                tr.style.cursor = 'pointer';
+                const isSelected = selectedBookings.has(b.bookingId);
+                if (isSelected) tr.classList.add('bg-light');
+
+                tr.onclick = () => {
+                    if (selectedBookings.size === 0) toggleRowAction(b.bookingId);
+                };
+                
+                // Determine Professional Status Badging
+                let badgeClass = 'bg-secondary';
+                let statusText = 'Unknown';
+
+                if (b.status === 'active') {
+                    const target = new Date(b.targetTime);
+                    const now = new Date();
+                    if (target < now) {
+                        badgeClass = 'bg-warning text-dark';
+                        statusText = 'Overdue';
+                    } else {
+                        badgeClass = 'bg-primary';
+                        statusText = 'Pending';
+                    }
+                } else if (b.status === 'completed') {
+                    badgeClass = 'bg-success';
+                    statusText = 'Occupied';
+                } else if (b.status === 'canceled') {
+                    badgeClass = 'bg-danger';
+                    statusText = 'Canceled';
+                }
+
+                tr.innerHTML = `
+                    <td class="ps-4" onclick="event.stopPropagation()">
+                        <input class="form-check-input" type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleRowSelection(${b.bookingId}, event)">
+                    </td>
+                    <td class="fw-medium">#${b.bookingId}</td>
+                    <td class="fw-bold text-dark">${b.licensePlate}</td>
+                    <td>${b.vehicleTypeName}</td>
+                    <td><span class="badge bg-light text-dark border">${b.slotCode}</span></td>
+                    <td class="small text-muted">${new Date(b.targetTime).toLocaleString()}</td>
+                    <td class="pe-4 text-end"><span class="badge ${badgeClass}">${statusText}</span></td>
+                `;
+                tbody.appendChild(tr);
+
+                // Inline Action Taskbar (Hidden by default, or disabled if mass selecting)
+                if (selectedBookings.size === 0) {
+                    const actionTr = document.createElement('tr');
+                    actionTr.id = 'action-row-' + b.bookingId;
+                    actionTr.style.display = (expandedRowId === b.bookingId) ? 'table-row' : 'none';
+                    actionTr.style.backgroundColor = '#f8fafc';
+                    
+                    let actionsHtml = `<div class="d-flex gap-2 justify-content-end p-2">`;
+                    if (b.status === 'active') {
+                        actionsHtml += `<button class="btn btn-sm btn-success" onclick="actionBooking(${b.bookingId}, 'checkin')"><i class="bi bi-box-arrow-in-right"></i> Check-In</button>`;
+                        actionsHtml += `<button class="btn btn-sm btn-outline-primary" onclick="editBooking(${b.bookingId})"><i class="bi bi-pencil"></i> Edit</button>`;
+                        actionsHtml += `<button class="btn btn-sm btn-outline-danger" onclick="actionBooking(${b.bookingId}, 'cancel')"><i class="bi bi-x-circle"></i> Cancel</button>`;
+                    } else {
+                        actionsHtml += `<button class="btn btn-sm btn-outline-secondary" onclick="actionBooking(${b.bookingId}, 'remove')"><i class="bi bi-trash"></i> Remove from History</button>`;
+                    }
+                    actionsHtml += `</div>`;
+                    
+                    actionTr.innerHTML = `<td colspan="7" class="p-0 border-bottom-0">${actionsHtml}</td>`;
+                    tbody.appendChild(actionTr);
+                } else {
+                    // Reset expanded state if we start multi-selecting
+                    expandedRowId = null;
+                }
+            });
+
+            renderPagination();
+            renderMassActionBar();
+        }
+
+        function renderMassActionBar() {
+            const bar = document.getElementById('massActionBar');
+            const countLabel = document.getElementById('massSelectCount');
+            const tableContainer = document.querySelector('.table-responsive');
+            if (selectedBookings.size > 0) {
+                countLabel.innerText = selectedBookings.size;
+                bar.style.setProperty('display', 'flex', 'important');
+                if (tableContainer) tableContainer.style.paddingBottom = '70px'; // Prevent overlap with the absolute taskbar
+            } else {
+                bar.style.setProperty('display', 'none', 'important');
+                if (tableContainer) tableContainer.style.paddingBottom = '0px';
+            }
+        }
+
+        function toggleRowAction(id) {
+            if (expandedRowId === id) {
+                expandedRowId = null; // collapse
+            } else {
+                expandedRowId = id; // expand
+            }
+            renderBookingTable();
+        }
+
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredBookings.length / rowsPerPage);
+            const pagBox = document.getElementById('bookingPagination');
+            if (totalPages <= 1) {
+                pagBox.innerHTML = '';
+                return;
+            }
+
+            let html = `<ul class="pagination pagination-sm m-0">`;
+            html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage - 1})">&laquo;</a></li>`;
+            
+            for (let i = 1; i <= totalPages; i++) {
+                html += `<li class="page-item ${currentPage === i ? 'active' : ''}"><a class="page-link" href="#" onclick="changePage(${i})">${i}</a></li>`;
+            }
+
+            html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage + 1})">&raquo;</a></li>`;
+            html += `</ul>`;
+            pagBox.innerHTML = html;
+        }
+
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredBookings.length / rowsPerPage);
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderBookingTable();
+        }
+
+        // --- CRUD ACTIONS ---
+
+        function editBooking(id) {
+            const b = bookingsData.find(x => x.bookingId === id);
+            if (!b) return;
+            
+            document.getElementById('booking-form-container').style.display = 'block';
+            document.getElementById('editBookingId').value = b.bookingId;
+            document.getElementById('licensePlate').value = b.licensePlate;
+            document.getElementById('vehicleType').value = b.vehicleTypeId;
+            document.getElementById('slotId').value = b.slotId;
+            
+            // Format datetime-local requires YYYY-MM-DDThh:mm
+            let t = b.targetTime.replace(' ', 'T');
+            if (t.length > 16) t = t.substring(0, 16);
+            document.getElementById('targetTime').value = t;
+            
+            window.scrollTo(0, 0);
+        }
+
+        async function actionBooking(id, action) {
+            if (action === 'cancel') {
+                if (!confirm("Are you sure you want to cancel this reservation?")) return;
+            }
+
+            try {
+                const method = (action === 'checkin') ? 'POST' : 'DELETE';
+                const endpoint = (action === 'checkin') ? `/api/v1/bookings/${action}` : `/api/v1/bookings/${action}?bookingId=${id}`;
+                const fetchOptions = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Authorization': 'Bearer ' + getAuthToken()
+                    }
+                };
+                if (action === 'checkin') {
+                    fetchOptions.body = 'bookingId=' + id;
+                }
+
+                const res = await fetch(CONTEXT_PATH + endpoint, fetchOptions);
+
+                if (res.status === 401) {
+                    sessionStorage.clear();
+                    localStorage.clear();
+                    window.location.href = CONTEXT_PATH + '/login.html';
+                    return;
+                }
+
+                if (res.ok) {
+                    showSuccessOverlay(action === 'checkin' ? 'Vehicle successfully checked in!' : 'Action completed.');
+                    selectedBookings.delete(id);
+                    fetchBookings();
+                } else {
+                    const err = await res.text();
+                    showAlert('Error: ' + err, 'danger');
+                }
+            } catch (error) {
+                showAlert('Network Error: ' + error.message, 'danger');
+            }
+        }
+
+        async function massAction(action) {
+            if (selectedBookings.size === 0) return;
+            
+            if (action === 'cancel') {
+                if (!confirm("Are you sure you want to cancel " + selectedBookings.size + " selected reservations?")) return;
+            }
+
+            const method = (action === 'checkin') ? 'POST' : 'DELETE';
+            let successCount = 0;
+            let errorMsg = null;
+
+            // Loop through selected items and process them one by one
+            for (let id of selectedBookings) {
+                try {
+                    const endpoint = (action === 'checkin') ? `/api/v1/bookings/${action}` : `/api/v1/bookings/${action}?bookingId=${id}`;
+                    const fetchOptions = {
+                        method: method,
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'Authorization': 'Bearer ' + getAuthToken()
+                        }
+                    };
+                    if (action === 'checkin') {
+                        fetchOptions.body = 'bookingId=' + id;
+                    }
+
+                    const res = await fetch(CONTEXT_PATH + endpoint, fetchOptions);
+
+                    if (res.status === 401) {
+                        sessionStorage.clear();
+                        localStorage.clear();
+                        window.location.href = CONTEXT_PATH + '/login.html';
+                        return;
+                    }
+
+                    if (res.ok) {
+                        successCount++;
+                        selectedBookings.delete(id);
+                    } else {
+                        errorMsg = await res.text();
+                    }
+                } catch (err) {
+                    errorMsg = err.message;
+                }
+            }
+
+            if (successCount > 0) {
+                showSuccessOverlay(`Successfully processed ${successCount} bookings!`);
+            }
+            if (errorMsg && successCount !== selectedBookings.size) {
+                showAlert(`Some actions failed: ${errorMsg}`, 'warning');
+            }
+
+            fetchBookings();
+        }
+
         async function submitBooking(event) {
             event.preventDefault();
-            const alertBox = document.getElementById('booking-alert');
             const submitBtn = document.getElementById('submitBookingBtn');
-            alertBox.classList.add('d-none');
             
+            const editId = document.getElementById('editBookingId').value;
             const licensePlate = document.getElementById('licensePlate').value;
             const vehicleType = document.getElementById('vehicleType').value;
             const slotId = document.getElementById('slotId').value;
             const targetTime = document.getElementById('targetTime').value;
 
-            /*
-             * Local Validation
-             * Ensure the license plate only contains standard alphanumeric characters and hyphens.
-             */
-            const licensePlateRegex = /^[A-Za-z0-9-]+$/;
+            const licensePlateRegex = /^[A-Za-z0-9\.\-\ ]+$/;
             if (!licensePlateRegex.test(licensePlate)) {
-                alertBox.className = 'alert alert-danger';
-                alertBox.innerText = 'Validation Error: License Plate must contain only alphanumeric characters and hyphens.';
-                alertBox.classList.remove('d-none');
+                showAlert('Validation Error: License Plate must contain only alphanumeric characters, hyphens, dots, or spaces.', 'danger');
                 return;
             }
 
@@ -372,52 +768,94 @@
             submitBtn.innerText = 'Processing...';
 
             try {
-                const SESSION_KEY = 'sp_session';
-                let token = 'mock_token';
-                const raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
-                if (raw) {
-                    const session = JSON.parse(raw);
-                    if (session && session.token) {
-                        token = session.token;
-                    }
-                }
-
-                // Pack the form data securely for the POST request
                 const payload = new URLSearchParams();
+                if (editId) payload.append('bookingId', editId);
                 payload.append('licensePlate', licensePlate);
                 payload.append('vehicleType', vehicleType);
                 payload.append('slotId', slotId);
                 payload.append('targetTime', targetTime);
 
-                const response = await fetch('../api/v1/bookings/create', {
-                    method: 'POST',
+                let endpoint = editId ? '/api/v1/bookings/edit' : '/api/v1/bookings/create';
+                const method = editId ? 'PUT' : 'POST';
+
+                const fetchOptions = {
+                    method: method,
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
-                        'Authorization': 'Bearer ' + token
-                    },
-                    body: payload.toString()
-                });
+                        'Authorization': 'Bearer ' + getAuthToken()
+                    }
+                };
 
-                const textResult = await response.text();
+                if (method === 'PUT') {
+                    endpoint += '?' + payload.toString();
+                } else {
+                    fetchOptions.body = payload.toString();
+                }
+
+                const response = await fetch(CONTEXT_PATH + endpoint, fetchOptions);
+
+                if (response.status === 401) {
+                    sessionStorage.clear();
+                    localStorage.clear();
+                    window.location.href = CONTEXT_PATH + '/login.html';
+                    return;
+                }
 
                 if (response.ok) {
-                    alertBox.className = 'alert alert-success';
-                    alertBox.innerText = 'Reservation Confirmed: ' + textResult;
-                    alertBox.classList.remove('d-none');
                     document.getElementById('bookingForm').reset();
+                    document.getElementById('editBookingId').value = '';
+                    document.getElementById('booking-form-container').style.display = 'none';
+                    
+                    showSuccessOverlay(editId ? 'Reservation Updated' : 'Reservation Confirmed!');
+                    fetchBookings();
                 } else {
-                    alertBox.className = 'alert alert-danger';
-                    alertBox.innerText = 'Booking Failed (' + response.status + '): ' + textResult;
-                    alertBox.classList.remove('d-none');
+                    const textResult = await response.text();
+                    showAlert('Booking Failed (' + response.status + '): ' + textResult, 'danger');
                 }
             } catch (error) {
-                alertBox.className = 'alert alert-danger';
-                alertBox.innerText = 'Network Error: ' + error.message;
-                alertBox.classList.remove('d-none');
+                showAlert('Network Error: ' + error.message, 'danger');
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerText = 'Confirm Reservation';
+                submitBtn.innerText = 'Save Reservation';
             }
+        }
+
+        function showAlert(msg, type) {
+            const alertBox = document.getElementById('booking-alert');
+            alertBox.className = 'alert alert-' + type;
+            alertBox.innerText = msg;
+            alertBox.classList.remove('d-none');
+            setTimeout(() => alertBox.classList.add('d-none'), 5000);
+        }
+
+        function showSuccessOverlay(msg) {
+            const overlay = document.createElement('div');
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100vw';
+            overlay.style.height = '100vh';
+            overlay.style.backgroundColor = 'rgba(15, 118, 110, 0.9)';
+            overlay.style.zIndex = '9999';
+            overlay.style.display = 'flex';
+            overlay.style.flexDirection = 'column';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.style.color = 'white';
+            
+            overlay.innerHTML = `
+                <i class="bi bi-check-circle-fill" style="font-size: 5rem; margin-bottom: 20px;"></i>
+                <h2 class="fw-bold">${msg}</h2>
+                <p>Redirecting to ledger...</p>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            setTimeout(() => {
+                overlay.style.opacity = '0';
+                overlay.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => document.body.removeChild(overlay), 500);
+            }, 1500);
         }
     </script>
 </body>
