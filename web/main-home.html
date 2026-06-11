@@ -103,13 +103,25 @@
         }
         .activity-item.entry { border-left-color: #22c55e; background-color: #f0fdf4; }
         .activity-item.exit { border-left-color: #ef4444; background-color: #fef2f2; }
+
+        .driver-reg-link {
+            color: #475569;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: color 0.15s ease-in-out;
+        }
+        .driver-reg-link:hover {
+            color: #0f766e;
+        }
     </style>
 </head>
 <body>
 
     <nav class="navbar navbar-expand-lg sticky-top navbar-blur py-2">
         <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
-            <a class="navbar-brand d-flex align-items-center gap-2 m-0" href="#">
+            
+            <a class="navbar-brand d-flex align-items-center gap-2 m-0" href="main-home.html">
                 <div class="brand-icon">P</div>
                 <div>
                     <div class="fw-bold text-dark fs-6 lh-1 mb-1">SmartParking</div>
@@ -117,12 +129,20 @@
                 </div>
             </a>
             
-            <div class="d-flex align-items-center gap-2 m-0">
-                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1.5 d-flex align-items-center gap-1.5 small font-medium">
+            <div class="d-flex align-items-center gap-3 m-0">
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1.5 d-inline-flex align-items-center gap-1.5 small font-medium">
                     <span class="live-dot"></span> Live
                 </span>
-                <a href="login.html" class="btn btn-sm text-white fw-semibold d-flex align-items-center gap-1" style="background-color: #0f766e; font-size: 0.75rem;"><i class="bi bi-lock"></i> Staff Login</a>
+                
+                <a href="register.html" class="driver-reg-link d-inline-flex align-items-center gap-1">
+                    <i class="bi bi-car-front-fill"></i> Driver Registration
+                </a>
+                
+                <a href="login.html" class="btn btn-sm text-white fw-semibold d-inline-flex align-items-center gap-1" style="background-color: #0f766e; font-size: 0.75rem;">
+                    <i class="bi bi-lock"></i> Staff Login
+                </a>
             </div>
+            
         </div>
     </nav>
 
