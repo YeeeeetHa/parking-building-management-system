@@ -259,54 +259,15 @@
                 <div class="d-flex gap-3">
                     <div class="input-group" style="width: 250px;">
                         <span class="input-group-text bg-white border-secondary-subtle"><i class="bi bi-search text-muted"></i></span>
-                        <input type="text" class="form-control border-secondary-subtle" id="searchBookingPlate" placeholder="Search license plate..." oninput="filterBookings()">
+                        <input type="text" class="form-control border-secondary-subtle" id="searchBookingPlate" placeholder="Search by name or plate..." oninput="filterBookings()">
                     </div>
-                    <button class="btn text-white" style="background-color: #0f766e;" onclick="toggleBookingForm()"><i class="bi bi-plus-circle me-1"></i> Register Booking</button>
+                    <!-- Bookings come from the customer portal — no manual registration here -->
+                    <a href="../customer/book.html" target="_blank" class="btn text-white" style="background-color: #0f766e;"><i class="bi bi-box-arrow-up-right me-1"></i> Customer Portal</a>
                 </div>
             </div>
+
 
             <div id="booking-alert" class="alert d-none" role="alert"></div>
-
-            <!-- Booking Registration Form (Hidden by default) -->
-            <div id="booking-form-container" class="bg-card-custom p-4 mb-4" style="display: none;">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-bold text-dark m-0">New Registration</h5>
-                    <button type="button" class="btn-close" onclick="toggleBookingForm()"></button>
-                </div>
-                <form id="bookingForm" onsubmit="submitBooking(event)">
-                    <input type="hidden" id="editBookingId" name="editBookingId" value="">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="licensePlate" class="form-label fw-semibold text-dark">License Plate</label>
-                            <input type="text" class="form-control" id="licensePlate" name="licensePlate" placeholder="e.g., 59A-123.45" required>
-                            <div class="form-text">Alphanumeric, hyphens, dots, or spaces (e.g., 59A-123.45).</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="vehicleType" class="form-label fw-semibold text-dark">Vehicle Type</label>
-                            <select class="form-select" id="vehicleType" name="vehicleType" required>
-                                <option value="1">Sedan (4-seater)</option>
-                                <option value="2">SUV / Truck (7-seater)</option>
-                                <option value="3">Motorbike</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="slotId" class="form-label fw-semibold text-dark">Target Slot</label>
-                            <select class="form-select" id="slotId" name="slotId" required>
-                                <option value="2">A-02 (Zone A)</option>
-                                <option value="5">B-02 (Zone B)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="targetTime" class="form-label fw-semibold text-dark">Target Time</label>
-                            <input type="datetime-local" class="form-control" id="targetTime" name="targetTime" required>
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-end gap-2 mt-4">
-                        <button type="button" class="btn btn-light border" onclick="document.getElementById('bookingForm').reset(); document.getElementById('editBookingId').value='';">Clear</button>
-                        <button type="submit" class="btn text-white" style="background-color: #0f766e;" id="submitBookingBtn">Save Reservation</button>
-                    </div>
-                </form>
-            </div>
 
             <!-- Booking Ledger Data Grid -->
             <div id="booking-ledger-container" class="bg-card-custom overflow-hidden position-relative">
@@ -318,10 +279,12 @@
                                     <input class="form-check-input" type="checkbox" id="selectAllBookings" onchange="toggleSelectAll(this)">
                                 </th>
                                 <th class="py-3 fw-semibold border-bottom-0">ID</th>
+                                <th class="py-3 fw-semibold border-bottom-0">Customer</th>
                                 <th class="py-3 fw-semibold border-bottom-0">License Plate</th>
                                 <th class="py-3 fw-semibold border-bottom-0">Vehicle</th>
                                 <th class="py-3 fw-semibold border-bottom-0">Slot</th>
                                 <th class="py-3 fw-semibold border-bottom-0">Target Time</th>
+                                <th class="py-3 fw-semibold border-bottom-0">Payment</th>
                                 <th class="pe-4 py-3 fw-semibold border-bottom-0 text-end">Status</th>
                             </tr>
                         </thead>
@@ -412,16 +375,6 @@
             }
         }
 
-        function toggleBookingForm() {
-            const form = document.getElementById('booking-form-container');
-            if (form.style.display === 'none') {
-                form.style.display = 'block';
-                document.getElementById('bookingForm').reset();
-                document.getElementById('editBookingId').value = '';
-            } else {
-                form.style.display = 'none';
-            }
-        }
 
         // --- BOOKING API & RENDER PIPELINE ---
 
@@ -459,7 +412,10 @@
 
         function filterBookings() {
             const query = document.getElementById('searchBookingPlate').value.toLowerCase();
-            filteredBookings = bookingsData.filter(b => b.licensePlate.toLowerCase().includes(query));
+            filteredBookings = bookingsData.filter(b =>
+                b.licensePlate.toLowerCase().includes(query) ||
+                (b.customerName && b.customerName.toLowerCase().includes(query))
+            );
             currentPage = 1;
             renderBookingTable();
         }
@@ -531,7 +487,7 @@
                         badgeClass = 'bg-primary';
                         statusText = 'Pending';
                     }
-                } else if (b.status === 'completed') {
+                } else if (b.status === 'occupied') {
                     badgeClass = 'bg-success';
                     statusText = 'Occupied';
                 } else if (b.status === 'canceled') {
@@ -544,10 +500,12 @@
                         <input class="form-check-input" type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleRowSelection(${b.bookingId}, event)">
                     </td>
                     <td class="fw-medium">#${b.bookingId}</td>
+                    <td class="fw-semibold text-dark" style="font-size:0.82rem;">${b.customerName || '—'}<div class="text-muted fw-normal" style="font-size:0.7rem;">${b.customerPhone || ''}</div></td>
                     <td class="fw-bold text-dark">${b.licensePlate}</td>
                     <td>${b.vehicleTypeName}</td>
-                    <td><span class="badge bg-light text-dark border">${b.slotCode}</span></td>
-                    <td class="small text-muted">${new Date(b.targetTime).toLocaleString()}</td>
+                    <td><span class="badge bg-light text-dark border">${b.slotCode}</span> <small class="text-muted">${b.areaCode || ''}</small></td>
+                    <td class="small text-muted">${new Date(b.targetTime).toLocaleString('vi-VN')}</td>
+                    <td><span class="badge ${b.paymentMethod === 'VNPay' ? 'bg-warning-subtle text-warning border border-warning-subtle' : 'bg-light text-secondary border'}" style="font-size:0.68rem;">${b.paymentMethod || 'Cash'}</span></td>
                     <td class="pe-4 text-end"><span class="badge ${badgeClass}">${statusText}</span></td>
                 `;
                 tbody.appendChild(tr);
@@ -569,7 +527,7 @@
                     }
                     actionsHtml += `</div>`;
                     
-                    actionTr.innerHTML = `<td colspan="7" class="p-0 border-bottom-0">${actionsHtml}</td>`;
+                    actionTr.innerHTML = `<td colspan="9" class="p-0 border-bottom-0">${actionsHtml}</td>`;
                     tbody.appendChild(actionTr);
                 } else {
                     // Reset expanded state if we start multi-selecting
@@ -633,32 +591,31 @@
 
         // --- CRUD ACTIONS ---
 
+        // editBooking — kept for future use when a staff edit form is added back.
+        // For now it just scrolls to the top and logs a message.
         function editBooking(id) {
             const b = bookingsData.find(x => x.bookingId === id);
             if (!b) return;
-            
-            document.getElementById('booking-form-container').style.display = 'block';
-            document.getElementById('editBookingId').value = b.bookingId;
-            document.getElementById('licensePlate').value = b.licensePlate;
-            document.getElementById('vehicleType').value = b.vehicleTypeId;
-            document.getElementById('slotId').value = b.slotId;
-            
-            // Format datetime-local requires YYYY-MM-DDThh:mm
-            let t = b.targetTime.replace(' ', 'T');
-            if (t.length > 16) t = t.substring(0, 16);
-            document.getElementById('targetTime').value = t;
-            
-            window.scrollTo(0, 0);
+            // Editing via the dashboard is reserved for a future sprint.
+            // Customers can cancel and rebook from the customer portal.
+            alert('Direct booking edits are not available in this version. Ask the customer to cancel and rebook from the customer portal.');
         }
 
         async function actionBooking(id, action) {
+            let cancelReason = null;
             if (action === 'cancel') {
-                if (!confirm("Are you sure you want to cancel this reservation?")) return;
+                if (!confirm('Are you sure you want to cancel this reservation?')) return;
+                cancelReason = prompt('Optional: Enter a reason for cancellation (visible to the customer):');
             }
 
             try {
                 const method = (action === 'checkin') ? 'POST' : 'DELETE';
-                const endpoint = (action === 'checkin') ? `/api/v1/bookings/${action}` : `/api/v1/bookings/${action}?bookingId=${id}`;
+                let endpoint = (action === 'checkin')
+                    ? '/api/v1/bookings/checkin'
+                    : '/api/v1/bookings/' + action + '?bookingId=' + id;
+                if (action === 'cancel' && cancelReason) {
+                    endpoint += '&reason=' + encodeURIComponent(cancelReason);
+                }
                 const fetchOptions = {
                     method: method,
                     headers: {
@@ -695,8 +652,10 @@
         async function massAction(action) {
             if (selectedBookings.size === 0) return;
             
+            let massReason = null;
             if (action === 'cancel') {
-                if (!confirm("Are you sure you want to cancel " + selectedBookings.size + " selected reservations?")) return;
+                if (!confirm('Are you sure you want to cancel ' + selectedBookings.size + ' selected reservations?')) return;
+                massReason = prompt('Optional: Enter a reason for cancellation (will apply to all selected):');
             }
 
             const method = (action === 'checkin') ? 'POST' : 'DELETE';
@@ -706,7 +665,12 @@
             // Loop through selected items and process them one by one
             for (let id of selectedBookings) {
                 try {
-                    const endpoint = (action === 'checkin') ? `/api/v1/bookings/${action}` : `/api/v1/bookings/${action}?bookingId=${id}`;
+                    let endpoint = (action === 'checkin')
+                        ? '/api/v1/bookings/checkin'
+                        : '/api/v1/bookings/' + action + '?bookingId=' + id;
+                    if (action === 'cancel' && massReason) {
+                        endpoint += '&reason=' + encodeURIComponent(massReason);
+                    }
                     const fetchOptions = {
                         method: method,
                         headers: {
@@ -719,6 +683,7 @@
                     }
 
                     const res = await fetch(CONTEXT_PATH + endpoint, fetchOptions);
+
 
                     if (res.status === 401) {
                         sessionStorage.clear();
@@ -748,77 +713,7 @@
             fetchBookings();
         }
 
-        async function submitBooking(event) {
-            event.preventDefault();
-            const submitBtn = document.getElementById('submitBookingBtn');
-            
-            const editId = document.getElementById('editBookingId').value;
-            const licensePlate = document.getElementById('licensePlate').value;
-            const vehicleType = document.getElementById('vehicleType').value;
-            const slotId = document.getElementById('slotId').value;
-            const targetTime = document.getElementById('targetTime').value;
 
-            const licensePlateRegex = /^[A-Za-z0-9\.\-\ ]+$/;
-            if (!licensePlateRegex.test(licensePlate)) {
-                showAlert('Validation Error: License Plate must contain only alphanumeric characters, hyphens, dots, or spaces.', 'danger');
-                return;
-            }
-
-            submitBtn.disabled = true;
-            submitBtn.innerText = 'Processing...';
-
-            try {
-                const payload = new URLSearchParams();
-                if (editId) payload.append('bookingId', editId);
-                payload.append('licensePlate', licensePlate);
-                payload.append('vehicleType', vehicleType);
-                payload.append('slotId', slotId);
-                payload.append('targetTime', targetTime);
-
-                let endpoint = editId ? '/api/v1/bookings/edit' : '/api/v1/bookings/create';
-                const method = editId ? 'PUT' : 'POST';
-
-                const fetchOptions = {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'Authorization': 'Bearer ' + getAuthToken()
-                    }
-                };
-
-                if (method === 'PUT') {
-                    endpoint += '?' + payload.toString();
-                } else {
-                    fetchOptions.body = payload.toString();
-                }
-
-                const response = await fetch(CONTEXT_PATH + endpoint, fetchOptions);
-
-                if (response.status === 401) {
-                    sessionStorage.clear();
-                    localStorage.clear();
-                    window.location.href = CONTEXT_PATH + '/login.html';
-                    return;
-                }
-
-                if (response.ok) {
-                    document.getElementById('bookingForm').reset();
-                    document.getElementById('editBookingId').value = '';
-                    document.getElementById('booking-form-container').style.display = 'none';
-                    
-                    showSuccessOverlay(editId ? 'Reservation Updated' : 'Reservation Confirmed!');
-                    fetchBookings();
-                } else {
-                    const textResult = await response.text();
-                    showAlert('Booking Failed (' + response.status + '): ' + textResult, 'danger');
-                }
-            } catch (error) {
-                showAlert('Network Error: ' + error.message, 'danger');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerText = 'Save Reservation';
-            }
-        }
 
         function showAlert(msg, type) {
             const alertBox = document.getElementById('booking-alert');

@@ -4,106 +4,136 @@ import dto.Booking;
 import utils.DbUtils;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 /*
- * BookingDAO — handles advance slot reservation logic
+ * BookingDAO — the full lifecycle of a parking reservation.
  *
- * It uses a single atomic SQL transaction to prevent double-booking race conditions.
- * The slot status is updated to 'Reserved' and the booking record is created in one step.
+ * Every write operation that touches more than one table runs inside an atomic
+ * SQL transaction so the slot status and the booking record never get out of sync.
  */
 public class BookingDAO {
-    
-    // Executes the booking creation process using an atomic database transaction
-    public boolean createAdvanceBooking(Booking booking) throws Exception {
+
+    // Creates a new advance booking, locking the slot atomically to prevent double-booking.
+    // Returns the generated booking ID on success, or -1 if the chosen slot was already taken.
+    public int createAdvanceBooking(Booking booking) throws Exception {
         Connection conn = null;
         PreparedStatement updateStmt = null;
         PreparedStatement insertStmt = null;
-        boolean success = false;
-        
+        ResultSet generatedKeys = null;
+        int bookingId = -1;
+
         try {
             conn = DbUtils.getConnection();
-            // Start manual transaction block to ensure both operations succeed or fail together
             conn.setAutoCommit(false);
-            // 1. Update slot status atomically
-            // This ensures no two transactions can claim the same slot simultaneously
+
+            // Try to claim the slot — if it isn't 'Empty' anymore, rowsAffected will be 0
             String updateSql = "UPDATE dbo.Parking_slot SET status = 'Reserved' WHERE slot_id = ? AND status = 'Empty'";
             updateStmt = conn.prepareStatement(updateSql);
             updateStmt.setInt(1, booking.getSlotId());
             int rowsAffected = updateStmt.executeUpdate();
-            // 2. Evaluate rows affected to confirm successful lock
+
             if (rowsAffected == 1) {
-                // The slot was successfully locked, proceed with creating the booking record
-                String insertSql = "INSERT INTO dbo.Booking (license_plate, vehicle_type_id, slot_id, target_time) VALUES (?, ?, ?, ?)";
-                insertStmt = conn.prepareStatement(insertSql);
-                insertStmt.setString(1, booking.getLicensePlate());
-                insertStmt.setInt(2, booking.getVehicleTypeId());
-                insertStmt.setInt(3, booking.getSlotId());
-                // Format the timestamp cleanly for SQL insertion
-                String formattedTime = booking.getTargetTime();
-                if (formattedTime.contains("T")) {
-                    formattedTime = formattedTime.replace("T", " ");
-                    if (formattedTime.length() == 16) {
-                        formattedTime += ":00";
-                    }
-                }
-                insertStmt.setString(4, formattedTime);
+                // Slot is ours — create the booking record with customer and payment info
+                String insertSql = "INSERT INTO dbo.Booking (customer_name, customer_phone, license_plate, vehicle_type_id, slot_id, target_time, payment_method, vnpay_txn_ref) " +
+                                   "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                insertStmt = conn.prepareStatement(insertSql, PreparedStatement.RETURN_GENERATED_KEYS);
+                insertStmt.setString(1, booking.getCustomerName());
+                insertStmt.setString(2, booking.getCustomerPhone());
+                insertStmt.setString(3, booking.getLicensePlate());
+                insertStmt.setInt(4, booking.getVehicleTypeId());
+                insertStmt.setInt(5, booking.getSlotId());
+                insertStmt.setString(6, formatDatetime(booking.getTargetTime()));
+                insertStmt.setString(7, booking.getPaymentMethod() != null ? booking.getPaymentMethod() : "Cash");
+                insertStmt.setString(8, booking.getVnpayTxnRef()); // null is fine for Cash
                 insertStmt.executeUpdate();
-                // Commit the transaction to finalize changes
+                
+                generatedKeys = insertStmt.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    bookingId = generatedKeys.getInt(1);
+                }
                 conn.commit();
-                success = true;
             } else {
-                // The slot was not 'Empty', rollback to prevent any partial data creation
+                // Slot was taken between the time the customer picked it and now
                 conn.rollback();
-                success = false;
             }
         } catch (Exception e) {
-            // Revert changes if any database error occurs during the transaction
             if (conn != null) {
-                try {
-                    conn.rollback();
-                } catch (Exception ex) {
-                }
+                try { conn.rollback(); } catch (Exception ignored) {}
             }
             throw e;
         } finally {
-            // Clean up database resources
+            if (generatedKeys != null) generatedKeys.close();
             if (updateStmt != null) updateStmt.close();
             if (insertStmt != null) insertStmt.close();
-            if (conn != null) {
-                conn.setAutoCommit(true);
-                conn.close();
-            }
+            if (conn != null) { conn.setAutoCommit(true); conn.close(); }
         }
-        return success;
+        return bookingId;
     }
 
-    // Fetches all active and completed bookings, joining necessary names, sorted by target time.
-    public java.util.List<Booking> getAllBookings() throws Exception {
-        java.util.List<Booking> list = new java.util.ArrayList<>();
+    // Finds a booking by its VNPay transaction reference — used on the payment return callback
+    // to identify which booking just got paid.
+    public Booking findByTxnRef(String txnRef) throws Exception {
         Connection conn = null;
         PreparedStatement stmt = null;
-        java.sql.ResultSet rs = null;
+        ResultSet rs = null;
         try {
             conn = DbUtils.getConnection();
-            String sql = "SELECT b.*, v.type_name, s.slot_code " +
+            String sql = "SELECT booking_id, slot_id FROM dbo.Booking WHERE vnpay_txn_ref = ?";
+            stmt = conn.prepareStatement(sql);
+            stmt.setString(1, txnRef);
+            rs = stmt.executeQuery();
+            if (rs.next()) {
+                Booking b = new Booking();
+                b.setBookingId(rs.getInt("booking_id"));
+                b.setSlotId(rs.getInt("slot_id"));
+                return b;
+            }
+            return null;
+        } finally {
+            if (rs != null) rs.close();
+            if (stmt != null) stmt.close();
+            if (conn != null) conn.close();
+        }
+    }
+
+    // Returns all bookings sorted by how soon the scheduled arrival is.
+    // The frontend uses the joined type_name and slot_code for display.
+    public List<Booking> getAllBookings() throws Exception {
+        List<Booking> list = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DbUtils.getConnection();
+            String sql = "SELECT b.*, v.type_name, s.slot_code, a.area_code " +
                          "FROM dbo.Booking b " +
                          "JOIN dbo.Vehicle_type v ON b.vehicle_type_id = v.vehicle_type_id " +
                          "JOIN dbo.Parking_slot s ON b.slot_id = s.slot_id " +
+                         "JOIN dbo.Parking_area a ON s.area_id = a.area_id " +
                          "ORDER BY b.target_time DESC";
             stmt = conn.prepareStatement(sql);
             rs = stmt.executeQuery();
             while (rs.next()) {
                 Booking b = new Booking();
                 b.setBookingId(rs.getInt("booking_id"));
+                b.setCustomerName(rs.getString("customer_name"));
+                b.setCustomerPhone(rs.getString("customer_phone"));
                 b.setLicensePlate(rs.getString("license_plate"));
                 b.setVehicleTypeId(rs.getInt("vehicle_type_id"));
                 b.setVehicleTypeName(rs.getString("type_name"));
                 b.setSlotId(rs.getInt("slot_id"));
                 b.setSlotCode(rs.getString("slot_code"));
+                b.setAreaCode(rs.getString("area_code"));
                 b.setTargetTime(rs.getString("target_time"));
                 b.setCreatedAt(rs.getString("created_at"));
                 b.setStatus(rs.getString("status"));
+                b.setPaymentMethod(rs.getString("payment_method"));
+                b.setVnpayTxnRef(rs.getString("vnpay_txn_ref"));
+                b.setCancellationReason(rs.getString("cancellation_reason"));
                 list.add(b);
             }
         } finally {
@@ -114,7 +144,53 @@ public class BookingDAO {
         return list;
     }
 
-    // Completes the check-in process: marks booking as completed and slot as Occupied.
+    // Looks up a customer's active and past bookings by phone + license plate.
+    // This is the lookup used by the customer tracking page — no login required.
+    public List<Booking> getBookingsByCustomer(String phone, String licensePlate) throws Exception {
+        List<Booking> list = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DbUtils.getConnection();
+            String sql = "SELECT b.booking_id, b.customer_name, b.license_plate, b.target_time, " +
+                         "b.created_at, b.status, b.payment_method, b.cancellation_reason, " +
+                         "v.type_name, s.slot_code, a.area_code " +
+                         "FROM dbo.Booking b " +
+                         "JOIN dbo.Vehicle_type v ON b.vehicle_type_id = v.vehicle_type_id " +
+                         "JOIN dbo.Parking_slot s ON b.slot_id = s.slot_id " +
+                         "JOIN dbo.Parking_area a ON s.area_id = a.area_id " +
+                         "WHERE b.customer_phone = ? AND b.license_plate = ? " +
+                         "ORDER BY b.target_time DESC";
+            stmt = conn.prepareStatement(sql);
+            stmt.setString(1, phone);
+            stmt.setString(2, licensePlate);
+            rs = stmt.executeQuery();
+            while (rs.next()) {
+                Booking b = new Booking();
+                b.setBookingId(rs.getInt("booking_id"));
+                b.setCustomerName(rs.getString("customer_name"));
+                b.setLicensePlate(rs.getString("license_plate"));
+                b.setVehicleTypeName(rs.getString("type_name"));
+                b.setSlotCode(rs.getString("slot_code"));
+                b.setAreaCode(rs.getString("area_code"));
+                b.setTargetTime(rs.getString("target_time"));
+                b.setCreatedAt(rs.getString("created_at"));
+                b.setStatus(rs.getString("status"));
+                b.setPaymentMethod(rs.getString("payment_method"));
+                b.setCancellationReason(rs.getString("cancellation_reason"));
+                list.add(b);
+            }
+        } finally {
+            if (rs != null) rs.close();
+            if (stmt != null) stmt.close();
+            if (conn != null) conn.close();
+        }
+        return list;
+    }
+
+    // Marks the booking as checked-in (occupied) and flips the slot to Occupied.
+    // Only works on active bookings — guards against double check-in.
     public boolean checkInBooking(int bookingId) throws Exception {
         Connection conn = null;
         PreparedStatement getStmt = null;
@@ -128,18 +204,16 @@ public class BookingDAO {
             String getSql = "SELECT slot_id FROM dbo.Booking WHERE booking_id = ? AND status = 'active'";
             getStmt = conn.prepareStatement(getSql);
             getStmt.setInt(1, bookingId);
-            java.sql.ResultSet rs = getStmt.executeQuery();
-            
+            ResultSet rs = getStmt.executeQuery();
+
             if (rs.next()) {
                 int slotId = rs.getInt("slot_id");
-                
-                String updSlot = "UPDATE dbo.Parking_slot SET status = 'Occupied' WHERE slot_id = ?";
-                updateSlotStmt = conn.prepareStatement(updSlot);
+
+                updateSlotStmt = conn.prepareStatement("UPDATE dbo.Parking_slot SET status = 'Occupied' WHERE slot_id = ?");
                 updateSlotStmt.setInt(1, slotId);
                 updateSlotStmt.executeUpdate();
 
-                String updBook = "UPDATE dbo.Booking SET status = 'completed' WHERE booking_id = ?";
-                updateBookingStmt = conn.prepareStatement(updBook);
+                updateBookingStmt = conn.prepareStatement("UPDATE dbo.Booking SET status = 'occupied' WHERE booking_id = ?");
                 updateBookingStmt.setInt(1, bookingId);
                 updateBookingStmt.executeUpdate();
 
@@ -155,16 +229,14 @@ public class BookingDAO {
             if (getStmt != null) getStmt.close();
             if (updateSlotStmt != null) updateSlotStmt.close();
             if (updateBookingStmt != null) updateBookingStmt.close();
-            if (conn != null) {
-                conn.setAutoCommit(true);
-                conn.close();
-            }
+            if (conn != null) { conn.setAutoCommit(true); conn.close(); }
         }
         return success;
     }
 
-    // Cancels a booking and frees the slot.
-    public boolean cancelBooking(int bookingId) throws Exception {
+    // Cancels a booking and returns the slot back to Empty.
+    // An optional reason can be stored for the customer to see on their tracking page.
+    public boolean cancelBooking(int bookingId, String reason) throws Exception {
         Connection conn = null;
         PreparedStatement getStmt = null;
         PreparedStatement updateSlotStmt = null;
@@ -177,19 +249,18 @@ public class BookingDAO {
             String getSql = "SELECT slot_id FROM dbo.Booking WHERE booking_id = ? AND status = 'active'";
             getStmt = conn.prepareStatement(getSql);
             getStmt.setInt(1, bookingId);
-            java.sql.ResultSet rs = getStmt.executeQuery();
-            
+            ResultSet rs = getStmt.executeQuery();
+
             if (rs.next()) {
                 int slotId = rs.getInt("slot_id");
-                
-                String updSlot = "UPDATE dbo.Parking_slot SET status = 'Empty' WHERE slot_id = ?";
-                updateSlotStmt = conn.prepareStatement(updSlot);
+
+                updateSlotStmt = conn.prepareStatement("UPDATE dbo.Parking_slot SET status = 'Empty' WHERE slot_id = ?");
                 updateSlotStmt.setInt(1, slotId);
                 updateSlotStmt.executeUpdate();
 
-                String updBook = "UPDATE dbo.Booking SET status = 'canceled' WHERE booking_id = ?";
-                updateBookingStmt = conn.prepareStatement(updBook);
-                updateBookingStmt.setInt(1, bookingId);
+                updateBookingStmt = conn.prepareStatement("UPDATE dbo.Booking SET status = 'canceled', cancellation_reason = ? WHERE booking_id = ?");
+                updateBookingStmt.setString(1, reason);
+                updateBookingStmt.setInt(2, bookingId);
                 updateBookingStmt.executeUpdate();
 
                 conn.commit();
@@ -204,15 +275,13 @@ public class BookingDAO {
             if (getStmt != null) getStmt.close();
             if (updateSlotStmt != null) updateSlotStmt.close();
             if (updateBookingStmt != null) updateBookingStmt.close();
-            if (conn != null) {
-                conn.setAutoCommit(true);
-                conn.close();
-            }
+            if (conn != null) { conn.setAutoCommit(true); conn.close(); }
         }
         return success;
     }
 
-    // Permanently removes a booking from the history.
+    // Hard-deletes a booking from history. Only works on non-active bookings
+    // so staff can't accidentally delete a live reservation.
     public boolean removeBooking(int bookingId) throws Exception {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -229,33 +298,115 @@ public class BookingDAO {
         }
     }
 
-    // Updates an existing booking's details.
+    // Updates the details of an existing booking. Editing changes the slot, so we need
+    // to free the old slot and claim the new one inside a single transaction.
     public boolean editBooking(Booking booking) throws Exception {
+        Connection conn = null;
+        PreparedStatement freeOldStmt = null;
+        PreparedStatement claimNewStmt = null;
+        PreparedStatement updateBookingStmt = null;
+        boolean success = false;
+        try {
+            conn = DbUtils.getConnection();
+            conn.setAutoCommit(false);
+
+            // Find the current slot so we can release it
+            PreparedStatement getStmt = conn.prepareStatement("SELECT slot_id FROM dbo.Booking WHERE booking_id = ?");
+            getStmt.setInt(1, booking.getBookingId());
+            ResultSet rs = getStmt.executeQuery();
+            if (!rs.next()) { conn.rollback(); return false; }
+            int oldSlotId = rs.getInt("slot_id");
+            getStmt.close();
+
+            // Release the old slot and claim the new one (if it's different)
+            if (oldSlotId != booking.getSlotId()) {
+                freeOldStmt = conn.prepareStatement("UPDATE dbo.Parking_slot SET status = 'Empty' WHERE slot_id = ?");
+                freeOldStmt.setInt(1, oldSlotId);
+                freeOldStmt.executeUpdate();
+
+                claimNewStmt = conn.prepareStatement("UPDATE dbo.Parking_slot SET status = 'Reserved' WHERE slot_id = ? AND status = 'Empty'");
+                claimNewStmt.setInt(1, booking.getSlotId());
+                int claimed = claimNewStmt.executeUpdate();
+                if (claimed == 0) { conn.rollback(); return false; } // new slot was taken
+            }
+
+            String sql = "UPDATE dbo.Booking SET license_plate = ?, vehicle_type_id = ?, slot_id = ?, target_time = ? WHERE booking_id = ?";
+            updateBookingStmt = conn.prepareStatement(sql);
+            updateBookingStmt.setString(1, booking.getLicensePlate());
+            updateBookingStmt.setInt(2, booking.getVehicleTypeId());
+            updateBookingStmt.setInt(3, booking.getSlotId());
+            updateBookingStmt.setString(4, formatDatetime(booking.getTargetTime()));
+            updateBookingStmt.setInt(5, booking.getBookingId());
+            int rows = updateBookingStmt.executeUpdate();
+            conn.commit();
+            success = rows > 0;
+        } catch (Exception e) {
+            if (conn != null) conn.rollback();
+            throw e;
+        } finally {
+            if (freeOldStmt != null) freeOldStmt.close();
+            if (claimNewStmt != null) claimNewStmt.close();
+            if (updateBookingStmt != null) updateBookingStmt.close();
+            if (conn != null) { conn.setAutoCommit(true); conn.close(); }
+        }
+        return success;
+    }
+
+    // Updates the VNPay transaction reference on a booking after we receive the real booking ID.
+    // This is called immediately after createAdvanceBooking so the return URL can find the booking.
+    public void updateTxnRef(int bookingId, String txnRef) throws Exception {
         Connection conn = null;
         PreparedStatement stmt = null;
         try {
             conn = DbUtils.getConnection();
-            String sql = "UPDATE dbo.Booking SET license_plate = ?, vehicle_type_id = ?, slot_id = ?, target_time = ? WHERE booking_id = ?";
-            stmt = conn.prepareStatement(sql);
-            stmt.setString(1, booking.getLicensePlate());
-            stmt.setInt(2, booking.getVehicleTypeId());
-            stmt.setInt(3, booking.getSlotId());
-            
-            String formattedTime = booking.getTargetTime();
-            if (formattedTime.contains("T")) {
-                formattedTime = formattedTime.replace("T", " ");
-                if (formattedTime.length() == 16) {
-                    formattedTime += ":00";
-                }
-            }
-            stmt.setString(4, formattedTime);
-            stmt.setInt(5, booking.getBookingId());
-            
-            int rows = stmt.executeUpdate();
-            return rows > 0;
+            stmt = conn.prepareStatement("UPDATE dbo.Booking SET vnpay_txn_ref = ? WHERE booking_id = ?");
+            stmt.setString(1, txnRef);
+            stmt.setInt(2, bookingId);
+            stmt.executeUpdate();
         } finally {
             if (stmt != null) stmt.close();
             if (conn != null) conn.close();
         }
+    }
+
+    // Returns all slots with their current status plus which zone they belong to.
+    // Used by the customer-facing slot map so they can see what's open before picking.
+    public List<String[]> getAllSlotsForMap() throws Exception {
+        List<String[]> slots = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DbUtils.getConnection();
+            String sql = "SELECT s.slot_id, s.slot_code, s.slot_type, s.status, a.area_code " +
+                         "FROM dbo.Parking_slot s " +
+                         "JOIN dbo.Parking_area a ON s.area_id = a.area_id " +
+                         "ORDER BY a.area_code, s.slot_code";
+            stmt = conn.prepareStatement(sql);
+            rs = stmt.executeQuery();
+            while (rs.next()) {
+                slots.add(new String[]{
+                    String.valueOf(rs.getInt("slot_id")),
+                    rs.getString("slot_code"),
+                    rs.getString("slot_type"),
+                    rs.getString("status"),
+                    rs.getString("area_code")
+                });
+            }
+        } finally {
+            if (rs != null) rs.close();
+            if (stmt != null) stmt.close();
+            if (conn != null) conn.close();
+        }
+        return slots;
+    }
+
+    // Cleans up the datetime string coming from an HTML datetime-local input field.
+    // The browser sends "2026-08-15T10:00" but SQL Server wants "2026-08-15 10:00:00".
+    private String formatDatetime(String raw) {
+        if (raw == null) return null;
+        String result = raw.contains("T") ? raw.replace("T", " ") : raw;
+        if (result.length() == 16) result += ":00";
+        return result;
     }
 }

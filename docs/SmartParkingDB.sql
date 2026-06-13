@@ -1,7 +1,8 @@
 -- ===========================================================================
 -- NOTICE
--- This database may be outdated as later sprint arrives
--- Please refer to the project database creators for more detail
+-- This is the Sprint 2 database schema update.
+-- Includes the full customer booking flow with VNPay payment support.
+-- Run this against your Azure SQL instance before deploying the new code.
 -- ===========================================================================
 
 -- ===========================================================================
@@ -45,7 +46,7 @@ CREATE TABLE dbo.Staff (
     role      VARCHAR(20)       NOT NULL, -- admin, manager, attendant
     create_at DATETIME DEFAULT GETDATE() NOT NULL,
     status    VARCHAR(20) DEFAULT 'active' NOT NULL, -- active, inactive
-    password  VARCHAR(255)      NOT NULL, -- Strict plain text storage
+    password  VARCHAR(255)      NOT NULL,
     CONSTRAINT PK_Staff PRIMARY KEY CLUSTERED (staff_id),
     CONSTRAINT UQ_Staff_Name UNIQUE (name)
 );
@@ -61,14 +62,14 @@ CREATE TABLE dbo.Vehicle_type (
 
 CREATE TABLE dbo.Parking_area (
     area_id     INT IDENTITY(1,1) NOT NULL,
-    area_code   VARCHAR(10)       NOT NULL, -- ZONE-A, ZONE-B
+    area_code   VARCHAR(10)       NOT NULL, -- ZONE-A, ZONE-B, ZONE-C
     description NVARCHAR(255)    NULL,
     CONSTRAINT PK_Parking_Area PRIMARY KEY CLUSTERED (area_id)
 );
 
 CREATE TABLE dbo.Payment_method (
     payment_method_id INT IDENTITY(1,1) NOT NULL,
-    method_name       NVARCHAR(50)     NOT NULL, -- cash, qr, card
+    method_name       NVARCHAR(50)     NOT NULL, -- Cash, VNPay
     is_active         BIT DEFAULT 1    NOT NULL,
     CONSTRAINT PK_Payment_Method PRIMARY KEY CLUSTERED (payment_method_id)
 );
@@ -76,7 +77,7 @@ CREATE TABLE dbo.Payment_method (
 CREATE TABLE dbo.Customer (
     customer_id INT IDENTITY(1,1)  NOT NULL,
     name        NVARCHAR(100)      NOT NULL,
-    phone       VARCHAR(15)        NULL,
+    phone       VARCHAR(15)        NOT NULL, -- Used together with license plate to look up bookings
     email       VARCHAR(100)       NULL,
     address     NVARCHAR(255)      NULL,
     created_at  DATETIME DEFAULT GETDATE() NOT NULL,
@@ -100,8 +101,8 @@ CREATE TABLE dbo.Vehicle (
 CREATE TABLE dbo.Parking_slot (
     slot_id    INT IDENTITY(1,1) NOT NULL,
     area_id    INT               NOT NULL,
-    slot_code  VARCHAR(10)       NOT NULL, -- A-101, B-202
-    slot_type  VARCHAR(20)       NOT NULL,
+    slot_code  VARCHAR(10)       NOT NULL, -- A-01, B-02, C-01, etc.
+    slot_type  VARCHAR(20)       NOT NULL, -- Sedan, SUV, Motorbike
     status     VARCHAR(20) DEFAULT 'Empty' NOT NULL, -- Empty, Reserved, Occupied, Maintenance
     CONSTRAINT PK_Parking_Slot PRIMARY KEY CLUSTERED (slot_id),
     CONSTRAINT FK_Parking_Slot_Area FOREIGN KEY (area_id) REFERENCES dbo.Parking_area(area_id)
@@ -131,7 +132,7 @@ CREATE TABLE dbo.Ticket (
     entry_image_url        VARCHAR(255)       NULL,
     license_plate_snapshot VARCHAR(20)        NULL,
     qr_code                VARCHAR(255)       NOT NULL,
-    status                 VARCHAR(20) DEFAULT 'active' NOT NULL, -- active, completed, lost, canceled
+    status                 VARCHAR(20) DEFAULT 'active' NOT NULL,
     check_out_time         DATETIME           NULL,
     check_out_by           INT                NULL,
     note                   NVARCHAR(MAX)      NULL,
@@ -142,14 +143,22 @@ CREATE TABLE dbo.Ticket (
     CONSTRAINT FK_Ticket_Staff_Out FOREIGN KEY (check_out_by) REFERENCES dbo.Staff(staff_id)
 );
 
+-- Booking now tracks which customer made the reservation and how they paid.
+-- payment_method stores 'Cash' or 'VNPay'. vnpay_txn_ref is the unique order ID
+-- we generate and send to VNPay — used to match the return callback to a booking.
 CREATE TABLE dbo.Booking (
     booking_id       INT IDENTITY(1,1)  NOT NULL,
+    customer_name    NVARCHAR(100)      NOT NULL,
+    customer_phone   VARCHAR(15)        NOT NULL,
     license_plate    VARCHAR(20)        NOT NULL,
     vehicle_type_id  INT                NOT NULL,
     slot_id          INT                NOT NULL,
     target_time      DATETIME           NOT NULL,
     created_at       DATETIME DEFAULT GETDATE() NOT NULL,
-    status           VARCHAR(20) DEFAULT 'active' NOT NULL, -- active, completed, canceled
+    status           VARCHAR(20) DEFAULT 'active' NOT NULL, -- active, occupied, canceled
+    payment_method   VARCHAR(20) DEFAULT 'Cash' NOT NULL, -- Cash, VNPay
+    vnpay_txn_ref    VARCHAR(50)        NULL, -- VNPay order reference, null for cash payments
+    cancellation_reason NVARCHAR(500)   NULL,
     CONSTRAINT PK_Booking PRIMARY KEY CLUSTERED (booking_id),
     CONSTRAINT FK_Booking_Slot FOREIGN KEY (slot_id) REFERENCES dbo.Parking_slot(slot_id),
     CONSTRAINT FK_Booking_VehicleType FOREIGN KEY (vehicle_type_id) REFERENCES dbo.Vehicle_type(vehicle_type_id)
@@ -176,7 +185,7 @@ CREATE TABLE dbo.Payment (
     discount          DECIMAL(10,2) DEFAULT 0.00 NOT NULL,
     final_amount      DECIMAL(10,2)      NOT NULL,
     payment_time      DATETIME DEFAULT GETDATE() NOT NULL,
-    status            VARCHAR(20)        NOT NULL, -- paid, unpaid, refunded
+    status            VARCHAR(20)        NOT NULL,
     note              NVARCHAR(MAX)      NULL,
     CONSTRAINT PK_Payment PRIMARY KEY CLUSTERED (payment_id),
     CONSTRAINT FK_Payment_Ticket FOREIGN KEY (ticket_id) REFERENCES dbo.Ticket(ticket_id),
@@ -185,82 +194,109 @@ CREATE TABLE dbo.Payment (
 GO
 
 -- ===========================================================================
--- PHASE 3: PRODUCTION MOCK DATA POPULATION
+-- PHASE 3: DATA SEEDING
 -- ===========================================================================
 
--- 1. Seed Staff System Accounts with Explicit Plain Text Strings
-INSERT INTO dbo.Staff (name, phone, role, status, password) VALUES 
+-- Staff accounts — plain text passwords for development
+INSERT INTO dbo.Staff (name, phone, role, status, password) VALUES
 (N'Nguyen Admin', '0901112223', 'admin', 'active', '123'),
 (N'Tran Manager', '0912223334', 'manager', 'active', '345'),
 (N'Le Attendant 1', '0923334445', 'attendant', 'active', '678'),
 (N'Pham Attendant 2', '0934445556', 'attendant', 'active', '89');
 
--- 2. Seed Vehicle Categories & Pricing Scales
-INSERT INTO dbo.Vehicle_type (type_name, price_per_hour, price_per_day, description) VALUES 
+-- Vehicle types with pricing
+INSERT INTO dbo.Vehicle_type (type_name, price_per_hour, price_per_day, description) VALUES
 (N'Sedan', 15000.00, 120000.00, N'4-seater standard passenger cars'),
 (N'SUV / Truck', 20000.00, 160000.00, N'Large 7-seater vehicles or pickups'),
 (N'Motorbike', 5000.00, 40000.00, N'Two-wheeled vehicles');
 
--- 3. Seed Physical Layout Areas
-INSERT INTO dbo.Parking_area (area_code, description) VALUES 
+-- Physical zones
+INSERT INTO dbo.Parking_area (area_code, description) VALUES
 ('ZONE-A', N'Ground Floor - Standard Sedans Only'),
 ('ZONE-B', N'Basement 1 - Large SUVs & Trucks'),
 ('ZONE-C', N'Rooftop Deck - Motorbike Parking Grid');
 
--- 4. Seed Integrated Payment Solutions
-INSERT INTO dbo.Payment_method (method_name, is_active) VALUES 
+-- Payment methods
+INSERT INTO dbo.Payment_method (method_name, is_active) VALUES
 (N'Cash Handover', 1),
-(N'Momo QR Scan', 1),
-(N'Bank Card Terminal', 1);
+(N'VNPay', 1);
 
--- 5. Seed Customer Base Profiles
-INSERT INTO dbo.Customer (name, phone, email, address) VALUES 
+-- Sample customers for testing the tracking feature
+INSERT INTO dbo.Customer (name, phone, email, address) VALUES
 (N'Tran Van Hoang', '0988777666', 'hoang.tran@gmail.com', N'123 Nguyen Hue, District 1, HCMC'),
 (N'Le Thi Mai', '0977666555', 'mai.le@yahoo.com', N'456 Le Loi, District 3, HCMC'),
 (N'Pham Minh Duc', '0966555444', 'duc.pham@outlook.com', N'789 Dien Bien Phu, Binh Thanh, HCMC');
 
--- 6. Seed Registered Member Vehicles
-INSERT INTO dbo.Vehicle (customer_id, vehicle_type_id, license_plate, model, color) VALUES 
+-- Vehicles linked to those customers
+INSERT INTO dbo.Vehicle (customer_id, vehicle_type_id, license_plate, model, color) VALUES
 (1, 1, '59A-123.45', 'Toyota Vios', 'Silver'),
 (2, 2, '51G-987.65', 'Ford Ranger', 'Black'),
 (3, 3, '59P-555.55', 'Honda SH 150i', 'White');
 
--- 7. Seed Physical Parking Slot Matrix Maps
-INSERT INTO dbo.Parking_slot (area_id, slot_code, slot_type, status) VALUES 
+-- Expanded parking slot grid — enough slots to properly test the visual slot map.
+-- Zone A: 10 Sedan slots
+INSERT INTO dbo.Parking_slot (area_id, slot_code, slot_type, status) VALUES
 (1, 'A-01', 'Sedan', 'Occupied'),
 (1, 'A-02', 'Sedan', 'Empty'),
-(1, 'A-03', 'Sedan', 'Maintenance'),
+(1, 'A-03', 'Sedan', 'Empty'),
+(1, 'A-04', 'Sedan', 'Empty'),
+(1, 'A-05', 'Sedan', 'Empty'),
+(1, 'A-06', 'Sedan', 'Occupied'),
+(1, 'A-07', 'Sedan', 'Empty'),
+(1, 'A-08', 'Sedan', 'Maintenance'),
+(1, 'A-09', 'Sedan', 'Empty'),
+(1, 'A-10', 'Sedan', 'Empty');
+
+-- Zone B: 8 SUV slots
+INSERT INTO dbo.Parking_slot (area_id, slot_code, slot_type, status) VALUES
 (2, 'B-01', 'SUV', 'Occupied'),
 (2, 'B-02', 'SUV', 'Empty'),
-(3, 'C-01', 'Motorbike', 'Occupied');
+(2, 'B-03', 'SUV', 'Empty'),
+(2, 'B-04', 'SUV', 'Empty'),
+(2, 'B-05', 'SUV', 'Reserved'),
+(2, 'B-06', 'SUV', 'Empty'),
+(2, 'B-07', 'SUV', 'Empty'),
+(2, 'B-08', 'SUV', 'Occupied');
 
--- 8. Seed Dynamic Pricing Strategy Engine Matrices
-INSERT INTO dbo.Pricing_rules (vehicle_type_id, start_time, end_time, day_type, first_hour_price, next_hour_price, max_daily_price, is_active, effective_from, effective_to) VALUES 
+-- Zone C: 12 Motorbike slots
+INSERT INTO dbo.Parking_slot (area_id, slot_code, slot_type, status) VALUES
+(3, 'C-01', 'Motorbike', 'Occupied'),
+(3, 'C-02', 'Motorbike', 'Empty'),
+(3, 'C-03', 'Motorbike', 'Empty'),
+(3, 'C-04', 'Motorbike', 'Empty'),
+(3, 'C-05', 'Motorbike', 'Empty'),
+(3, 'C-06', 'Motorbike', 'Empty'),
+(3, 'C-07', 'Motorbike', 'Empty'),
+(3, 'C-08', 'Motorbike', 'Occupied'),
+(3, 'C-09', 'Motorbike', 'Empty'),
+(3, 'C-10', 'Motorbike', 'Empty'),
+(3, 'C-11', 'Motorbike', 'Maintenance'),
+(3, 'C-12', 'Motorbike', 'Empty');
+
+-- Pricing rules
+INSERT INTO dbo.Pricing_rules (vehicle_type_id, start_time, end_time, day_type, first_hour_price, next_hour_price, max_daily_price, is_active, effective_from, effective_to) VALUES
 (1, '06:00:00', '22:00:00', 'Weekday', 15000.00, 10000.00, 120000.00, 1, '2026-01-01', '2026-12-31'),
 (2, '06:00:00', '22:00:00', 'Weekday', 20000.00, 15000.00, 160000.00, 1, '2026-01-01', '2026-12-31'),
 (3, '06:00:00', '22:00:00', 'Weekday', 5000.00,  3000.00,  40000.00,  1, '2026-01-01', '2026-12-31');
 
--- 9. Seed Advance Booking Registrations
-INSERT INTO dbo.Booking (license_plate, vehicle_type_id, slot_id, target_time, status) VALUES 
-('59A-123.45', 1, 2, '2026-08-15 10:00:00', 'active'),
-('51G-987.65', 2, 5, '2026-08-20 14:30:00', 'active'),
-('59Z-111.11', 1, 3, '2026-06-12 09:00:00', 'completed');
+-- Sample booking history for testing the staff dashboard and customer tracking.
+-- These represent bookings placed by customers ahead of time.
+INSERT INTO dbo.Booking (customer_name, customer_phone, license_plate, vehicle_type_id, slot_id, target_time, status, payment_method) VALUES
+(N'Tran Van Hoang', '0988777666', '59A-123.45', 1, 2, '2026-08-15 10:00:00', 'active', 'Cash'),
+(N'Le Thi Mai',     '0977666555', '51G-987.65', 2, 12, '2026-08-20 14:30:00', 'active', 'VNPay'),
+(N'Pham Minh Duc',  '0966555444', '59P-555.55', 3, 21, '2026-08-10 09:00:00', 'occupied', 'Cash'),
+(N'Nguyen Test',    '0911000001', '59B-111.22', 1, 3, '2026-09-01 08:00:00', 'canceled', 'VNPay');
 
--- 10. Seed System Operational Parking Tickets
-INSERT INTO dbo.Ticket (vehicle_id, check_in_by, entry_time, entry_image_url, license_plate_snapshot, qr_code, status, check_out_time, check_out_by, note) VALUES 
-(1, 3, DATEADD(hour, -4, GETDATE()), 'https://s3.parking/img/entry1.jpg', '59A12345', 'QR_HASH_TOKEN_XYZ001', 'completed', DATEADD(hour, -1, GETDATE()), 3, N'Regular departure'),
-(2, 3, DATEADD(hour, -2, GETDATE()), 'https://s3.parking/img/entry2.jpg', '51G98765', 'QR_HASH_TOKEN_XYZ002', 'active', NULL, NULL, NULL),
-(3, 4, DATEADD(hour, -1, GETDATE()), 'https://s3.parking/img/entry3.jpg', '59P55555', 'QR_HASH_TOKEN_XYZ003', 'active', NULL, NULL, N'Rooftop bay assignment');
-
--- 10. Seed System Log Audit History Traces (Camera column completely removed)
-INSERT INTO dbo.Parking_log (ticket_id, staff_id, action, action_time, note) VALUES  
-(1, 3, 'entry', DATEADD(hour, -4, GETDATE()), N'Staff triggered manual gate actuation'),
-(1, 3, 'exit', DATEADD(hour, -1, GETDATE()), N'Fee processed, gate released manually'),
-(2, 3, 'entry', DATEADD(hour, -2, GETDATE()), N'Manual check-in log saved');
+-- Sample active tickets for the staff view
+INSERT INTO dbo.Ticket (vehicle_id, check_in_by, entry_time, license_plate_snapshot, qr_code, status) VALUES
+(1, 3, DATEADD(hour, -4, GETDATE()), '59A12345', 'QR_HASH_TOKEN_XYZ001', 'completed'),
+(2, 3, DATEADD(hour, -2, GETDATE()), '51G98765', 'QR_HASH_TOKEN_XYZ002', 'active'),
+(3, 4, DATEADD(hour, -1, GETDATE()), '59P55555', 'QR_HASH_TOKEN_XYZ003', 'active');
 
 -- ===========================================================================
--- PHASE 4: VERIFICATION QUICK-RUNNER
+-- PHASE 4: VERIFICATION
 -- ===========================================================================
 SELECT N'SUCCESS' as [Deployment Status];
-SELECT * FROM dbo.Staff;
+SELECT slot_code, status FROM dbo.Parking_slot ORDER BY slot_code;
+SELECT * FROM dbo.Booking;
 GO

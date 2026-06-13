@@ -4,7 +4,6 @@ import dao.BookingDAO;
 import dao.StaffDAO;
 import dto.Booking;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -15,17 +14,21 @@ import javax.servlet.http.HttpServletResponse;
 /*
  * BookingAPIController — handles /api/v1/bookings/*
  *
- * This controller now routes multiple booking lifecycle endpoints:
- * - /create (POST)
- * - /list (GET)
- * - /checkin (POST)
- * - /cancel (DELETE)
- * - /remove (DELETE)
+ * All endpoints here are for the staff dashboard. Every request must carry a valid
+ * Bearer token in the Authorization header or it will get a 401 back.
+ *
+ * Endpoints:
+ *   GET  /list    — fetch all bookings for the ledger table
+ *   GET  /track   — public endpoint, no auth required — customer tracking by phone + plate
+ *   POST /checkin — mark a booking as checked-in (slot becomes Occupied)
+ *   DELETE /cancel — cancel a booking with an optional reason (slot goes back to Empty)
+ *   DELETE /remove — permanently delete a finished/cancelled booking from history
+ *   PUT  /edit    — update booking details
  */
 @WebServlet(name = "BookingAPIController", urlPatterns = {"/api/v1/bookings/*"})
 public class BookingAPIController extends HttpServlet {
 
-    // Ensures all endpoints are protected by Bearer token sweeps
+    // Checks the Authorization header and validates the token against the in-memory session store
     private boolean authenticate(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -45,9 +48,16 @@ public class BookingAPIController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        if (!authenticate(request, response)) return;
-        
         String pathInfo = request.getPathInfo();
+
+        // /track is public — customers use it to look up their own bookings
+        if ("/track".equals(pathInfo)) {
+            handleTrack(request, response);
+            return;
+        }
+
+        if (!authenticate(request, response)) return;
+
         if ("/list".equals(pathInfo)) {
             handleList(response);
         } else {
@@ -60,9 +70,7 @@ public class BookingAPIController extends HttpServlet {
         if (!authenticate(request, response)) return;
 
         String pathInfo = request.getPathInfo();
-        if ("/create".equals(pathInfo)) {
-            handleCreate(request, response);
-        } else if ("/checkin".equals(pathInfo)) {
+        if ("/checkin".equals(pathInfo)) {
             handleCheckIn(request, response);
         } else {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -95,22 +103,28 @@ public class BookingAPIController extends HttpServlet {
         }
     }
 
+    // Returns all bookings as a JSON array for the staff ledger table
     private void handleList(HttpServletResponse response) throws IOException, ServletException {
         BookingDAO dao = new BookingDAO();
         try {
             List<Booking> list = dao.getAllBookings();
-            
-            // Build simple JSON array manually to avoid external dependencies
+
+            // Building JSON manually to stay dependency-free
             StringBuilder json = new StringBuilder("[");
             for (int i = 0; i < list.size(); i++) {
                 Booking b = list.get(i);
                 json.append("{");
                 json.append("\"bookingId\":").append(b.getBookingId()).append(",");
-                json.append("\"licensePlate\":\"").append(b.getLicensePlate()).append("\",");
-                json.append("\"vehicleTypeName\":\"").append(b.getVehicleTypeName()).append("\",");
-                json.append("\"slotCode\":\"").append(b.getSlotCode()).append("\",");
-                json.append("\"targetTime\":\"").append(b.getTargetTime()).append("\",");
-                json.append("\"status\":\"").append(b.getStatus()).append("\"");
+                json.append("\"customerName\":\"").append(escapeJson(b.getCustomerName())).append("\",");
+                json.append("\"customerPhone\":\"").append(escapeJson(b.getCustomerPhone())).append("\",");
+                json.append("\"licensePlate\":\"").append(escapeJson(b.getLicensePlate())).append("\",");
+                json.append("\"vehicleTypeName\":\"").append(escapeJson(b.getVehicleTypeName())).append("\",");
+                json.append("\"slotCode\":\"").append(escapeJson(b.getSlotCode())).append("\",");
+                json.append("\"areaCode\":\"").append(escapeJson(b.getAreaCode())).append("\",");
+                json.append("\"targetTime\":\"").append(escapeJson(b.getTargetTime())).append("\",");
+                json.append("\"status\":\"").append(escapeJson(b.getStatus())).append("\",");
+                json.append("\"paymentMethod\":\"").append(escapeJson(b.getPaymentMethod())).append("\",");
+                json.append("\"cancellationReason\":\"").append(b.getCancellationReason() != null ? escapeJson(b.getCancellationReason()) : "").append("\"");
                 json.append("}");
                 if (i < list.size() - 1) json.append(",");
             }
@@ -119,52 +133,51 @@ public class BookingAPIController extends HttpServlet {
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write(json.toString());
-            
+
         } catch (Exception ex) {
             throw new ServletException(ex);
         }
     }
 
-    private void handleCreate(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        String licensePlate = request.getParameter("licensePlate");
-        String vehicleTypeStr = request.getParameter("vehicleType");
-        String slotIdStr = request.getParameter("slotId");
-        String targetTime = request.getParameter("targetTime");
+    // Public endpoint — no auth. Lets a customer look up their bookings with phone + license plate.
+    private void handleTrack(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        String phone = request.getParameter("phone");
+        String plate = request.getParameter("licensePlate");
 
-        if (licensePlate == null || !licensePlate.matches("^[A-Za-z0-9\\.\\-\\ ]+$")) {
+        if (phone == null || phone.trim().isEmpty() || plate == null || plate.trim().isEmpty()) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write("Invalid license plate format");
-            return;
-        }
-        
-        int vehicleType, slotId;
-        try {
-            vehicleType = Integer.parseInt(vehicleTypeStr);
-            slotId = Integer.parseInt(slotIdStr);
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write("Invalid numeric parameters");
+            response.getWriter().write("{\"success\":false,\"message\":\"Phone and license plate are required.\"}");
             return;
         }
 
-        Booking booking = new Booking();
-        booking.setLicensePlate(licensePlate);
-        booking.setVehicleTypeId(vehicleType);
-        booking.setSlotId(slotId);
-        booking.setTargetTime(targetTime);
-
-        BookingDAO dao = new BookingDAO();
         try {
-            boolean success = dao.createAdvanceBooking(booking);
-            if (success) {
-                response.setStatus(HttpServletResponse.SC_CREATED);
-                response.getWriter().write("Booking created successfully");
-            } else {
-                response.setStatus(HttpServletResponse.SC_CONFLICT);
-                response.getWriter().write("Slot is already booked or unavailable");
+            BookingDAO dao = new BookingDAO();
+            List<Booking> list = dao.getBookingsByCustomer(phone.trim(), plate.trim());
+
+            StringBuilder json = new StringBuilder("{\"success\":true,\"bookings\":[");
+            for (int i = 0; i < list.size(); i++) {
+                Booking b = list.get(i);
+                json.append("{");
+                json.append("\"bookingId\":").append(b.getBookingId()).append(",");
+                json.append("\"customerName\":\"").append(escapeJson(b.getCustomerName())).append("\",");
+                json.append("\"licensePlate\":\"").append(escapeJson(b.getLicensePlate())).append("\",");
+                json.append("\"vehicleTypeName\":\"").append(escapeJson(b.getVehicleTypeName())).append("\",");
+                json.append("\"slotCode\":\"").append(escapeJson(b.getSlotCode())).append("\",");
+                json.append("\"areaCode\":\"").append(escapeJson(b.getAreaCode())).append("\",");
+                json.append("\"targetTime\":\"").append(escapeJson(b.getTargetTime())).append("\",");
+                json.append("\"createdAt\":\"").append(escapeJson(b.getCreatedAt())).append("\",");
+                json.append("\"status\":\"").append(escapeJson(b.getStatus())).append("\",");
+                json.append("\"paymentMethod\":\"").append(escapeJson(b.getPaymentMethod())).append("\",");
+                json.append("\"cancellationReason\":\"").append(b.getCancellationReason() != null ? escapeJson(b.getCancellationReason()) : "").append("\"");
+                json.append("}");
+                if (i < list.size() - 1) json.append(",");
             }
-        } catch (SQLException ex) {
-            throw new ServletException("Database error during booking", ex);
+            json.append("]}");
+
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(json.toString());
+
         } catch (Exception ex) {
             throw new ServletException(ex);
         }
@@ -177,10 +190,10 @@ public class BookingAPIController extends HttpServlet {
             BookingDAO dao = new BookingDAO();
             if (dao.checkInBooking(bookingId)) {
                 response.setStatus(HttpServletResponse.SC_OK);
-                response.getWriter().write("Booking checked in successfully");
+                response.getWriter().write("Checked in successfully");
             } else {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write("Unable to check in booking");
+                response.getWriter().write("Unable to check in — booking may already be checked in or cancelled");
             }
         } catch (Exception ex) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -188,17 +201,20 @@ public class BookingAPIController extends HttpServlet {
         }
     }
 
+    // Cancel takes an optional 'reason' parameter so staff can explain the cancellation.
+    // Customers will see this reason on their tracking page.
     private void handleCancel(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         String bookingIdStr = request.getParameter("bookingId");
+        String reason = request.getParameter("reason");
         try {
             int bookingId = Integer.parseInt(bookingIdStr);
             BookingDAO dao = new BookingDAO();
-            if (dao.cancelBooking(bookingId)) {
+            if (dao.cancelBooking(bookingId, reason)) {
                 response.setStatus(HttpServletResponse.SC_OK);
-                response.getWriter().write("Booking canceled successfully");
+                response.getWriter().write("Booking cancelled");
             } else {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write("Unable to cancel booking");
+                response.getWriter().write("Unable to cancel — booking may already be cancelled or checked in");
             }
         } catch (Exception ex) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -213,10 +229,10 @@ public class BookingAPIController extends HttpServlet {
             BookingDAO dao = new BookingDAO();
             if (dao.removeBooking(bookingId)) {
                 response.setStatus(HttpServletResponse.SC_OK);
-                response.getWriter().write("Booking removed successfully");
+                response.getWriter().write("Booking removed from history");
             } else {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write("Unable to remove booking");
+                response.getWriter().write("Unable to remove — only finished or cancelled bookings can be removed");
             }
         } catch (Exception ex) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -225,13 +241,19 @@ public class BookingAPIController extends HttpServlet {
     }
 
     private void handleEdit(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        String bookingIdStr = request.getParameter("bookingId");
-        String licensePlate = request.getParameter("licensePlate");
+        String bookingIdStr  = request.getParameter("bookingId");
+        String licensePlate  = request.getParameter("licensePlate");
         String vehicleTypeStr = request.getParameter("vehicleType");
-        String slotIdStr = request.getParameter("slotId");
-        String targetTime = request.getParameter("targetTime");
+        String slotIdStr     = request.getParameter("slotId");
+        String targetTime    = request.getParameter("targetTime");
 
-        if (licensePlate == null || !licensePlate.matches("^[A-Za-z0-9\\.\\-\\ ]+$")) {
+        if (bookingIdStr == null || licensePlate == null || vehicleTypeStr == null || slotIdStr == null) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().write("Missing required parameters");
+            return;
+        }
+
+        if (!licensePlate.matches("^[A-Za-z0-9\\.\\-\\ ]+$")) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             response.getWriter().write("Invalid license plate format");
             return;
@@ -239,9 +261,9 @@ public class BookingAPIController extends HttpServlet {
 
         int bookingId, vehicleType, slotId;
         try {
-            bookingId = Integer.parseInt(bookingIdStr);
+            bookingId   = Integer.parseInt(bookingIdStr);
             vehicleType = Integer.parseInt(vehicleTypeStr);
-            slotId = Integer.parseInt(slotIdStr);
+            slotId      = Integer.parseInt(slotIdStr);
         } catch (NumberFormatException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             response.getWriter().write("Invalid numeric parameters");
@@ -259,14 +281,20 @@ public class BookingAPIController extends HttpServlet {
         try {
             if (dao.editBooking(booking)) {
                 response.setStatus(HttpServletResponse.SC_OK);
-                response.getWriter().write("Booking updated successfully");
+                response.getWriter().write("Booking updated");
             } else {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write("Unable to update booking");
+                response.setStatus(HttpServletResponse.SC_CONFLICT);
+                response.getWriter().write("Unable to update — the new slot may already be taken");
             }
         } catch (Exception ex) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             throw new ServletException(ex);
         }
+    }
+
+    // Escapes special characters in strings going into JSON to prevent malformed output
+    private String escapeJson(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r");
     }
 }

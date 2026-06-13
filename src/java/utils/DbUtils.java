@@ -17,9 +17,9 @@ import java.sql.SQLException;
  */
 public class DbUtils {
     
-    private static final String DB_USER = "SWP391_Admin";
-    private static final String DB_PASSWORD = "SWP@391DB"; 
-    private static final String URL = "jdbc:sqlserver://swp391db.database.windows.net:1433;databaseName=" 
+    private static final String DB_USER = "sa";
+    private static final String DB_PASSWORD = "12345"; 
+    private static final String URL = "jdbc:sqlserver://localhost:1433;databaseName=" 
     + "SmartParkingDB" + ";encrypt=true;trustServerCertificate=true;";
 
     // Returns a fresh DB connection
