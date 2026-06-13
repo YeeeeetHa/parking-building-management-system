@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context path="/Git">
+
+    <Resource name="jdbc/ParkingDB" 
+              auth="Container" 
+              type="javax.sql.DataSource"
+              driverClassName="com.microsoft.sqlserver.jdbc.SQLServerDriver"
+              url="jdbc:sqlserver://localhost:1433;databaseName=ParkingDB;encrypt=true;trustServerCertificate=true;"
+              username="SA" 
+              password="12345" 
+              maxTotal="20" 
+              maxIdle="10" 
+              maxWaitMillis="-1"/>
+
+</Context>
