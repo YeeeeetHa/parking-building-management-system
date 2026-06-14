@@ -632,9 +632,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
 
                     if (res.ok) {
                         bookingsData = await res.json();
-                        // Sort descending by target time (most recent upcoming first)
+                        // Sort ascending by target time (closest upcoming first)
                         bookingsData.sort(
-                            (a, b) => new Date(b.targetTime) - new Date(a.targetTime),
+                            (a, b) => new Date(a.targetTime) - new Date(b.targetTime),
                         );
                         // Ensure selectedBookings only keeps IDs that actually exist
                         const activeIds = new Set(bookingsData.map((b) => b.bookingId));

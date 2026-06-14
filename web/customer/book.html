@@ -710,6 +710,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 document.getElementById("selectedSlotLabel").textContent = slotCode + " (" + slotType + ")";
                 document.getElementById("selectedSlotZone").textContent = areaCode;
                 document.getElementById("selectedSlotInfo").classList.remove("d-none");
+
+                // Auto-select and lock the vehicle type to match the chosen slot
+                const vtMap = { "Sedan": "1", "SUV": "2", "Motorbike": "3" };
+                if (vtMap[slotType]) {
+                    const vtSelect = document.getElementById("vehicleType");
+                    vtSelect.value = vtMap[slotType];
+                    vtSelect.disabled = true;
+                }
             }
 
             // Step Navigation

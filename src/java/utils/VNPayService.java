@@ -69,10 +69,10 @@ public class VNPayService {
         StringBuilder rawData = new StringBuilder();
         StringBuilder query   = new StringBuilder();
         for (Map.Entry<String, String> entry : params.entrySet()) {
-            rawData.append(entry.getKey()).append("=").append(URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII.toString()));
-            query.append(URLEncoder.encode(entry.getKey(), StandardCharsets.US_ASCII.toString()))
+            rawData.append(entry.getKey()).append("=").append(URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII.toString()).replace("+", "%20"));
+            query.append(URLEncoder.encode(entry.getKey(), StandardCharsets.US_ASCII.toString()).replace("+", "%20"))
                  .append("=")
-                 .append(URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII.toString()));
+                 .append(URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII.toString()).replace("+", "%20"));
             rawData.append("&");
             query.append("&");
         }
@@ -99,7 +99,7 @@ public class VNPayService {
         signParams.remove("vnp_SecureHashType");
         StringBuilder rawData = new StringBuilder();
         for (Map.Entry<String, String> entry : signParams.entrySet()) {
-            rawData.append(entry.getKey()).append("=").append(URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII.toString())).append("&");
+            rawData.append(entry.getKey()).append("=").append(URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII.toString()).replace("+", "%20")).append("&");
         }
         String rawDataStr = rawData.toString();
         if (rawDataStr.endsWith("&")) rawDataStr = rawDataStr.substring(0, rawDataStr.length() - 1);
