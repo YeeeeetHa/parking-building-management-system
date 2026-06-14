@@ -143,7 +143,42 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 font-size: 16px;
             }
 
-            /* ── Legend ── */
+            /* ── Floor-switcher pills ── */
+            .floor-nav {
+                display: flex;
+                gap: 6px;
+                flex-wrap: wrap;
+                margin-bottom: 12px;
+            }
+            .floor-pill {
+                padding: 4px 14px;
+                border-radius: 20px;
+                font-size: 0.72rem;
+                font-weight: 600;
+                border: 1px solid #e2e8f0;
+                background: #f8fafc;
+                color: #64748b;
+                cursor: pointer;
+                transition: all 0.15s;
+            }
+            .floor-pill.active {
+                background: #0f766e;
+                color: #fff;
+                border-color: #0f766e;
+            }
+
+            /* ── Driveway divider inside the slot grid ── */
+            .driveway-divider {
+                width: 100%;
+                text-align: center;
+                padding: 8px 0;
+                color: #94a3b8;
+                font-size: 0.7rem;
+                letter-spacing: 4px;
+                border-top: 1px dashed #e2e8f0;
+                border-bottom: 1px dashed #e2e8f0;
+                margin: 8px 0;
+            }
             .legend-dot {
                 width: 12px;
                 height: 12px;
@@ -343,6 +378,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                         <span class="d-flex align-items-center gap-1" style="font-size:0.72rem;"><span class="legend-dot" style="background:#f1f5f9;border:1.5px solid #cbd5e1;"></span>Maintenance</span>
                     </div>
 
+                    <!-- Floor-switcher: zone tabs rendered by JS once slots load -->
+                    <div class="floor-nav" id="bookingFloorNav"></div>
+
                     <div id="slotMapContainer">
                         <div class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>Loading slot map…</div>
                     </div>
@@ -472,36 +510,94 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                                 }
                             }
 
+                            // All slots fetched from the server — kept so we can re-render when switching floors
+                            let allBookingSlots = [];
+                            let bookingZones = [];      // ordered zone names
+                            let bookingCurrentZone = null;
+
                             function renderSlotMap(slots) {
-                                // Group slots by zone
-                                const zones = {};
+                                allBookingSlots = slots;
+
+                                // Collect unique zones in their original order
+                                const seen = new Set();
+                                bookingZones = [];
                                 slots.forEach(s => {
-                                    if (!zones[s.areaCode])
-                                        zones[s.areaCode] = [];
-                                    zones[s.areaCode].push(s);
+                                    if (!seen.has(s.areaCode)) {
+                                        seen.add(s.areaCode);
+                                        bookingZones.push(s.areaCode);
+                                    }
                                 });
 
-                                const zoneDescriptions = {'ZONE-A': 'Sedan — Ground Floor', 'ZONE-B': 'SUV / Truck — Basement', 'ZONE-C': 'Motorbike — Rooftop'};
-                                const slotIcons = {'Sedan': 'bi-car-front', 'SUV': 'bi-truck', 'Motorbike': 'bi-bicycle'};
+                                // Start on the first zone if we haven't already picked one
+                                if (!bookingCurrentZone || !bookingZones.includes(bookingCurrentZone)) {
+                                    bookingCurrentZone = bookingZones[0];
+                                }
 
-                                let html = '';
-                                Object.entries(zones).forEach(([zone, zoneSlots]) => {
-                                    html += `<div class="mb-4">
-                        <div class="zone-header mb-2">${zone} <span class="text-muted fw-normal ms-1" style="text-transform:none;">${zoneDescriptions[zone] || ''}</span></div>
-                        <div class="slot-grid">`;
-                                    zoneSlots.forEach(s => {
-                                        const statusClass = s.status.toLowerCase();
-                                        const icon = slotIcons[s.slotType] || 'bi-p-circle';
-                                        const disabled = (s.status !== 'Empty') ? 'disabled' : '';
-                                        html += `<button class="slot-btn ${statusClass}" id="slot-${s.slotId}"
-                            ${disabled} onclick="selectSlot(${s.slotId}, '${s.slotCode}', '${zone}', '${s.slotType}', '${s.status}')">
-                            <i class="bi ${icon} slot-icon"></i>
-                            <span>${s.slotCode}</span>
-                        </button>`;
-                                    });
-                                    html += `</div></div>`;
-                                });
-                                document.getElementById('slotMapContainer').innerHTML = html;
+                                renderFloorNav();
+                                renderZoneMap();
+                            }
+
+                            function renderFloorNav() {
+                                const zoneDescriptions = {
+                                    'ZONE-A': 'Sedan — Ground Floor',
+                                    'ZONE-B': 'SUV / Truck — Basement',
+                                    'ZONE-C': 'Motorbike — Rooftop'
+                                };
+                                const nav = document.getElementById('bookingFloorNav');
+                                nav.innerHTML = bookingZones.map(z => `
+                                    <button class="floor-pill ${z === bookingCurrentZone ? 'active' : ''}"
+                                            onclick="switchBookingFloor('${z}')">
+                                        ${z}<span class="ms-1 fw-normal text-opacity-75" style="font-size:0.65rem;">— ${(zoneDescriptions[z] || '').split(' — ')[1] || ''}</span>
+                                    </button>
+                                `).join('');
+                            }
+
+                            function switchBookingFloor(zone) {
+                                bookingCurrentZone = zone;
+                                renderFloorNav();
+                                renderZoneMap();
+                            }
+
+                            function renderZoneMap() {
+                                const zoneSlots = allBookingSlots.filter(s => s.areaCode === bookingCurrentZone);
+                                const slotIcons = {Sedan: 'bi-car-front', SUV: 'bi-truck', Motorbike: 'bi-bicycle'};
+
+                                if (zoneSlots.length === 0) {
+                                    document.getElementById('slotMapContainer').innerHTML =
+                                        '<div class="text-center py-4 text-muted">No slots in this zone.</div>';
+                                    return;
+                                }
+
+                                // Split into two rows with a driveway divider between them
+                                const half = Math.ceil(zoneSlots.length / 2);
+                                const top  = zoneSlots.slice(0, half);
+                                const bot  = zoneSlots.slice(half);
+
+                                const renderSlotBtn = s => {
+                                    const statusClass = s.status.toLowerCase();
+                                    const icon = slotIcons[s.slotType] || 'bi-p-circle';
+                                    const disabled = (s.status !== 'Empty') ? 'disabled' : '';
+                                    return `<button class="slot-btn ${statusClass}" id="slot-${s.slotId}"
+                                        ${disabled} onclick="selectSlot(${s.slotId}, '${s.slotCode}', '${s.areaCode}', '${s.slotType}', '${s.status}')">
+                                        <i class="bi ${icon} slot-icon"></i>
+                                        <span>${s.slotCode}</span>
+                                    </button>`;
+                                };
+
+                                document.getElementById('slotMapContainer').innerHTML = `
+                                    <div class="slot-grid">${top.map(renderSlotBtn).join('')}</div>
+                                    <div class="driveway-divider">DRIVEWAY</div>
+                                    <div class="slot-grid">${bot.map(renderSlotBtn).join('')}</div>
+                                `;
+
+                                // Restore the selected state if the chosen slot is on this floor
+                                if (selectedSlotId) {
+                                    const btn = document.getElementById('slot-' + selectedSlotId);
+                                    if (btn) {
+                                        btn.classList.remove('empty');
+                                        btn.classList.add('selected');
+                                    }
+                                }
                             }
 
                             function selectSlot(slotId, slotCode, areaCode, slotType, status) {

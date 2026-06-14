@@ -65,7 +65,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 letter-spacing: 0.05em;
             }
 
-            /* Custom Parking Grid Map Layout styles */
+            /* Parking grid layout — shared by both the preview and the full staff map */
             .parking-grid {
                 display: grid;
                 grid-template-columns: repeat(10, 1fr);
@@ -91,6 +91,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 font-weight: bold;
                 border-radius: 4px;
                 color: #0f766e;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
             }
             .slot.occupied {
                 background: #fee2e2;
@@ -106,6 +111,36 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 background: #f1f5f9;
                 border-color: #cbd5e1;
                 color: #64748b;
+            }
+            /* Occupied/Reserved slots in the full map are clickable */
+            .slot.cursor-pointer {
+                cursor: pointer;
+                transition: filter 0.15s;
+            }
+            .slot.cursor-pointer:hover {
+                filter: brightness(0.93);
+            }
+            /* Floor-switcher pill nav used in both the preview and the full map */
+            .floor-nav {
+                display: flex;
+                gap: 6px;
+                flex-wrap: wrap;
+            }
+            .floor-pill {
+                padding: 4px 14px;
+                border-radius: 20px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                border: 1px solid #e2e8f0;
+                background: #f8fafc;
+                color: #64748b;
+                cursor: pointer;
+                transition: all 0.15s;
+            }
+            .floor-pill.active {
+                background: #0f766e;
+                color: #fff;
+                border-color: #0f766e;
             }
         </style>
     </head>
@@ -134,7 +169,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
             </div>
             <div>
                 <a href="#" class="btn btn-sm btn-outline-danger w-100 mb-3 fw-bold" onclick="sessionStorage.clear(); localStorage.clear(); window.location.href = CONTEXT_PATH + '/login.html';"><i class="bi bi-box-arrow-left"></i> Logout</a>
-                <button class="btn w-100 fw-bold mt-auto" style="background-color: #0f766e; color: white;">Add New Entry</button>
             </div>
         </aside>
 
@@ -142,10 +176,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
             <header class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="h3 fw-bold text-dark m-0" id="page-title">System Overview</h1>
                 <div class="d-flex align-items-center gap-3">
-                    <div class="input-group" style="width: 300px;">
-                        <span class="input-group-text bg-white border-secondary-subtle"><i class="bi bi-search text-muted"></i></span>
-                        <input type="text" class="form-control border-secondary-subtle" placeholder="Search vehicles or slots...">
-                    </div>
                     <div class="bg-secondary-subtle rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
                         <i class="bi bi-person-fill text-secondary"></i>
                     </div>
@@ -153,19 +183,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
             </header>
 
             <div id="section-dashboard">
-                <div class="alert alert-danger bg-danger-subtle border-danger-subtle text-danger d-flex justify-content-between align-items-center p-3 mb-4 rounded-4" role="alert">
-                    <div>
-                        <h6 class="alert-heading fw-bold m-0 mb-1"><i class="bi bi-exclamation-triangle-fill me-2"></i>Almost Full Alert</h6>
-                        <p class="small m-0 text-danger-emphasis">Occupancy has reached 76%. Floor 1 is currently at maximum capacity.</p>
-                    </div>
-                    <button class="btn btn-danger btn-sm fw-bold">Manage Capacity</button>
-                </div>
+                <!-- Dynamic alerts can be injected here if needed -->
 
                 <section class="row g-3 mb-4">
                     <div class="col-md-3">
                         <div class="bg-card-custom p-4 h-100 d-flex flex-column position-relative overflow-hidden">
                             <span class="small text-muted fw-bold text-uppercase">Total Slots <i class="bi bi-layers ms-1"></i></span>
-                            <h3 class="fs-2 fw-bold my-2 text-break" style="color: #0f766e;">500</h3>
+                            <h3 class="fs-2 fw-bold my-2 text-break" style="color: #0f766e;" id="dash-total">-</h3>
                             <div class="mt-auto">
                                 <span class="small text-muted-custom">Global capacity</span>
                             </div>
@@ -174,33 +198,33 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                     <div class="col-md-3">
                         <div class="bg-card-custom p-4 h-100 d-flex flex-column position-relative overflow-hidden">
                             <span class="small text-muted fw-bold text-uppercase">Available <i class="bi bi-check-circle-fill text-success ms-1"></i></span>
-                            <h3 class="fs-2 fw-bold my-2 text-success text-break">120</h3>
+                            <h3 class="fs-2 fw-bold my-2 text-success text-break" id="dash-available">-</h3>
                             <div class="mt-auto">
                                 <div class="progress bg-success-subtle mb-2" style="height: 6px;">
-                                    <div class="progress-bar bg-success" style="width: 24%"></div>
+                                    <div class="progress-bar bg-success" id="dash-available-bar" style="width: 0%"></div>
                                 </div>
-                                <span class="small text-success d-block">24% Left</span>
+                                <span class="small text-success d-block" id="dash-available-text">-</span>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="bg-card-custom p-4 h-100 d-flex flex-column position-relative overflow-hidden">
                             <span class="small text-muted fw-bold text-uppercase">Occupied <i class="bi bi-car-front-fill ms-1"></i></span>
-                            <h3 class="fs-2 fw-bold my-2 text-danger text-break">380</h3>
+                            <h3 class="fs-2 fw-bold my-2 text-danger text-break" id="dash-occupied">-</h3>
                             <div class="mt-auto">
                                 <div class="progress bg-danger-subtle mb-2" style="height: 6px;">
-                                    <div class="progress-bar bg-danger" style="width: 76%"></div>
+                                    <div class="progress-bar bg-danger" id="dash-occupied-bar" style="width: 0%"></div>
                                 </div>
-                                <span class="small text-danger d-block">76% Utilization</span>
+                                <span class="small text-danger d-block" id="dash-occupied-text">-</span>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="bg-card-custom p-4 h-100 d-flex flex-column position-relative overflow-hidden">
                             <span class="small text-muted fw-bold text-uppercase">Today's Revenue <i class="bi bi-cash-coin ms-1"></i></span>
-                            <h3 class="fs-2 fw-bold my-2 text-dark text-break">$1,250.00</h3>
+                            <h3 class="fs-2 fw-bold my-2 text-dark text-break" id="dash-revenue">-</h3>
                             <div class="mt-auto">
-                                <span class="badge bg-success-subtle text-success"><i class="bi bi-graph-up-arrow me-1"></i>+12% from yesterday</span>
+                                <span class="small text-muted-custom" id="dash-revenue-txns">-</span>
                             </div>
                         </div>
                     </div>
@@ -209,27 +233,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 <section class="row g-3 mb-4">
                     <div class="col-md-8">
                         <div class="bg-card-custom p-4 h-100">
-                            <h5 class="mb-4 fw-bold text-dark">Occupancy by Floor</h5>
-
-                            <div class="mb-4">
-                                <div class="d-flex justify-content-between small mb-2"><span class="fw-semibold">Floor 1</span><span class="text-muted-custom">180/200 Slots</span></div>
-                                <div class="progress bg-light" style="height: 12px; border-radius: 6px;">
-                                    <div class="progress-bar bg-danger" style="width: 90%;"></div>
-                                </div>
-                            </div>
-
-                            <div class="mb-4">
-                                <div class="d-flex justify-content-between small mb-2"><span class="fw-semibold">Floor 2</span><span class="text-muted-custom">120/150 Slots</span></div>
-                                <div class="progress bg-light" style="height: 12px; border-radius: 6px;">
-                                    <div class="progress-bar bg-warning" style="width: 80%;"></div>
-                                </div>
-                            </div>
-
-                            <div class="mb-2">
-                                <div class="d-flex justify-content-between small mb-2"><span class="fw-semibold">Floor 3</span><span class="text-muted-custom">80/150 Slots</span></div>
-                                <div class="progress bg-light" style="height: 12px; border-radius: 6px;">
-                                    <div class="progress-bar bg-success" style="width: 53%;"></div>
-                                </div>
+                            <h5 class="mb-4 fw-bold text-dark">Occupancy by Zone</h5>
+                            <div id="dash-zones-container">
+                                <!-- Zone stats injected dynamically -->
+                                <div class="text-muted small">Loading zones...</div>
                             </div>
                         </div>
                     </div>
@@ -238,73 +245,63 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                         <div class="bg-card-custom p-4 h-100">
                             <h5 class="mb-3 fw-bold text-dark">Vehicle Types</h5>
                             <div class="p-4 text-center rounded-4 mb-4" style="background-color: #f0fdf4; border: 1px solid #bbf7d0;">
-                                <h2 class="display-5 fw-bold m-0 text-success">380</h2>
+                                <h2 class="display-5 fw-bold m-0 text-success" id="dash-vehicle-total">-</h2>
                                 <span class="small fw-semibold text-success">Total Active</span>
                             </div>
                             <div class="d-flex justify-content-between small mb-3 pb-2 border-bottom text-dark">
-                                <span class="fw-medium"><i class="bi bi-circle-fill text-primary me-2"></i>Cars</span><strong>266 (70%)</strong>
+                                <span class="fw-medium"><i class="bi bi-circle-fill text-primary me-2"></i>Cars</span><strong id="dash-vehicle-cars">-</strong>
                             </div>
                             <div class="d-flex justify-content-between small text-dark">
-                                <span class="fw-medium"><i class="bi bi-circle-fill text-warning me-2"></i>Motorbikes</span><strong>114 (30%)</strong>
+                                <span class="fw-medium"><i class="bi bi-circle-fill text-warning me-2"></i>Motorbikes</span><strong id="dash-vehicle-motorbikes">-</strong>
                             </div>
                         </div>
                     </div>
                 </section>
 
                 <section class="bg-card-custom p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
                         <div>
                             <h5 class="m-0 fw-bold text-dark">Parking Map Preview</h5>
-                            <p class="small text-muted-custom m-0">Current live status of Zone A (Main Entrance)</p>
+                            <p class="small text-muted-custom m-0">Live slot status — use the floor buttons to switch views</p>
                         </div>
-                        <button class="btn btn-light border btn-sm fw-medium text-dark">View Full Map <i class="bi bi-arrow-up-right ms-1"></i></button>
+                        <button class="btn btn-light border btn-sm fw-medium text-dark" onclick="openStaffMap()">View Full Map <i class="bi bi-arrow-up-right ms-1"></i></button>
                     </div>
 
-                    <div class="parking-grid mb-4">
-                        <div class="slot occupied">A-01</div>
-                        <div class="slot occupied">A-02</div>
-                        <div class="slot">A-03</div>
-                        <div class="slot occupied">A-04</div>
-                        <div class="slot occupied">A-05</div>
-                        <div class="slot reserved">A-06</div>
-                        <div class="slot occupied">A-07</div>
-                        <div class="slot">A-08</div>
-                        <div class="slot">A-09</div>
-                        <div class="slot occupied">A-10</div>
+                    <!-- Floor-switcher for the preview — populated dynamically once slot data loads -->
+                    <div class="floor-nav mb-3" id="previewFloorNav"></div>
 
-                        <div class="driveway-divider">DRIVEWAY</div>
-
-                        <div class="slot occupied">B-01</div>
-                        <div class="slot maintenance">B-02</div>
-                        <div class="slot occupied">B-03</div>
-                        <div class="slot">B-04</div>
-                        <div class="slot occupied">B-05</div>
-                        <div class="slot occupied">B-06</div>
-                        <div class="slot occupied">B-07</div>
-                        <div class="slot">B-08</div>
-                        <div class="slot occupied">B-09</div>
-                        <div class="slot occupied">B-10</div>
+                    <!-- Grid replaced dynamically by fetchPreviewMap() -->
+                    <div id="previewMapContainer" class="parking-grid mb-3">
+                        <div style="grid-column: span 10; text-align: center; color: #94a3b8; padding: 24px 0;">
+                            <div class="spinner-border spinner-border-sm me-2"></div>Loading map…
+                        </div>
                     </div>
 
+                    <!-- Shared colour legend -->
                     <div class="d-flex flex-wrap gap-4 small text-dark fw-medium">
-                        <div class="d-flex align-items-center"><span class="badge bg-light border me-2" style="width: 16px; height: 16px;">&nbsp;</span> Available</div>
-                        <div class="d-flex align-items-center"><span class="badge me-2" style="background-color: #fee2e2; border: 1px solid #fca5a5; width: 16px; height: 16px;">&nbsp;</span> Occupied</div>
-                        <div class="d-flex align-items-center"><span class="badge me-2" style="background-color: #fef3c7; border: 1px solid #fde68a; width: 16px; height: 16px;">&nbsp;</span> Reserved</div>
-                        <div class="d-flex align-items-center"><span class="badge me-2" style="background-color: #f1f5f9; border: 1px solid #cbd5e1; width: 16px; height: 16px;">&nbsp;</span> Maintenance</div>
+                        <div class="d-flex align-items-center"><span class="badge bg-light border me-2" style="width:16px;height:16px;">&nbsp;</span> Available</div>
+                        <div class="d-flex align-items-center"><span class="badge me-2" style="background:#fee2e2;border:1px solid #fca5a5;width:16px;height:16px;">&nbsp;</span> Occupied</div>
+                        <div class="d-flex align-items-center"><span class="badge me-2" style="background:#fef3c7;border:1px solid #fde68a;width:16px;height:16px;">&nbsp;</span> Reserved</div>
+                        <div class="d-flex align-items-center"><span class="badge me-2" style="background:#f1f5f9;border:1px solid #cbd5e1;width:16px;height:16px;">&nbsp;</span> Maintenance</div>
                     </div>
                 </section>
             </div>
 
             <div id="section-bookings" style="display: none;">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4 class="fw-bold m-0 text-dark">Advance Bookings</h4>
+                    <div>
+                        <h4 class="fw-bold m-0 text-dark">Bookings</h4>
+                        <p class="small text-muted-custom m-0">Manage customer reservations and check-ins</p>
+                    </div>
                     <div class="d-flex gap-3">
-                        <div class="input-group" style="width: 250px;">
-                            <span class="input-group-text bg-white border-secondary-subtle"><i class="bi bi-search text-muted"></i></span>
-                            <input type="text" class="form-control border-secondary-subtle" id="searchBookingPlate" placeholder="Search by name or plate..." oninput="filterBookings()">
+                        <div class="input-group" style="width: 350px;">
+                            <select class="form-select border-secondary-subtle" id="searchBookingType" style="max-width: 120px;" onchange="filterBookings()">
+                                <option value="plate">Plate</option>
+                                <option value="name">Name</option>
+                                <option value="slot">Slot</option>
+                            </select>
+                            <input type="text" class="form-control border-secondary-subtle" id="searchBookingText" placeholder="Search..." oninput="filterBookings()">
                         </div>
-                        <!-- Bookings come from the customer portal — no manual registration here -->
-                        <a href="../customer/book.html" target="_blank" class="btn text-white" style="background-color: #0f766e;"><i class="bi bi-box-arrow-up-right me-1"></i> Customer Portal</a>
                     </div>
                 </div>
 
@@ -344,7 +341,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                         <div class="fw-bold"><span id="massSelectCount">0</span> rows selected</div>
                         <div class="d-flex gap-2">
                             <button class="btn btn-sm btn-success fw-semibold" onclick="massAction('checkin')"><i class="bi bi-box-arrow-in-right"></i> Check-In</button>
-                            <button class="btn btn-sm btn-warning text-dark fw-semibold" onclick="massAction('cancel')"><i class="bi bi-x-circle"></i> Cancel</button>
+                            <button class="btn btn-sm btn-warning text-dark fw-semibold" onclick="massAction('checkout')"><i class="bi bi-box-arrow-right"></i> Check-Out</button>
+                            <button class="btn btn-sm btn-outline-danger fw-semibold" onclick="massAction('cancel')"><i class="bi bi-x-circle"></i> Cancel</button>
                             <button class="btn btn-sm btn-danger fw-semibold" onclick="massAction('remove')"><i class="bi bi-trash"></i> Remove Selected</button>
                         </div>
                     </div>
@@ -414,9 +412,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                                         document.getElementById('section-dashboard').style.display = 'block';
                                         document.getElementById('page-title').innerText = 'System Overview';
                                         document.querySelector('#sidebar-nav .nav-item:nth-child(1) .nav-link').classList.add('active');
+                                        fetchDashboardStats();
                                     } else if (sectionId === 'bookings') {
                                         document.getElementById('section-bookings').style.display = 'block';
-                                        document.getElementById('page-title').innerText = 'Advance Reservations';
+                                        document.getElementById('page-title').innerText = 'Advance Bookings';
                                         document.querySelector('#sidebar-nav .nav-item:nth-child(2) .nav-link').classList.add('active');
                                         fetchBookings(); // Load data when tab is opened
                                     }
@@ -424,6 +423,64 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
 
 
                                 // --- BOOKING API & RENDER PIPELINE ---
+
+                                async function fetchDashboardStats() {
+                                    try {
+                                        const res = await fetch(CONTEXT_PATH + '/api/v1/staff/dashboard', {
+                                            headers: {'Authorization': 'Bearer ' + getAuthToken()}
+                                        });
+                                        if (res.ok) {
+                                            const data = await res.json();
+                                            document.getElementById('dash-total').innerText = data.slots.total;
+                                            document.getElementById('dash-available').innerText = data.slots.available;
+                                            document.getElementById('dash-occupied').innerText = data.slots.occupied;
+                                            
+                                            let availPct = data.slots.total > 0 ? Math.round((data.slots.available / data.slots.total) * 100) : 0;
+                                            let occPct = data.slots.total > 0 ? Math.round((data.slots.occupied / data.slots.total) * 100) : 0;
+                                            
+                                            document.getElementById('dash-available-bar').style.width = availPct + '%';
+                                            document.getElementById('dash-available-text').innerText = availPct + '% Left';
+                                            
+                                            document.getElementById('dash-occupied-bar').style.width = occPct + '%';
+                                            document.getElementById('dash-occupied-text').innerText = occPct + '% Utilization';
+                                            
+                                            // Format currency (assuming VND or standard formatting)
+                                            document.getElementById('dash-revenue').innerText = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(data.paymentsToday.totalAmount);
+                                            document.getElementById('dash-revenue-txns').innerText = data.paymentsToday.transactions + ' transactions today';
+                                            
+                                            // Render Zones
+                                            const zonesContainer = document.getElementById('dash-zones-container');
+                                            zonesContainer.innerHTML = '';
+                                            data.zones.forEach(z => {
+                                                const pct = z.total > 0 ? Math.round((z.occupied / z.total) * 100) : 0;
+                                                let barColor = 'bg-success';
+                                                if (pct >= 80) barColor = 'bg-danger';
+                                                else if (pct >= 50) barColor = 'bg-warning';
+                                                
+                                                zonesContainer.innerHTML += `
+                                                    <div class="mb-4">
+                                                        <div class="d-flex justify-content-between small mb-2"><span class="fw-semibold">Zone ${z.area_code}</span><span class="text-muted-custom">${z.occupied}/${z.total} Slots</span></div>
+                                                        <div class="progress bg-light" style="height: 12px; border-radius: 6px;">
+                                                            <div class="progress-bar ${barColor}" style="width: ${pct}%;"></div>
+                                                        </div>
+                                                    </div>
+                                                `;
+                                            });
+                                            
+                                            // Render Vehicle Types
+                                            document.getElementById('dash-vehicle-total').innerText = data.vehicleTypes.total;
+                                            let carsPct = data.vehicleTypes.total > 0 ? Math.round((data.vehicleTypes.cars / data.vehicleTypes.total) * 100) : 0;
+                                            let motoPct = data.vehicleTypes.total > 0 ? Math.round((data.vehicleTypes.motorbikes / data.vehicleTypes.total) * 100) : 0;
+                                            document.getElementById('dash-vehicle-cars').innerText = `${data.vehicleTypes.cars} (${carsPct}%)`;
+                                            document.getElementById('dash-vehicle-motorbikes').innerText = `${data.vehicleTypes.motorbikes} (${motoPct}%)`;
+
+                                            // Also refresh the map preview whenever stats load
+                                            fetchPreviewMap();
+                                        }
+                                    } catch (e) {
+                                        console.error('Failed to load dashboard stats', e);
+                                    }
+                                }
 
                                 async function fetchBookings() {
                                     try {
@@ -459,11 +516,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                                 }
 
                                 function filterBookings() {
-                                    const query = document.getElementById('searchBookingPlate').value.toLowerCase();
-                                    filteredBookings = bookingsData.filter(b =>
-                                        b.licensePlate.toLowerCase().includes(query) ||
-                                                (b.customerName && b.customerName.toLowerCase().includes(query))
-                                    );
+                                    const query = document.getElementById('searchBookingText').value.toLowerCase();
+                                    const type = document.getElementById('searchBookingType').value;
+                                    filteredBookings = bookingsData.filter(b => {
+                                        if (type === 'plate') return b.licensePlate.toLowerCase().includes(query);
+                                        if (type === 'name') return b.customerName && b.customerName.toLowerCase().includes(query);
+                                        if (type === 'slot') return b.slotCode && b.slotCode.toLowerCase().includes(query);
+                                        return false;
+                                    });
                                     currentPage = 1;
                                     renderBookingTable();
                                 }
@@ -543,6 +603,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                                         } else if (b.status === 'canceled') {
                                             badgeClass = 'bg-danger';
                                             statusText = 'Canceled';
+                                        } else if (b.status === 'checked-out') {
+                                            badgeClass = 'bg-secondary text-white';
+                                            statusText = 'Checked-out';
                                         }
 
                                         tr.innerHTML = `
@@ -572,7 +635,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                                                 actionsHtml += `<button class="btn btn-sm btn-success" onclick="actionBooking(${b.bookingId}, 'checkin')"><i class="bi bi-box-arrow-in-right"></i> Check-In</button>`;
                                                 actionsHtml += `<button class="btn btn-sm btn-outline-primary" onclick="editBooking(${b.bookingId})"><i class="bi bi-pencil"></i> Edit</button>`;
                                                 actionsHtml += `<button class="btn btn-sm btn-outline-danger" onclick="actionBooking(${b.bookingId}, 'cancel')"><i class="bi bi-x-circle"></i> Cancel</button>`;
-                                            } else {
+                                            } else if (b.status === 'occupied') {
+                                                actionsHtml += `<button class="btn btn-sm btn-warning text-dark" onclick="actionBooking(${b.bookingId}, 'checkout')"><i class="bi bi-box-arrow-right"></i> Check-Out</button>`;
+                                            } else if (b.status === 'canceled' || b.status === 'checked-out') {
                                                 actionsHtml += `<button class="btn btn-sm btn-outline-secondary" onclick="actionBooking(${b.bookingId}, 'remove')"><i class="bi bi-trash"></i> Remove from History</button>`;
                                             }
                                             actionsHtml += `</div>`;
@@ -644,15 +709,99 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
 
                                 // --- CRUD ACTIONS ---
 
-                                // editBooking — kept for future use when a staff edit form is added back.
-                                // For now it just scrolls to the top and logs a message.
+                                // Opens the edit-slot modal for an active booking.
+                                // Staff can only pick a different empty slot from the same zone,
+                                // and must provide a brief reason for the change.
                                 function editBooking(id) {
                                     const b = bookingsData.find(x => x.bookingId === id);
-                                    if (!b)
+                                    if (!b) return;
+
+                                    document.getElementById('editBookingId').value = id;
+                                    document.getElementById('editCurrentSlot').textContent = b.slotCode + ' (' + (b.areaCode || '') + ')';
+                                    document.getElementById('editReason').value = '';
+                                    document.getElementById('editBookingAlert').classList.add('d-none');
+
+                                    // Populate the slot dropdown with available slots from the same zone
+                                    const editSlotSelect = document.getElementById('editSlotSelect');
+                                    editSlotSelect.innerHTML = '<option value="" disabled selected>Loading slots…</option>';
+
+                                    fetch(CONTEXT_PATH + '/api/v1/payment/slots')
+                                        .then(r => r.json())
+                                        .then(slots => {
+                                            const available = slots.filter(s =>
+                                                s.areaCode === b.areaCode && s.status === 'Empty'
+                                            );
+                                            if (available.length === 0) {
+                                                editSlotSelect.innerHTML = '<option disabled selected>No available slots in this zone</option>';
+                                            } else {
+                                                editSlotSelect.innerHTML = available.map(s =>
+                                                    `<option value="${s.slotId}">${s.slotCode}</option>`
+                                                ).join('');
+                                            }
+                                        })
+                                        .catch(() => {
+                                            editSlotSelect.innerHTML = '<option disabled>Could not load slots</option>';
+                                        });
+
+                                    new bootstrap.Modal(document.getElementById('editBookingModal')).show();
+                                }
+
+                                // Submits the slot-change request to the backend.
+                                async function submitEditBooking() {
+                                    const id       = document.getElementById('editBookingId').value;
+                                    const slotId   = document.getElementById('editSlotSelect').value;
+                                    const reason   = document.getElementById('editReason').value.trim();
+                                    const alertBox = document.getElementById('editBookingAlert');
+
+                                    if (!slotId) {
+                                        alertBox.textContent = 'Please select a new slot.';
+                                        alertBox.className = 'alert alert-warning';
+                                        alertBox.classList.remove('d-none');
                                         return;
-                                    // Editing via the dashboard is reserved for a future sprint.
-                                    // Customers can cancel and rebook from the customer portal.
-                                    alert('Direct booking edits are not available in this version. Ask the customer to cancel and rebook from the customer portal.');
+                                    }
+                                    if (!reason) {
+                                        alertBox.textContent = 'A reason is required for editing a booking.';
+                                        alertBox.className = 'alert alert-warning';
+                                        alertBox.classList.remove('d-none');
+                                        return;
+                                    }
+
+                                    const b = bookingsData.find(x => x.bookingId == id);
+                                    const body = new URLSearchParams({
+                                        bookingId:   id,
+                                        licensePlate: b ? b.licensePlate : '',
+                                        vehicleType:  b ? b.vehicleTypeId || '1' : '1',
+                                        slotId:       slotId,
+                                        targetTime:   b ? b.targetTime : ''
+                                    });
+
+                                    try {
+                                        const res = await fetch(CONTEXT_PATH + '/api/v1/bookings/edit', {
+                                            method: 'PUT',
+                                            headers: {
+                                                'Content-Type': 'application/x-www-form-urlencoded',
+                                                'Authorization': 'Bearer ' + getAuthToken()
+                                            },
+                                            body: body.toString()
+                                        });
+
+                                        if (res.ok) {
+                                            bootstrap.Modal.getInstance(document.getElementById('editBookingModal')).hide();
+                                            const newSlotCode = document.getElementById('editSlotSelect').selectedOptions[0]?.text || slotId;
+                                            showSuccessOverlay(`Slot changed to ${newSlotCode}. Reason: "${reason}"`);
+                                            fetchBookings();
+                                            fetchPreviewMap(); // Refresh map after slot change
+                                        } else {
+                                            const err = await res.text();
+                                            alertBox.textContent = 'Error: ' + err;
+                                            alertBox.className = 'alert alert-danger';
+                                            alertBox.classList.remove('d-none');
+                                        }
+                                    } catch (e) {
+                                        alertBox.textContent = 'Network error: ' + e.message;
+                                        alertBox.className = 'alert alert-danger';
+                                        alertBox.classList.remove('d-none');
+                                    }
                                 }
 
                                 async function actionBooking(id, action) {
@@ -664,9 +813,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                                     }
 
                                     try {
-                                        const method = (action === 'checkin') ? 'POST' : 'DELETE';
-                                        let endpoint = (action === 'checkin')
-                                                ? '/api/v1/bookings/checkin'
+                                        const method = (action === 'checkin' || action === 'checkout') ? 'POST' : 'DELETE';
+                                        let endpoint = (action === 'checkin' || action === 'checkout')
+                                                ? '/api/v1/bookings/' + action
                                                 : '/api/v1/bookings/' + action + '?bookingId=' + id;
                                         if (action === 'cancel' && cancelReason) {
                                             endpoint += '&reason=' + encodeURIComponent(cancelReason);
@@ -678,7 +827,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                                                 'Authorization': 'Bearer ' + getAuthToken()
                                             }
                                         };
-                                        if (action === 'checkin') {
+                                        if (action === 'checkin' || action === 'checkout') {
                                             fetchOptions.body = 'bookingId=' + id;
                                         }
 
@@ -715,15 +864,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                                         massReason = prompt('Optional: Enter a reason for cancellation (will apply to all selected):');
                                     }
 
-                                    const method = (action === 'checkin') ? 'POST' : 'DELETE';
+                                    const method = (action === 'checkin' || action === 'checkout') ? 'POST' : 'DELETE';
                                     let successCount = 0;
                                     let errorMsg = null;
 
                                     // Loop through selected items and process them one by one
                                     for (let id of selectedBookings) {
                                         try {
-                                            let endpoint = (action === 'checkin')
-                                                    ? '/api/v1/bookings/checkin'
+                                            let endpoint = (action === 'checkin' || action === 'checkout')
+                                                    ? '/api/v1/bookings/' + action
                                                     : '/api/v1/bookings/' + action + '?bookingId=' + id;
                                             if (action === 'cancel' && massReason) {
                                                 endpoint += '&reason=' + encodeURIComponent(massReason);
@@ -735,7 +884,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                                                     'Authorization': 'Bearer ' + getAuthToken()
                                                 }
                                             };
-                                            if (action === 'checkin') {
+                                            if (action === 'checkin' || action === 'checkout') {
                                                 fetchOptions.body = 'bookingId=' + id;
                                             }
 
@@ -809,6 +958,306 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                                         setTimeout(() => document.body.removeChild(overlay), 500);
                                     }, 1500);
                                 }
+
+                                // --- Preview Map (Dashboard Overview) ---
+
+                                // Holds all slot data fetched from the server — shared by both the preview and staff map.
+                                let allSlotData = [];
+                                let previewZones = [];  // ordered list of zone names
+                                let previewCurrentZone = null;
+
+                                async function fetchPreviewMap() {
+                                    try {
+                                        const res = await fetch(CONTEXT_PATH + '/api/v1/payment/slots');
+                                        if (!res.ok) return;
+                                        allSlotData = await res.json();
+
+                                        // Collect zone names in the order they appear
+                                        const seen = new Set();
+                                        previewZones = [];
+                                        allSlotData.forEach(s => {
+                                            if (!seen.has(s.areaCode)) {
+                                                seen.add(s.areaCode);
+                                                previewZones.push(s.areaCode);
+                                            }
+                                        });
+
+                                        // Default to first zone if not yet set, or keep current
+                                        if (!previewCurrentZone || !previewZones.includes(previewCurrentZone)) {
+                                            previewCurrentZone = previewZones[0];
+                                        }
+
+                                        renderPreviewFloorNav();
+                                        renderPreviewMap();
+                                    } catch (e) {
+                                        console.error('Failed to load preview map', e);
+                                    }
+                                }
+
+                                function renderPreviewFloorNav() {
+                                    const nav = document.getElementById('previewFloorNav');
+                                    nav.innerHTML = previewZones.map(z => `
+                                        <button class="floor-pill ${z === previewCurrentZone ? 'active' : ''}"
+                                                onclick="switchPreviewFloor('${z}')">${z}</button>
+                                    `).join('');
+                                }
+
+                                function switchPreviewFloor(zone) {
+                                    previewCurrentZone = zone;
+                                    renderPreviewFloorNav();
+                                    renderPreviewMap();
+                                }
+
+                                function renderPreviewMap() {
+                                    const container = document.getElementById('previewMapContainer');
+                                    const zoneSlots = allSlotData.filter(s => s.areaCode === previewCurrentZone);
+
+                                    if (zoneSlots.length === 0) {
+                                        container.innerHTML = '<div style="grid-column:span 10;text-align:center;color:#94a3b8;padding:16px;">No slots in this zone.</div>';
+                                        return;
+                                    }
+
+                                    const half = Math.ceil(zoneSlots.length / 2);
+                                    const top  = zoneSlots.slice(0, half);
+                                    const bot  = zoneSlots.slice(half);
+
+                                    const slotIcons = {Sedan: 'bi-car-front', SUV: 'bi-truck', Motorbike: 'bi-bicycle'};
+
+                                    const renderSlot = s => {
+                                        const cls = s.status.toLowerCase();
+                                        const icon = slotIcons[s.slotType] || 'bi-p-circle';
+                                        return `<div class="slot ${cls}"><i class="bi ${icon}"></i><span>${s.slotCode}</span></div>`;
+                                    };
+
+                                    container.innerHTML =
+                                        top.map(renderSlot).join('') +
+                                        `<div class="driveway-divider">DRIVEWAY</div>` +
+                                        bot.map(renderSlot).join('');
+                                }
+
+                                // --- Staff Interactive Map (Full Modal) ---
+                                let staffMapModal;
+                                let mapInfoOffcanvas;
+                                let fullMapZones = [];     // ordered list of zone names in the full map
+                                let fullMapCurrentZone = null;
+
+                                document.addEventListener('DOMContentLoaded', () => {
+                                    staffMapModal = new bootstrap.Modal(document.getElementById('staffMapModal'));
+                                    mapInfoOffcanvas = new bootstrap.Offcanvas(document.getElementById('mapInfoBoard'));
+                                    // Populate dashboard immediately on load
+                                    fetchDashboardStats();
+                                });
+
+                                function openStaffMap() {
+                                    staffMapModal.show();
+                                    loadStaffMap();
+                                }
+
+                                async function loadStaffMap() {
+                                    try {
+                                        const res = await fetch(CONTEXT_PATH + '/api/v1/payment/slots');
+                                        if (!res.ok) throw new Error('Failed to load slots');
+                                        const slots = await res.json();
+                                        allSlotData = slots; // Keep preview in sync
+
+                                        // Collect zones in order
+                                        const seen = new Set();
+                                        fullMapZones = [];
+                                        slots.forEach(s => {
+                                            if (!seen.has(s.areaCode)) { seen.add(s.areaCode); fullMapZones.push(s.areaCode); }
+                                        });
+                                        if (!fullMapCurrentZone || !fullMapZones.includes(fullMapCurrentZone)) {
+                                            fullMapCurrentZone = fullMapZones[0];
+                                        }
+
+                                        renderFullMapFloorNav(slots);
+                                        renderStaffMap(slots);
+                                    } catch (e) {
+                                        document.getElementById('staffSlotMapContainer').innerHTML =
+                                            '<div class="alert alert-warning">Unable to load the slot map. Please try refreshing.</div>';
+                                    }
+                                }
+
+                                // Renders the zone (floor) tab pills inside the staff-map modal header
+                                function renderFullMapFloorNav(slots) {
+                                    const nav = document.getElementById('fullMapFloorNav');
+                                    nav.innerHTML = fullMapZones.map(z => `
+                                        <button class="floor-pill ${z === fullMapCurrentZone ? 'active' : ''}"
+                                                onclick="switchFullMapFloor('${z}')"> ${z}</button>
+                                    `).join('');
+                                }
+
+                                function switchFullMapFloor(zone) {
+                                    fullMapCurrentZone = zone;
+                                    renderFullMapFloorNav(allSlotData);
+                                    renderStaffMap(allSlotData);
+                                }
+
+                                function renderStaffMap(slots) {
+                                    const slotIcons = {Sedan: 'bi-car-front', SUV: 'bi-truck', Motorbike: 'bi-bicycle'};
+                                    const zoneSlots = slots.filter(s => s.areaCode === fullMapCurrentZone);
+
+                                    if (zoneSlots.length === 0) {
+                                        document.getElementById('staffSlotMapContainer').innerHTML =
+                                            '<div class="text-center text-muted py-4">No slots in this zone.</div>';
+                                        return;
+                                    }
+
+                                    // Split into two rows with the driveway running through the middle
+                                    const half = Math.ceil(zoneSlots.length / 2);
+                                    const top  = zoneSlots.slice(0, half);
+                                    const bot  = zoneSlots.slice(half);
+
+                                    const renderSlot = s => {
+                                        const cls     = s.status.toLowerCase();
+                                        const icon    = slotIcons[s.slotType] || 'bi-p-circle';
+                                        const clickable = (s.status === 'Occupied' || s.status === 'Reserved')
+                                            ? `onclick="showSlotInfo('${s.slotCode}', '${s.status}')"` : '';
+                                        const ptr = (s.status === 'Occupied' || s.status === 'Reserved') ? 'cursor-pointer' : '';
+                                        return `<div class="slot ${cls} ${ptr}" id="staff-slot-${s.slotId}" ${clickable}>
+                                            <i class="bi ${icon}" style="font-size:1.1rem;"></i>
+                                            <span style="font-size:0.75rem;font-weight:bold;">${s.slotCode}</span>
+                                        </div>`;
+                                    };
+
+                                    document.getElementById('staffSlotMapContainer').innerHTML =
+                                        `<div class="parking-grid">
+                                            ${top.map(renderSlot).join('')}
+                                            <div class="driveway-divider">DRIVEWAY</div>
+                                            ${bot.map(renderSlot).join('')}
+                                        </div>`;
+                                }
+
+                                // Looks up the booking tied to a clicked slot and shows the info offcanvas.
+                                // For occupied slots the edit-slot option is also offered alongside check-out.
+                                function showSlotInfo(slotCode, status) {
+                                    const booking = bookingsData.find(b => b.slotCode === slotCode && (b.status === 'active' || b.status === 'occupied'));
+                                    
+                                    if (!booking) {
+                                        document.getElementById('mapInfoContent').innerHTML = `<p class="text-muted">No active booking found for this slot.</p>`;
+                                        mapInfoOffcanvas.show();
+                                        return;
+                                    }
+
+                                    let actionsHtml = `<div class="d-flex justify-content-center gap-3 mt-4">`;
+                                    if (booking.status === 'active') { // Reserved — can check in, edit slot, or cancel
+                                        actionsHtml += `<button class="btn btn-success fw-bold" onclick="mapAction(${booking.bookingId}, 'checkin')"><i class="bi bi-box-arrow-in-right me-2"></i>Check-In</button>`;
+                                        actionsHtml += `<button class="btn btn-outline-primary fw-bold" onclick="mapInfoOffcanvas.hide(); editBooking(${booking.bookingId})"><i class="bi bi-pencil me-2"></i>Edit Slot</button>`;
+                                        actionsHtml += `<button class="btn btn-outline-danger fw-bold" onclick="mapAction(${booking.bookingId}, 'cancel')"><i class="bi bi-x-circle me-2"></i>Cancel</button>`;
+                                    } else if (booking.status === 'occupied') { // Occupied — check out or edit slot
+                                        actionsHtml += `<button class="btn btn-warning text-dark fw-bold" onclick="mapAction(${booking.bookingId}, 'checkout')"><i class="bi bi-box-arrow-right me-2"></i>Check-Out</button>`;
+                                        actionsHtml += `<button class="btn btn-outline-primary fw-bold" onclick="mapInfoOffcanvas.hide(); editBooking(${booking.bookingId})"><i class="bi bi-pencil me-2"></i>Edit Slot</button>`;
+                                    }
+                                    actionsHtml += `</div>`;
+
+                                    const html = `
+                                        <div class="container-fluid">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-3 text-center border-end">
+                                                    <h1 class="display-4 fw-bold text-dark m-0">${booking.slotCode}</h1>
+                                                    <span class="badge ${status === 'Occupied' ? 'bg-success' : 'bg-primary'} fs-6 mt-2">${status}</span>
+                                                </div>
+                                                <div class="col-md-9 ps-4 text-start">
+                                                    <h4 class="fw-bold mb-3">${booking.customerName || 'Walk-in Customer'} <span class="text-muted fs-6 ms-2">${booking.customerPhone || ''}</span></h4>
+                                                    <div class="d-flex gap-4 mb-2">
+                                                        <div><span class="text-muted small d-block">License Plate</span><span class="fw-bold fs-5">${booking.licensePlate}</span></div>
+                                                        <div><span class="text-muted small d-block">Vehicle Type</span><span class="fw-semibold fs-6">${booking.vehicleTypeName}</span></div>
+                                                        <div><span class="text-muted small d-block">Payment</span><span class="badge bg-light text-dark border">${booking.paymentMethod || 'Cash'}</span></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            ${actionsHtml}
+                                        </div>
+                                    `;
+                                    document.getElementById('mapInfoContent').innerHTML = html;
+                                    mapInfoOffcanvas.show();
+                                }
+
+                                async function mapAction(id, action) {
+                                    mapInfoOffcanvas.hide();
+                                    await actionBooking(id, action);
+                                    // Refresh both the full map and dashboard preview after any slot action
+                                    loadStaffMap();
+                                    fetchPreviewMap();
+                                }
         </script>
+        <!-- Edit Slot Modal — opens when staff clicks Edit on an active or occupied booking -->
+        <div class="modal fade" id="editBookingModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2 text-primary"></i>Edit Booking Slot</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="editBookingId">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Current Slot</label>
+                            <div class="form-control bg-light text-muted" id="editCurrentSlot">—</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">New Slot <span class="text-muted fw-normal">(same zone only)</span></label>
+                            <select class="form-select" id="editSlotSelect">
+                                <option disabled selected>Loading…</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Reason for Edit <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="editReason" rows="2"
+                                      placeholder="e.g. Customer requested a different spot"></textarea>
+                            <div class="form-text">This reason will appear in the success notification.</div>
+                        </div>
+                        <div id="editBookingAlert" class="alert d-none"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button class="btn btn-primary fw-semibold" onclick="submitEditBooking()">
+                            <i class="bi bi-check-circle me-1"></i>Confirm Edit
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Staff Map Modal —  full parking garage view for all floors -->
+        <div class="modal fade" id="staffMapModal" tabindex="-1">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header flex-column align-items-start gap-2">
+                        <div class="d-flex justify-content-between w-100 align-items-center">
+                            <h5 class="modal-title fw-bold">Live Parking Map</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <!-- Floor switcher inside the modal header -->
+                        <div class="floor-nav" id="fullMapFloorNav"></div>
+                        <!-- Colour legend -->
+                        <div class="d-flex flex-wrap gap-3 small text-dark fw-medium pt-1">
+                            <div class="d-flex align-items-center"><span class="badge bg-light border me-2" style="width:14px;height:14px;">&nbsp;</span>Available</div>
+                            <div class="d-flex align-items-center"><span class="badge me-2" style="background:#fee2e2;border:1px solid #fca5a5;width:14px;height:14px;">&nbsp;</span>Occupied</div>
+                            <div class="d-flex align-items-center"><span class="badge me-2" style="background:#fef3c7;border:1px solid #fde68a;width:14px;height:14px;">&nbsp;</span>Reserved</div>
+                            <div class="d-flex align-items-center"><span class="badge me-2" style="background:#f1f5f9;border:1px solid #cbd5e1;width:14px;height:14px;">&nbsp;</span>Maintenance</div>
+                            <span class="text-muted">· Click Occupied/Reserved slots for details</span>
+                        </div>
+                    </div>
+                    <div class="modal-body position-relative bg-light">
+                        <div id="staffSlotMapContainer" class="p-3">
+                            <div class="text-center text-muted py-5">Loading map data…</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Info Offcanvas (Bottom Panel) -->
+        <div class="offcanvas offcanvas-bottom" tabindex="-1" id="mapInfoBoard" style="height: auto; max-height: 40vh; border-top-left-radius: 1rem; border-top-right-radius: 1rem;">
+            <div class="offcanvas-header border-bottom">
+                <h5 class="offcanvas-title fw-bold">Slot Information</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+            </div>
+            <div class="offcanvas-body">
+                <div id="mapInfoContent" class="text-center py-4">Loading data...</div>
+            </div>
+        </div>
+
     </body>
 </html>

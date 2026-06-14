@@ -234,6 +234,50 @@ public class BookingDAO {
         return success;
     }
 
+    // Marks an occupied booking as checked-out and flips the slot to Empty.
+    public boolean checkoutBooking(int bookingId) throws Exception {
+        Connection conn = null;
+        PreparedStatement getStmt = null;
+        PreparedStatement updateSlotStmt = null;
+        PreparedStatement updateBookingStmt = null;
+        boolean success = false;
+        try {
+            conn = DbUtils.getConnection();
+            conn.setAutoCommit(false);
+
+            String getSql = "SELECT slot_id FROM dbo.Booking WHERE booking_id = ? AND status = 'occupied'";
+            getStmt = conn.prepareStatement(getSql);
+            getStmt.setInt(1, bookingId);
+            ResultSet rs = getStmt.executeQuery();
+
+            if (rs.next()) {
+                int slotId = rs.getInt("slot_id");
+
+                updateSlotStmt = conn.prepareStatement("UPDATE dbo.Parking_slot SET status = 'Empty' WHERE slot_id = ?");
+                updateSlotStmt.setInt(1, slotId);
+                updateSlotStmt.executeUpdate();
+
+                updateBookingStmt = conn.prepareStatement("UPDATE dbo.Booking SET status = 'checked-out' WHERE booking_id = ?");
+                updateBookingStmt.setInt(1, bookingId);
+                updateBookingStmt.executeUpdate();
+
+                conn.commit();
+                success = true;
+            } else {
+                conn.rollback();
+            }
+        } catch (Exception e) {
+            if (conn != null) conn.rollback();
+            throw e;
+        } finally {
+            if (getStmt != null) getStmt.close();
+            if (updateSlotStmt != null) updateSlotStmt.close();
+            if (updateBookingStmt != null) updateBookingStmt.close();
+            if (conn != null) { conn.setAutoCommit(true); conn.close(); }
+        }
+        return success;
+    }
+
     // Cancels a booking and returns the slot back to Empty.
     // An optional reason can be stored for the customer to see on their tracking page.
     public boolean cancelBooking(int bookingId, String reason) throws Exception {
@@ -280,14 +324,14 @@ public class BookingDAO {
         return success;
     }
 
-    // Hard-deletes a booking from history. Only works on non-active bookings
+    // Hard-deletes a booking from history. Only works on finished bookings
     // so staff can't accidentally delete a live reservation.
     public boolean removeBooking(int bookingId) throws Exception {
         Connection conn = null;
         PreparedStatement stmt = null;
         try {
             conn = DbUtils.getConnection();
-            String sql = "DELETE FROM dbo.Booking WHERE booking_id = ? AND status != 'active'";
+            String sql = "DELETE FROM dbo.Booking WHERE booking_id = ? AND status IN ('canceled', 'checked-out')";
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, bookingId);
             int rows = stmt.executeUpdate();

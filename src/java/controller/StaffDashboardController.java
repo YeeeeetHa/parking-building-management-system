@@ -68,37 +68,53 @@ public class StaffDashboardController extends HttpServlet {
                     if (rs.next()) totalRevenue = rs.getDouble("s");
                 }
 
-                StringBuilder ticketStatusJson = new StringBuilder();
-                ticketStatusJson.append("{");
-                String sqlTicketStatus = "SELECT status, COUNT(*) AS cnt FROM Ticket GROUP BY status";
-                try (PreparedStatement ps = conn.prepareStatement(sqlTicketStatus); ResultSet rs = ps.executeQuery()) {
+                StringBuilder zonesJson = new StringBuilder();
+                zonesJson.append("[");
+                String sqlZones = "SELECT a.area_code, COUNT(s.slot_id) AS total_slots, " +
+                                  "SUM(CASE WHEN s.status = 'Occupied' THEN 1 ELSE 0 END) AS occupied_slots " +
+                                  "FROM dbo.Parking_slot s " +
+                                  "JOIN dbo.Parking_area a ON s.area_id = a.area_id " +
+                                  "GROUP BY a.area_code ORDER BY a.area_code";
+                try (PreparedStatement ps = conn.prepareStatement(sqlZones); ResultSet rs = ps.executeQuery()) {
                     boolean first = true;
                     while (rs.next()) {
-                        if (!first) ticketStatusJson.append(",");
+                        if (!first) zonesJson.append(",");
                         first = false;
-                        ticketStatusJson.append("\"").append(rs.getString("status")).append("\":").append(rs.getInt("cnt"));
+                        zonesJson.append("{");
+                        zonesJson.append("\"area_code\":\"").append(rs.getString("area_code")).append("\",");
+                        zonesJson.append("\"total\":").append(rs.getInt("total_slots")).append(",");
+                        zonesJson.append("\"occupied\":").append(rs.getInt("occupied_slots"));
+                        zonesJson.append("}");
                     }
                 }
-                ticketStatusJson.append("}");
+                zonesJson.append("]");
 
-                StringBuilder ticketsJson = new StringBuilder();
-                ticketsJson.append("[");
-                String sqlActiveTickets = "SELECT t.ticket_id, v.license_plate, CONVERT(varchar, t.entry_time, 120) AS entry_time, t.status FROM Ticket t JOIN Vehicle v ON t.vehicle_id = v.vehicle_id WHERE t.status = 'active' ORDER BY t.entry_time DESC";
-                try (PreparedStatement ps = conn.prepareStatement(sqlActiveTickets); ResultSet rs = ps.executeQuery()) {
-                    boolean first = true;
+                StringBuilder vehicleTypesJson = new StringBuilder();
+                vehicleTypesJson.append("{");
+                String sqlVehicles = "SELECT t.type_name, COUNT(*) AS cnt " +
+                                     "FROM dbo.Booking b " +
+                                     "JOIN dbo.Vehicle_type t ON b.vehicle_type_id = t.vehicle_type_id " +
+                                     "WHERE b.status IN ('occupied', 'active') " +
+                                     "GROUP BY t.type_name";
+                int totalActive = 0;
+                int cars = 0;
+                int motorbikes = 0;
+                try (PreparedStatement ps = conn.prepareStatement(sqlVehicles); ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
-                        if (!first) ticketsJson.append(",");
-                        first = false;
-                        ticketsJson.append("{");
-                        ticketsJson.append("\"ticket_id\":").append(rs.getInt("ticket_id")).append(",");
-                        ticketsJson.append("\"license_plate\":\"").append(rs.getString("license_plate")).append("\",");
-                        ticketsJson.append("\"entry_time\":\"").append(rs.getString("entry_time")).append("\",");
-                        ticketsJson.append("\"area\":null,");
-                        ticketsJson.append("\"status\":\"").append(rs.getString("status")).append("\"");
-                        ticketsJson.append("}");
+                        String type = rs.getString("type_name");
+                        int count = rs.getInt("cnt");
+                        totalActive += count;
+                        if (type != null && type.toLowerCase().contains("motorbike")) {
+                            motorbikes += count;
+                        } else {
+                            cars += count;
+                        }
                     }
                 }
-                ticketsJson.append("]");
+                vehicleTypesJson.append("\"total\":").append(totalActive).append(",");
+                vehicleTypesJson.append("\"cars\":").append(cars).append(",");
+                vehicleTypesJson.append("\"motorbikes\":").append(motorbikes);
+                vehicleTypesJson.append("}");
 
                 double todayAmount = 0.0;
                 int todayCount = 0;
@@ -120,8 +136,8 @@ public class StaffDashboardController extends HttpServlet {
                 json.append("\"occupied\":").append(occupied).append(",");
                 json.append("\"available\":").append(available).append("}").append(",");
                 json.append("\"totalRevenue\":").append(totalRevenue).append(",");
-                json.append("\"ticketStatus\":").append(ticketStatusJson.toString()).append(",");
-                json.append("\"currentTickets\":").append(ticketsJson.toString()).append(",");
+                json.append("\"zones\":").append(zonesJson.toString()).append(",");
+                json.append("\"vehicleTypes\":").append(vehicleTypesJson.toString()).append(",");
                 json.append("\"paymentsToday\":{");
                 json.append("\"totalAmount\":").append(todayAmount).append(",");
                 json.append("\"transactions\":").append(todayCount).append(",");

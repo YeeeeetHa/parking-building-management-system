@@ -2,7 +2,6 @@
 -- NOTICE
 -- This is the Sprint 2 database schema update.
 -- Includes the full customer booking flow with VNPay payment support.
--- Run this against your Azure SQL instance before deploying the new code.
 -- ===========================================================================
 
 -- ===========================================================================
@@ -155,7 +154,7 @@ CREATE TABLE dbo.Booking (
     slot_id          INT                NOT NULL,
     target_time      DATETIME           NOT NULL,
     created_at       DATETIME DEFAULT GETDATE() NOT NULL,
-    status           VARCHAR(20) DEFAULT 'active' NOT NULL, -- active, occupied, canceled
+    status           VARCHAR(20) DEFAULT 'active' NOT NULL, -- active, occupied, checked-out, canceled
     payment_method   VARCHAR(20) DEFAULT 'Cash' NOT NULL, -- Cash, VNPay
     vnpay_txn_ref    VARCHAR(50)        NULL, -- VNPay order reference, null for cash payments
     cancellation_reason NVARCHAR(500)   NULL,
@@ -234,10 +233,10 @@ INSERT INTO dbo.Vehicle (customer_id, vehicle_type_id, license_plate, model, col
 (3, 3, '59P-555.55', 'Honda SH 150i', 'White');
 
 -- Expanded parking slot grid — enough slots to properly test the visual slot map.
--- Zone A: 10 Sedan slots
+-- Zone A: 25 Sedan slots
 INSERT INTO dbo.Parking_slot (area_id, slot_code, slot_type, status) VALUES
 (1, 'A-01', 'Sedan', 'Occupied'),
-(1, 'A-02', 'Sedan', 'Empty'),
+(1, 'A-02', 'Sedan', 'Reserved'),
 (1, 'A-03', 'Sedan', 'Empty'),
 (1, 'A-04', 'Sedan', 'Empty'),
 (1, 'A-05', 'Sedan', 'Empty'),
@@ -245,24 +244,51 @@ INSERT INTO dbo.Parking_slot (area_id, slot_code, slot_type, status) VALUES
 (1, 'A-07', 'Sedan', 'Empty'),
 (1, 'A-08', 'Sedan', 'Maintenance'),
 (1, 'A-09', 'Sedan', 'Empty'),
-(1, 'A-10', 'Sedan', 'Empty');
+(1, 'A-10', 'Sedan', 'Empty'),
+(1, 'A-11', 'Sedan', 'Empty'),
+(1, 'A-12', 'Sedan', 'Empty'),
+(1, 'A-13', 'Sedan', 'Empty'),
+(1, 'A-14', 'Sedan', 'Empty'),
+(1, 'A-15', 'Sedan', 'Empty'),
+(1, 'A-16', 'Sedan', 'Empty'),
+(1, 'A-17', 'Sedan', 'Empty'),
+(1, 'A-18', 'Sedan', 'Empty'),
+(1, 'A-19', 'Sedan', 'Empty'),
+(1, 'A-20', 'Sedan', 'Empty'),
+(1, 'A-21', 'Sedan', 'Empty'),
+(1, 'A-22', 'Sedan', 'Empty'),
+(1, 'A-23', 'Sedan', 'Empty'),
+(1, 'A-24', 'Sedan', 'Empty'),
+(1, 'A-25', 'Sedan', 'Empty');
 
--- Zone B: 8 SUV slots
+-- Zone B: 20 SUV slots
 INSERT INTO dbo.Parking_slot (area_id, slot_code, slot_type, status) VALUES
 (2, 'B-01', 'SUV', 'Occupied'),
-(2, 'B-02', 'SUV', 'Empty'),
+(2, 'B-02', 'SUV', 'Reserved'),
 (2, 'B-03', 'SUV', 'Empty'),
 (2, 'B-04', 'SUV', 'Empty'),
-(2, 'B-05', 'SUV', 'Reserved'),
+(2, 'B-05', 'SUV', 'Empty'),
 (2, 'B-06', 'SUV', 'Empty'),
 (2, 'B-07', 'SUV', 'Empty'),
-(2, 'B-08', 'SUV', 'Occupied');
+(2, 'B-08', 'SUV', 'Occupied'),
+(2, 'B-09', 'SUV', 'Empty'),
+(2, 'B-10', 'SUV', 'Empty'),
+(2, 'B-11', 'SUV', 'Empty'),
+(2, 'B-12', 'SUV', 'Empty'),
+(2, 'B-13', 'SUV', 'Empty'),
+(2, 'B-14', 'SUV', 'Empty'),
+(2, 'B-15', 'SUV', 'Empty'),
+(2, 'B-16', 'SUV', 'Empty'),
+(2, 'B-17', 'SUV', 'Empty'),
+(2, 'B-18', 'SUV', 'Empty'),
+(2, 'B-19', 'SUV', 'Empty'),
+(2, 'B-20', 'SUV', 'Empty');
 
--- Zone C: 12 Motorbike slots
+-- Zone C: 30 Motorbike slots
 INSERT INTO dbo.Parking_slot (area_id, slot_code, slot_type, status) VALUES
 (3, 'C-01', 'Motorbike', 'Occupied'),
 (3, 'C-02', 'Motorbike', 'Empty'),
-(3, 'C-03', 'Motorbike', 'Empty'),
+(3, 'C-03', 'Motorbike', 'Occupied'),
 (3, 'C-04', 'Motorbike', 'Empty'),
 (3, 'C-05', 'Motorbike', 'Empty'),
 (3, 'C-06', 'Motorbike', 'Empty'),
@@ -271,7 +297,25 @@ INSERT INTO dbo.Parking_slot (area_id, slot_code, slot_type, status) VALUES
 (3, 'C-09', 'Motorbike', 'Empty'),
 (3, 'C-10', 'Motorbike', 'Empty'),
 (3, 'C-11', 'Motorbike', 'Maintenance'),
-(3, 'C-12', 'Motorbike', 'Empty');
+(3, 'C-12', 'Motorbike', 'Empty'),
+(3, 'C-13', 'Motorbike', 'Empty'),
+(3, 'C-14', 'Motorbike', 'Empty'),
+(3, 'C-15', 'Motorbike', 'Empty'),
+(3, 'C-16', 'Motorbike', 'Empty'),
+(3, 'C-17', 'Motorbike', 'Empty'),
+(3, 'C-18', 'Motorbike', 'Empty'),
+(3, 'C-19', 'Motorbike', 'Empty'),
+(3, 'C-20', 'Motorbike', 'Empty'),
+(3, 'C-21', 'Motorbike', 'Empty'),
+(3, 'C-22', 'Motorbike', 'Empty'),
+(3, 'C-23', 'Motorbike', 'Empty'),
+(3, 'C-24', 'Motorbike', 'Empty'),
+(3, 'C-25', 'Motorbike', 'Empty'),
+(3, 'C-26', 'Motorbike', 'Empty'),
+(3, 'C-27', 'Motorbike', 'Empty'),
+(3, 'C-28', 'Motorbike', 'Empty'),
+(3, 'C-29', 'Motorbike', 'Empty'),
+(3, 'C-30', 'Motorbike', 'Empty');
 
 -- Pricing rules
 INSERT INTO dbo.Pricing_rules (vehicle_type_id, start_time, end_time, day_type, first_hour_price, next_hour_price, max_daily_price, is_active, effective_from, effective_to) VALUES
@@ -282,10 +326,11 @@ INSERT INTO dbo.Pricing_rules (vehicle_type_id, start_time, end_time, day_type, 
 -- Sample booking history for testing the staff dashboard and customer tracking.
 -- These represent bookings placed by customers ahead of time.
 INSERT INTO dbo.Booking (customer_name, customer_phone, license_plate, vehicle_type_id, slot_id, target_time, status, payment_method) VALUES
-(N'Tran Van Hoang', '0988777666', '59A-123.45', 1, 2, '2026-08-15 10:00:00', 'active', 'Cash'),
-(N'Le Thi Mai',     '0977666555', '51G-987.65', 2, 12, '2026-08-20 14:30:00', 'active', 'VNPay'),
-(N'Pham Minh Duc',  '0966555444', '59P-555.55', 3, 21, '2026-08-10 09:00:00', 'occupied', 'Cash'),
-(N'Nguyen Test',    '0911000001', '59B-111.22', 1, 3, '2026-09-01 08:00:00', 'canceled', 'VNPay');
+(N'Tran Van Hoang', '0988777666', '59A-123.45', 1, (SELECT slot_id FROM dbo.Parking_slot WHERE slot_code = 'A-02'), '2026-08-15 10:00:00', 'active', 'Cash'),
+(N'Le Thi Mai',     '0977666555', '51G-987.65', 2, (SELECT slot_id FROM dbo.Parking_slot WHERE slot_code = 'B-02'), '2026-08-20 14:30:00', 'active', 'VNPay'),
+(N'Pham Minh Duc',  '0966555444', '59P-555.55', 3, (SELECT slot_id FROM dbo.Parking_slot WHERE slot_code = 'C-03'), '2026-08-10 09:00:00', 'occupied', 'Cash'),
+(N'Nguyen Test',    '0911000001', '59B-111.22', 1, (SELECT slot_id FROM dbo.Parking_slot WHERE slot_code = 'A-03'), '2026-09-01 08:00:00', 'canceled', 'VNPay'),
+(N'CheckedOut Test','0911000002', '59C-222.33', 1, (SELECT slot_id FROM dbo.Parking_slot WHERE slot_code = 'A-04'), '2026-06-14 07:00:00', 'checked-out', 'Cash');
 
 -- Sample active tickets for the staff view
 INSERT INTO dbo.Ticket (vehicle_id, check_in_by, entry_time, license_plate_snapshot, qr_code, status) VALUES

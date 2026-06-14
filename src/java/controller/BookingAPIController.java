@@ -72,6 +72,8 @@ public class BookingAPIController extends HttpServlet {
         String pathInfo = request.getPathInfo();
         if ("/checkin".equals(pathInfo)) {
             handleCheckIn(request, response);
+        } else if ("/checkout".equals(pathInfo)) {
+            handleCheckOut(request, response);
         } else {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
@@ -118,7 +120,9 @@ public class BookingAPIController extends HttpServlet {
                 json.append("\"customerName\":\"").append(escapeJson(b.getCustomerName())).append("\",");
                 json.append("\"customerPhone\":\"").append(escapeJson(b.getCustomerPhone())).append("\",");
                 json.append("\"licensePlate\":\"").append(escapeJson(b.getLicensePlate())).append("\",");
+                json.append("\"vehicleTypeId\":").append(b.getVehicleTypeId()).append(",");
                 json.append("\"vehicleTypeName\":\"").append(escapeJson(b.getVehicleTypeName())).append("\",");
+                json.append("\"slotId\":").append(b.getSlotId()).append(",");
                 json.append("\"slotCode\":\"").append(escapeJson(b.getSlotCode())).append("\",");
                 json.append("\"areaCode\":\"").append(escapeJson(b.getAreaCode())).append("\",");
                 json.append("\"targetTime\":\"").append(escapeJson(b.getTargetTime())).append("\",");
@@ -194,6 +198,24 @@ public class BookingAPIController extends HttpServlet {
             } else {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 response.getWriter().write("Unable to check in — booking may already be checked in or cancelled");
+            }
+        } catch (Exception ex) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            throw new ServletException(ex);
+        }
+    }
+
+    private void handleCheckOut(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        String bookingIdStr = request.getParameter("bookingId");
+        try {
+            int bookingId = Integer.parseInt(bookingIdStr);
+            BookingDAO dao = new BookingDAO();
+            if (dao.checkoutBooking(bookingId)) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.getWriter().write("Checked out successfully");
+            } else {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write("Unable to check out — booking may not be occupied");
             }
         } catch (Exception ex) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
