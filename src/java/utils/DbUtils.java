@@ -20,7 +20,7 @@ public class DbUtils {
     private static final String DB_USER = "sa";
     private static final String DB_PASSWORD = "12345"; 
     private static final String URL = "jdbc:sqlserver://localhost:1433;databaseName=" 
-    + "SmartParkingDB" + ";encrypt=true;trustServerCertificate=true;";
+    + "ParkingDB" + ";encrypt=true;trustServerCertificate=true;";
 
     // Returns a fresh DB connection
     public static Connection getConnection() throws ClassNotFoundException, SQLException {

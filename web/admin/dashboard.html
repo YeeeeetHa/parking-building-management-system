@@ -1,8 +1,4 @@
 <!DOCTYPE html>
-<!--
-Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
-Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit this template
--->
 <html lang="en">
     <head>
         <meta charset="utf-8">
@@ -124,12 +120,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                     <li class="nav-item">
                         <a class="nav-link active" href="#" onclick="showSection('dashboard')"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a>
                     </li>
-                    <!-- Appended booking section for advance reservations -->
                     <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('bookings')"><i class="bi bi-calendar-check-fill me-2"></i>Bookings</a></li>
                     <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-car-front-fill me-2"></i>Parking Management</a></li>
                     <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-geo-alt-fill me-2"></i>Vehicle Tracking</a></li>
                     <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-file-earmark-bar-graph-fill me-2"></i>Reports</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-gear-fill me-2"></i>System Config</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('config')"><i class="bi bi-gear-fill me-2"></i>System Config</a></li>
                 </ul>
             </div>
             <div>
@@ -303,15 +298,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                             <span class="input-group-text bg-white border-secondary-subtle"><i class="bi bi-search text-muted"></i></span>
                             <input type="text" class="form-control border-secondary-subtle" id="searchBookingPlate" placeholder="Search by name or plate..." oninput="filterBookings()">
                         </div>
-                        <!-- Bookings come from the customer portal — no manual registration here -->
                         <a href="../customer/book.html" target="_blank" class="btn text-white" style="background-color: #0f766e;"><i class="bi bi-box-arrow-up-right me-1"></i> Customer Portal</a>
                     </div>
                 </div>
 
-
                 <div id="booking-alert" class="alert d-none" role="alert"></div>
 
-                <!-- Booking Ledger Data Grid -->
                 <div id="booking-ledger-container" class="bg-card-custom overflow-hidden position-relative">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0" id="bookingTable">
@@ -330,16 +322,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                                     <th class="pe-4 py-3 fw-semibold border-bottom-0 text-end">Status</th>
                                 </tr>
                             </thead>
-                            <tbody id="bookingTableBody" class="border-top-0">
-                                <!-- Rows rendered via JS -->
-                            </tbody>
+                            <tbody id="bookingTableBody" class="border-top-0"></tbody>
                         </table>
                     </div>
-                    <div class="p-3 border-top d-flex justify-content-center bg-white" id="bookingPagination">
-                        <!-- Pagination rendered via JS -->
-                    </div>
+                    <div class="p-3 border-top d-flex justify-content-center bg-white" id="bookingPagination"></div>
 
-                    <!-- Mass Action Taskbar -->
                     <div id="massActionBar" class="bg-dark text-white p-3 d-flex justify-content-between align-items-center position-absolute bottom-0 w-100" style="display: none !important; z-index: 10;">
                         <div class="fw-bold"><span id="massSelectCount">0</span> rows selected</div>
                         <div class="d-flex gap-2">
@@ -351,464 +338,500 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 </div>
             </div>
 
+            <div id="section-config" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold m-0 text-dark">Global Parameters Administration</h4>
+                </div>
+                
+                <div id="config-alert" class="alert d-none rounded-4 p-3 mb-4" role="alert"></div>
+
+                <div class="bg-card-custom p-4 d-flex flex-column gap-4">
+                    <div class="row align-items-center border-bottom pb-3 text-dark">
+                        <div class="col-md-6">
+                            <h6 class="m-0 fw-bold">Capacity Warning Threshold (%)</h6>
+                            <p class="small text-muted-custom m-0">Triggers capacity dashboard layout flags when occupancy limits are reached.</p>
+                        </div>
+                        <div class="col-md-4"><input type="number" id="CAPACITY_THRESHOLD" class="form-control border-secondary-subtle"></div>
+                        <div class="col-md-2 text-end"><button class="btn btn-sm text-white fw-bold w-100" style="background-color: #0f766e;" onclick="saveSystemParameter('CAPACITY_THRESHOLD')">Save</button></div>
+                    </div>
+
+                    <div class="row align-items-center border-bottom pb-3 text-dark">
+                        <div class="col-md-6">
+                            <h6 class="m-0 fw-bold">Global Currency Format Token</h6>
+                            <p class="small text-muted-custom m-0">Display formatting prefix rendering rules applied across core metric counters.</p>
+                        </div>
+                        <div class="col-md-4"><input type="text" id="CURRENCY_SYMBOL" class="form-control border-secondary-subtle"></div>
+                        <div class="col-md-2 text-end"><button class="btn btn-sm text-white fw-bold w-100" style="background-color: #0f766e;" onclick="saveSystemParameter('CURRENCY_SYMBOL')">Save</button></div>
+                    </div>
+
+                    <div class="row align-items-center border-bottom pb-3 text-dark">
+                        <div class="col-md-6">
+                            <h6 class="m-0 fw-bold">Free Checkout Grace Window (Minutes)</h6>
+                            <p class="small text-muted-custom m-0">Turnaround processing buffer duration window calculated without adding charges.</p>
+                        </div>
+                        <div class="col-md-4"><input type="number" id="GRACE_PERIOD_MINUTES" class="form-control border-secondary-subtle"></div>
+                        <div class="col-md-2 text-end"><button class="btn btn-sm text-white fw-bold w-100" style="background-color: #0f766e;" onclick="saveSystemParameter('GRACE_PERIOD_MINUTES')">Save</button></div>
+                    </div>
+
+                    <div class="row align-items-center border-bottom pb-3 text-dark">
+                        <div class="col-md-6">
+                            <h6 class="m-0 fw-bold">Maximum Capped Overnight Flat Fee</h6>
+                            <p class="small text-muted-custom m-0">Absolute flat rate ceiling charge applied to vehicles left inside past midnight.</p>
+                        </div>
+                        <div class="col-md-4"><input type="number" step="0.01" id="MAX_OVERNIGHT_CHARGE" class="form-control border-secondary-subtle"></div>
+                        <div class="col-md-2 text-end"><button class="btn btn-sm text-white fw-bold w-100" style="background-color: #0f766e;" onclick="saveSystemParameter('MAX_OVERNIGHT_CHARGE')">Save</button></div>
+                    </div>
+
+                    <div class="row align-items-center text-dark">
+                        <div class="col-md-6">
+                            <h6 class="m-0 fw-bold">Global Booking Gate Maintenance Lock</h6>
+                            <p class="small text-muted-custom m-0">Toggles automated front-end system locking protocols down across user pages.</p>
+                        </div>
+                        <div class="col-md-4">
+                            <select id="MAINTENANCE_MODE" class="form-select border-secondary-subtle">
+                                <option value="TRUE">TRUE - Customer Portal Suspended</option>
+                                <option value="FALSE">FALSE - Operations Active</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 text-end"><button class="btn btn-sm text-white fw-bold w-100" style="background-color: #0f766e;" onclick="saveSystemParameter('MAINTENANCE_MODE')">Save</button></div>
+                    </div>
+                </div>
+            </div>
+
         </main>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
         <script>
-                                // Dynamic Context Path Resolution
-                                const CONTEXT_PATH = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 2));
+                // Dynamic Context Path Resolution
+                const CONTEXT_PATH = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 2));
+                const CONFIG_API = CONTEXT_PATH + '/api/v1/admin/config';
 
-                                // State for Bookings
-                                let bookingsData = [];
-                                let filteredBookings = [];
-                                let currentPage = 1;
-                                const rowsPerPage = 10;
-                                let expandedRowId = null;
-                                let selectedBookings = new Set(); // Stores booking IDs
+                // Local State Memory Banks
+                let bookingsData = [];
+                let filteredBookings = [];
+                let currentPage = 1;
+                const rowsPerPage = 10;
+                let expandedRowId = null;
+                let selectedBookings = new Set();
 
-                                (function () {
-                                    const SESSION_KEY = 'sp_session';
-                                    try {
-                                        const raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
-                                        if (raw) {
-                                            const session = JSON.parse(raw);
-                                            if (session && session.authenticated) {
-                                                return;
-                                            }
-                                        }
-                                    } catch (e) {
-                                        console.error(e);
-                                    }
-                                    console.log("Rendering core layout components safely.");
-                                })();
+                function getAuthToken() {
+                    let token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+                    if (token) return token;
 
-                                // Extracts active session token
-                                function getAuthToken() {
-                                    let token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
-                                    if (token)
-                                        return token;
+                    const SESSION_KEY = 'sp_session';
+                    try {
+                        const raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
+                        if (raw) {
+                            const session = JSON.parse(raw);
+                            if (session && session.token) return session.token;
+                        }
+                    } catch (e) {}
+                    return 'mock_token';
+                }
 
-                                    const SESSION_KEY = 'sp_session';
-                                    try {
-                                        const raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
-                                        if (raw) {
-                                            const session = JSON.parse(raw);
-                                            if (session && session.token)
-                                                return session.token;
-                                        }
-                                    } catch (e) {
-                                    }
-                                    return 'mock_token';
+                // SPA LAYOUT NAVIGATION SWITCH ENGINE
+                function showSection(sectionId) {
+                    document.getElementById('section-dashboard').style.display = 'none';
+                    document.getElementById('section-bookings').style.display = 'none';
+                    document.getElementById('section-config').style.display = 'none';
+
+                    document.querySelectorAll('#sidebar-nav .nav-link').forEach(el => {
+                        el.classList.remove('active');
+                    });
+
+                    if (sectionId === 'dashboard') {
+                        document.getElementById('section-dashboard').style.display = 'block';
+                        document.getElementById('page-title').innerText = 'System Overview';
+                        document.querySelector('#sidebar-nav .nav-item:nth-child(1) .nav-link').classList.add('active');
+                    } else if (sectionId === 'bookings') {
+                        document.getElementById('section-bookings').style.display = 'block';
+                        document.getElementById('page-title').innerText = 'Advance Reservations';
+                        document.querySelector('#sidebar-nav .nav-link[onclick*="bookings"]').classList.add('active');
+                        fetchBookings();
+                    } else if (sectionId === 'config') {
+                        document.getElementById('section-config').style.display = 'block';
+                        document.getElementById('page-title').innerText = 'System Configuration Parameters';
+                        document.querySelector('#sidebar-nav .nav-link[onclick*="config"]').classList.add('active');
+                        fetchSystemConfig(); // Populate fields from the database instantly upon opening tab
+                    }
+                }
+
+                // --- BACK-END SYSTEM CONFIG CONFIGURATION PERSISTENCE PIPELINE ---
+
+                async function fetchSystemConfig() {
+                    try {
+                        const res = await fetch(CONFIG_API, {
+                            headers: {'Authorization': 'Bearer ' + getAuthToken()}
+                        });
+                        if (!res.ok) throw new Error("Persistence fetch operation could not trace system config fields.");
+                        const configs = await res.json();
+                        
+                        Object.keys(configs).forEach(key => {
+                            const inputField = document.getElementById(key);
+                            if (inputField) inputField.value = configs[key];
+                        });
+                    } catch (err) {
+                        showConfigAlert(err.message, 'danger');
+                    }
+                }
+
+                async function saveSystemParameter(key) {
+                    const value = document.getElementById(key).value;
+                    try {
+                        const res = await fetch(CONFIG_API, {
+                            method: 'POST',
+                            headers: { 
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'Authorization': 'Bearer ' + getAuthToken()
+                            },
+                            body: `key=${encodeURIComponent(key)}&value=${encodeURIComponent(value)}`
+                        });
+
+                        if (!res.ok) throw new Error("Transaction pipeline exception during backend update.");
+                        showConfigAlert(`Parameter property details for [${key}] successfully written down to database records.`, 'success');
+                    } catch (err) {
+                        showConfigAlert(err.message, 'danger');
+                    }
+                }
+
+                function showConfigAlert(msg, type) {
+                    const box = document.getElementById('config-alert');
+                    box.className = `alert alert-${type} rounded-4 p-3 mb-4`;
+                    box.innerText = msg;
+                    box.classList.remove('d-none');
+                    setTimeout(() => box.classList.add('d-none'), 4000);
+                }
+
+                // --- ADVANCE BOOKINGS PIPELINE ---
+
+                async function fetchBookings() {
+                    try {
+                        const res = await fetch(CONTEXT_PATH + '/api/v1/bookings/list', {
+                            headers: {'Authorization': 'Bearer ' + getAuthToken()}
+                        });
+
+                        if (res.status === 401) {
+                            sessionStorage.clear(); localStorage.clear();
+                            window.location.href = CONTEXT_PATH + '/login.html';
+                            return;
+                        }
+
+                        if (res.ok) {
+                            bookingsData = await res.json();
+                            bookingsData.sort((a, b) => new Date(b.targetTime) - new Date(a.targetTime));
+                            const activeIds = new Set(bookingsData.map(b => b.bookingId));
+                            selectedBookings.forEach(id => {
+                                if (!activeIds.has(id)) selectedBookings.delete(id);
+                            });
+                            filterBookings();
+                        }
+                    } catch (err) {
+                        console.error("Failed to fetch bookings:", err);
+                    }
+                }
+
+                function filterBookings() {
+                    const query = document.getElementById('searchBookingPlate').value.toLowerCase();
+                    filteredBookings = bookingsData.filter(b =>
+                        b.licensePlate.toLowerCase().includes(query) ||
+                        (b.customerName && b.customerName.toLowerCase().includes(query))
+                    );
+                    currentPage = 1;
+                    renderBookingTable();
+                }
+
+                function toggleSelectAll(checkbox) {
+                    if (checkbox.checked) {
+                        filteredBookings.forEach(b => selectedBookings.add(b.bookingId));
+                    } else {
+                        selectedBookings.clear();
+                    }
+                    renderBookingTable();
+                }
+
+                function toggleRowSelection(id, event) {
+                    event.stopPropagation();
+                    if (selectedBookings.has(id)) {
+                        selectedBookings.delete(id);
+                    } else {
+                        selectedBookings.add(id);
+                    }
+                    renderBookingTable();
+                }
+
+                function renderBookingTable() {
+                    const tbody = document.getElementById('bookingTableBody');
+                    tbody.innerHTML = '';
+
+                    const start = (currentPage - 1) * rowsPerPage;
+                    const end = start + rowsPerPage;
+                    const paginated = filteredBookings.slice(start, end);
+
+                    const selectAllCb = document.getElementById('selectAllBookings');
+                    if (filteredBookings.length > 0 && filteredBookings.every(b => selectedBookings.has(b.bookingId))) {
+                        selectAllCb.checked = true;
+                    } else {
+                        selectAllCb.checked = false;
+                    }
+
+                    if (paginated.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-muted">No reservations found.</td></tr>';
+                        renderPagination();
+                        renderMassActionBar();
+                        return;
+                    }
+
+                    paginated.forEach(b => {
+                        const tr = document.createElement('tr');
+                        tr.style.cursor = 'pointer';
+                        const isSelected = selectedBookings.has(b.bookingId);
+                        if (isSelected) tr.classList.add('bg-light');
+
+                        tr.onclick = () => {
+                            if (selectedBookings.size === 0) toggleRowAction(b.bookingId);
+                        };
+
+                        let badgeClass = 'bg-secondary';
+                        let statusText = 'Unknown';
+
+                        if (b.status === 'active') {
+                            const target = new Date(b.targetTime);
+                            const now = new Date();
+                            if (target < now) {
+                                badgeClass = 'bg-warning text-dark';
+                                statusText = 'Overdue';
+                            } else {
+                                badgeClass = 'bg-primary';
+                                statusText = 'Pending';
+                            }
+                        } else if (b.status === 'occupied') {
+                            badgeClass = 'bg-success';
+                            statusText = 'Occupied';
+                        } else if (b.status === 'canceled') {
+                            badgeClass = 'bg-danger';
+                            statusText = 'Canceled';
+                        }
+
+                        tr.innerHTML = `
+                            <td class="ps-4" onclick="event.stopPropagation()">
+                                <input class="form-check-input" type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleRowSelection(${b.bookingId}, event)">
+                            </td>
+                            <td class="fw-medium">#${b.bookingId}</td>
+                            <td class="fw-semibold text-dark" style="font-size:0.82rem;">${b.customerName || '—'}<div class="text-muted fw-normal" style="font-size:0.7rem;">${b.customerPhone || ''}</div></td>
+                            <td class="fw-bold text-dark">${b.licensePlate}</td>
+                            <td>${b.vehicleTypeName}</td>
+                            <td><span class="badge bg-light text-dark border">${b.slotCode}</span> <small class="text-muted">${b.areaCode || ''}</small></td>
+                            <td class="small text-muted">${new Date(b.targetTime).toLocaleString('vi-VN')}</td>
+                            <td><span class="badge ${b.paymentMethod === 'VNPay' ? 'bg-warning-subtle text-warning border border-warning-subtle' : 'bg-light text-secondary border'}" style="font-size:0.68rem;">${b.paymentMethod || 'Cash'}</span></td>
+                            <td class="pe-4 text-end"><span class="badge ${badgeClass}">${statusText}</span></td>
+                        `;
+                        tbody.appendChild(tr);
+
+                        if (selectedBookings.size === 0) {
+                            const actionTr = document.createElement('tr');
+                            actionTr.id = 'action-row-' + b.bookingId;
+                            actionTr.style.display = (expandedRowId === b.bookingId) ? 'table-row' : 'none';
+                            actionTr.style.backgroundColor = '#f8fafc';
+
+                            let actionsHtml = `<div class="d-flex gap-2 justify-content-end p-2">`;
+                            if (b.status === 'active') {
+                                actionsHtml += `<button class="btn btn-sm btn-success" onclick="actionBooking(${b.bookingId}, 'checkin')"><i class="bi bi-box-arrow-in-right"></i> Check-In</button>`;
+                                actionsHtml += `<button class="btn btn-sm btn-outline-primary" onclick="editBooking(${b.bookingId})"><i class="bi bi-pencil"></i> Edit</button>`;
+                                actionsHtml += `<button class="btn btn-sm btn-outline-danger" onclick="actionBooking(${b.bookingId}, 'cancel')"><i class="bi bi-x-circle"></i> Cancel</button>`;
+                            } else {
+                                actionsHtml += `<button class="btn btn-sm btn-outline-secondary" onclick="actionBooking(${b.bookingId}, 'remove')"><i class="bi bi-trash"></i> Remove from History</button>`;
+                            }
+                            actionsHtml += `</div>`;
+
+                            actionTr.innerHTML = `<td colspan="9" class="p-0 border-bottom-0">${actionsHtml}</td>`;
+                            tbody.appendChild(actionTr);
+                        } else {
+                            expandedRowId = null;
+                        }
+                    });
+
+                    renderPagination();
+                    renderMassActionBar();
+                }
+
+                function renderMassActionBar() {
+                    const bar = document.getElementById('massActionBar');
+                    const countLabel = document.getElementById('massSelectCount');
+                    const tableContainer = document.querySelector('.table-responsive');
+                    if (selectedBookings.size > 0) {
+                        countLabel.innerText = selectedBookings.size;
+                        bar.style.setProperty('display', 'flex', 'important');
+                        if (tableContainer) tableContainer.style.paddingBottom = '70px';
+                    } else {
+                        bar.style.setProperty('display', 'none', 'important');
+                        if (tableContainer) tableContainer.style.paddingBottom = '0px';
+                    }
+                }
+
+                function toggleRowAction(id) {
+                    expandedRowId = (expandedRowId === id) ? null : id;
+                    renderBookingTable();
+                }
+
+                function renderPagination() {
+                    const totalPages = Math.ceil(filteredBookings.length / rowsPerPage);
+                    const pagBox = document.getElementById('bookingPagination');
+                    if (totalPages <= 1) {
+                        pagBox.innerHTML = '';
+                        return;
+                    }
+
+                    let html = `<ul class="pagination pagination-sm m-0">`;
+                    html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage - 1})">&laquo;</a></li>`;
+                    for (let i = 1; i <= totalPages; i++) {
+                        html += `<li class="page-item ${currentPage === i ? 'active' : ''}"><a class="page-link" href="#" onclick="changePage(${i})">${i}</a></li>`;
+                    }
+                    html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage + 1})">&raquo;</a></li>`;
+                    html += `</ul>`;
+                    pagBox.innerHTML = html;
+                }
+
+                function changePage(page) {
+                    const totalPages = Math.ceil(filteredBookings.length / rowsPerPage);
+                    if (page < 1 || page > totalPages) return;
+                    currentPage = page;
+                    renderBookingTable();
+                }
+
+                function editBooking(id) {
+                    alert('Direct booking edits are not available in this version. Ask the customer to cancel and rebook from the customer portal.');
+                }
+
+                async function actionBooking(id, action) {
+                    let cancelReason = null;
+                    if (action === 'cancel') {
+                        if (!confirm('Are you sure you want to cancel this reservation?')) return;
+                        cancelReason = prompt('Optional cancellation reason notes:');
+                    }
+
+                    try {
+                        const method = (action === 'checkin') ? 'POST' : 'DELETE';
+                        let endpoint = (action === 'checkin') ? '/api/v1/bookings/checkin' : '/api/v1/bookings/' + action + '?bookingId=' + id;
+                        if (action === 'cancel' && cancelReason) {
+                            endpoint += '&reason=' + encodeURIComponent(cancelReason);
+                        }
+                        const fetchOptions = {
+                            method: method,
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'Authorization': 'Bearer ' + getAuthToken()
+                            }
+                        };
+                        if (action === 'checkin') {
+                            fetchOptions.body = 'bookingId=' + id;
+                        }
+
+                        const res = await fetch(CONTEXT_PATH + endpoint, fetchOptions);
+                        if (res.status === 401) {
+                            sessionStorage.clear(); localStorage.clear();
+                            window.location.href = CONTEXT_PATH + '/login.html';
+                            return;
+                        }
+
+                        if (res.ok) {
+                            showSuccessOverlay(action === 'checkin' ? 'Vehicle successfully checked in!' : 'Action completed.');
+                            selectedBookings.delete(id);
+                            fetchBookings();
+                        } else {
+                            const err = await res.text();
+                            showAlert('Error: ' + err, 'danger');
+                        }
+                    } catch (error) {
+                        showAlert('Network Error: ' + error.message, 'danger');
+                    }
+                }
+
+                async function massAction(action) {
+                    if (selectedBookings.size === 0) return;
+
+                    let massReason = null;
+                    if (action === 'cancel') {
+                        if (!confirm('Cancel ' + selectedBookings.size + ' selections?')) return;
+                        massReason = prompt('Optional collective cancellation reason note:');
+                    }
+
+                    const method = (action === 'checkin') ? 'POST' : 'DELETE';
+                    let successCount = 0;
+                    let errorMsg = null;
+
+                    for (let id of selectedBookings) {
+                        try {
+                            let endpoint = (action === 'checkin') ? '/api/v1/bookings/checkin' : '/api/v1/bookings/' + action + '?bookingId=' + id;
+                            if (action === 'cancel' && massReason) {
+                                endpoint += '&reason=' + encodeURIComponent(massReason);
+                            }
+                            const fetchOptions = {
+                                method: method,
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                    'Authorization': 'Bearer ' + getAuthToken()
                                 }
+                            };
+                            if (action === 'checkin') {
+                                fetchOptions.body = 'bookingId=' + id;
+                            }
 
-                                function showSection(sectionId) {
-                                    document.getElementById('section-dashboard').style.display = 'none';
-                                    document.getElementById('section-bookings').style.display = 'none';
+                            const res = await fetch(CONTEXT_PATH + endpoint, fetchOptions);
+                            if (res.status === 401) {
+                                sessionStorage.clear(); localStorage.clear();
+                                window.location.href = CONTEXT_PATH + '/login.html';
+                                return;
+                            }
 
-                                    document.querySelectorAll('#sidebar-nav .nav-link').forEach(el => {
-                                        el.classList.remove('active');
-                                    });
+                            if (res.ok) {
+                                successCount++;
+                                selectedBookings.delete(id);
+                            } else {
+                                errorMsg = await res.text();
+                            }
+                        } catch (err) {
+                            errorMsg = err.message;
+                        }
+                    }
 
-                                    if (sectionId === 'dashboard') {
-                                        document.getElementById('section-dashboard').style.display = 'block';
-                                        document.getElementById('page-title').innerText = 'System Overview';
-                                        document.querySelector('#sidebar-nav .nav-item:nth-child(1) .nav-link').classList.add('active');
-                                    } else if (sectionId === 'bookings') {
-                                        document.getElementById('section-bookings').style.display = 'block';
-                                        document.getElementById('page-title').innerText = 'Advance Reservations';
-                                        document.querySelector('#sidebar-nav .nav-item:nth-child(2) .nav-link').classList.add('active');
-                                        fetchBookings(); // Load data when tab is opened
-                                    }
-                                }
+                    if (successCount > 0) {
+                        showSuccessOverlay(`Successfully processed ${successCount} bookings!`);
+                    }
+                    if (errorMsg && successCount !== selectedBookings.size) {
+                        showAlert(`Some actions failed: ${errorMsg}`, 'warning');
+                    }
+                    fetchBookings();
+                }
 
+                function showAlert(msg, type) {
+                    const alertBox = document.getElementById('booking-alert');
+                    alertBox.className = 'alert alert-' + type;
+                    alertBox.innerText = msg;
+                    alertBox.classList.remove('d-none');
+                    setTimeout(() => alertBox.classList.add('d-none'), 5000);
+                }
 
-                                // --- BOOKING API & RENDER PIPELINE ---
+                function showSuccessOverlay(msg) {
+                    const overlay = document.createElement('div');
+                    overlay.style.position = 'fixed'; overlay.style.top = '0'; overlay.style.left = '0';
+                    overlay.style.width = '100vw'; overlay.style.height = '100vh';
+                    overlay.style.backgroundColor = 'rgba(15, 118, 110, 0.9)'; overlay.style.zIndex = '9999';
+                    overlay.style.display = 'flex'; overlay.style.flexDirection = 'column';
+                    overlay.style.alignItems = 'center'; overlay.style.justifyContent = 'center'; overlay.style.color = 'white';
 
-                                async function fetchBookings() {
-                                    try {
-                                        const res = await fetch(CONTEXT_PATH + '/api/v1/bookings/list', {
-                                            headers: {'Authorization': 'Bearer ' + getAuthToken()}
-                                        });
-
-                                        if (res.status === 401) {
-                                            sessionStorage.clear();
-                                            localStorage.clear();
-                                            window.location.href = CONTEXT_PATH + '/login.html';
-                                            return;
-                                        }
-
-                                        if (res.ok) {
-                                            bookingsData = await res.json();
-
-                                            // Sort descending by target time (most recent upcoming first)
-                                            bookingsData.sort((a, b) => new Date(b.targetTime) - new Date(a.targetTime));
-
-                                            // Ensure selectedBookings only keeps IDs that actually exist
-                                            const activeIds = new Set(bookingsData.map(b => b.bookingId));
-                                            selectedBookings.forEach(id => {
-                                                if (!activeIds.has(id))
-                                                    selectedBookings.delete(id);
-                                            });
-
-                                            filterBookings();
-                                        }
-                                    } catch (err) {
-                                        console.error("Failed to fetch bookings:", err);
-                                    }
-                                }
-
-                                function filterBookings() {
-                                    const query = document.getElementById('searchBookingPlate').value.toLowerCase();
-                                    filteredBookings = bookingsData.filter(b =>
-                                        b.licensePlate.toLowerCase().includes(query) ||
-                                                (b.customerName && b.customerName.toLowerCase().includes(query))
-                                    );
-                                    currentPage = 1;
-                                    renderBookingTable();
-                                }
-
-                                function toggleSelectAll(checkbox) {
-                                    if (checkbox.checked) {
-                                        // Select all in current view, or all filtered? Let's do all filtered.
-                                        filteredBookings.forEach(b => selectedBookings.add(b.bookingId));
-                                    } else {
-                                        selectedBookings.clear();
-                                    }
-                                    renderBookingTable();
-                                }
-
-                                function toggleRowSelection(id, event) {
-                                    event.stopPropagation(); // Prevents expanding the row
-                                    if (selectedBookings.has(id)) {
-                                        selectedBookings.delete(id);
-                                    } else {
-                                        selectedBookings.add(id);
-                                    }
-                                    renderBookingTable();
-                                }
-
-                                function renderBookingTable() {
-                                    const tbody = document.getElementById('bookingTableBody');
-                                    tbody.innerHTML = '';
-
-                                    const start = (currentPage - 1) * rowsPerPage;
-                                    const end = start + rowsPerPage;
-                                    const paginated = filteredBookings.slice(start, end);
-
-                                    // Update Header Checkbox State
-                                    const selectAllCb = document.getElementById('selectAllBookings');
-                                    if (filteredBookings.length > 0 && filteredBookings.every(b => selectedBookings.has(b.bookingId))) {
-                                        selectAllCb.checked = true;
-                                    } else {
-                                        selectAllCb.checked = false;
-                                    }
-
-                                    if (paginated.length === 0) {
-                                        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No reservations found.</td></tr>';
-                                        renderPagination();
-                                        renderMassActionBar();
-                                        return;
-                                    }
-
-                                    paginated.forEach(b => {
-                                        const tr = document.createElement('tr');
-                                        tr.style.cursor = 'pointer';
-                                        const isSelected = selectedBookings.has(b.bookingId);
-                                        if (isSelected)
-                                            tr.classList.add('bg-light');
-
-                                        tr.onclick = () => {
-                                            if (selectedBookings.size === 0)
-                                                toggleRowAction(b.bookingId);
-                                        };
-
-                                        // Determine Professional Status Badging
-                                        let badgeClass = 'bg-secondary';
-                                        let statusText = 'Unknown';
-
-                                        if (b.status === 'active') {
-                                            const target = new Date(b.targetTime);
-                                            const now = new Date();
-                                            if (target < now) {
-                                                badgeClass = 'bg-warning text-dark';
-                                                statusText = 'Overdue';
-                                            } else {
-                                                badgeClass = 'bg-primary';
-                                                statusText = 'Pending';
-                                            }
-                                        } else if (b.status === 'occupied') {
-                                            badgeClass = 'bg-success';
-                                            statusText = 'Occupied';
-                                        } else if (b.status === 'canceled') {
-                                            badgeClass = 'bg-danger';
-                                            statusText = 'Canceled';
-                                        }
-
-                                        tr.innerHTML = `
-                        <td class="ps-4" onclick="event.stopPropagation()">
-                            <input class="form-check-input" type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleRowSelection(${b.bookingId}, event)">
-                        </td>
-                        <td class="fw-medium">#${b.bookingId}</td>
-                        <td class="fw-semibold text-dark" style="font-size:0.82rem;">${b.customerName || '—'}<div class="text-muted fw-normal" style="font-size:0.7rem;">${b.customerPhone || ''}</div></td>
-                        <td class="fw-bold text-dark">${b.licensePlate}</td>
-                        <td>${b.vehicleTypeName}</td>
-                        <td><span class="badge bg-light text-dark border">${b.slotCode}</span> <small class="text-muted">${b.areaCode || ''}</small></td>
-                        <td class="small text-muted">${new Date(b.targetTime).toLocaleString('vi-VN')}</td>
-                        <td><span class="badge ${b.paymentMethod === 'VNPay' ? 'bg-warning-subtle text-warning border border-warning-subtle' : 'bg-light text-secondary border'}" style="font-size:0.68rem;">${b.paymentMethod || 'Cash'}</span></td>
-                        <td class="pe-4 text-end"><span class="badge ${badgeClass}">${statusText}</span></td>
+                    overlay.innerHTML = `
+                        <i class="bi bi-check-circle-fill" style="font-size: 5rem; margin-bottom: 20px;"></i>
+                        <h2 class="fw-bold">${msg}</h2>
+                        <p>Redirecting to ledger...</p>
                     `;
-                                        tbody.appendChild(tr);
+                    document.body.appendChild(overlay);
 
-                                        // Inline Action Taskbar (Hidden by default, or disabled if mass selecting)
-                                        if (selectedBookings.size === 0) {
-                                            const actionTr = document.createElement('tr');
-                                            actionTr.id = 'action-row-' + b.bookingId;
-                                            actionTr.style.display = (expandedRowId === b.bookingId) ? 'table-row' : 'none';
-                                            actionTr.style.backgroundColor = '#f8fafc';
-
-                                            let actionsHtml = `<div class="d-flex gap-2 justify-content-end p-2">`;
-                                            if (b.status === 'active') {
-                                                actionsHtml += `<button class="btn btn-sm btn-success" onclick="actionBooking(${b.bookingId}, 'checkin')"><i class="bi bi-box-arrow-in-right"></i> Check-In</button>`;
-                                                actionsHtml += `<button class="btn btn-sm btn-outline-primary" onclick="editBooking(${b.bookingId})"><i class="bi bi-pencil"></i> Edit</button>`;
-                                                actionsHtml += `<button class="btn btn-sm btn-outline-danger" onclick="actionBooking(${b.bookingId}, 'cancel')"><i class="bi bi-x-circle"></i> Cancel</button>`;
-                                            } else {
-                                                actionsHtml += `<button class="btn btn-sm btn-outline-secondary" onclick="actionBooking(${b.bookingId}, 'remove')"><i class="bi bi-trash"></i> Remove from History</button>`;
-                                            }
-                                            actionsHtml += `</div>`;
-
-                                            actionTr.innerHTML = `<td colspan="9" class="p-0 border-bottom-0">${actionsHtml}</td>`;
-                                            tbody.appendChild(actionTr);
-                                        } else {
-                                            // Reset expanded state if we start multi-selecting
-                                            expandedRowId = null;
-                                        }
-                                    });
-
-                                    renderPagination();
-                                    renderMassActionBar();
-                                }
-
-                                function renderMassActionBar() {
-                                    const bar = document.getElementById('massActionBar');
-                                    const countLabel = document.getElementById('massSelectCount');
-                                    const tableContainer = document.querySelector('.table-responsive');
-                                    if (selectedBookings.size > 0) {
-                                        countLabel.innerText = selectedBookings.size;
-                                        bar.style.setProperty('display', 'flex', 'important');
-                                        if (tableContainer)
-                                            tableContainer.style.paddingBottom = '70px'; // Prevent overlap with the absolute taskbar
-                                    } else {
-                                        bar.style.setProperty('display', 'none', 'important');
-                                        if (tableContainer)
-                                            tableContainer.style.paddingBottom = '0px';
-                                    }
-                                }
-
-                                function toggleRowAction(id) {
-                                    if (expandedRowId === id) {
-                                        expandedRowId = null; // collapse
-                                    } else {
-                                        expandedRowId = id; // expand
-                                    }
-                                    renderBookingTable();
-                                }
-
-                                function renderPagination() {
-                                    const totalPages = Math.ceil(filteredBookings.length / rowsPerPage);
-                                    const pagBox = document.getElementById('bookingPagination');
-                                    if (totalPages <= 1) {
-                                        pagBox.innerHTML = '';
-                                        return;
-                                    }
-
-                                    let html = `<ul class="pagination pagination-sm m-0">`;
-                                    html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage - 1})">&laquo;</a></li>`;
-
-                                    for (let i = 1; i <= totalPages; i++) {
-                                        html += `<li class="page-item ${currentPage === i ? 'active' : ''}"><a class="page-link" href="#" onclick="changePage(${i})">${i}</a></li>`;
-                                    }
-
-                                    html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage + 1})">&raquo;</a></li>`;
-                                    html += `</ul>`;
-                                    pagBox.innerHTML = html;
-                                }
-
-                                function changePage(page) {
-                                    const totalPages = Math.ceil(filteredBookings.length / rowsPerPage);
-                                    if (page < 1 || page > totalPages)
-                                        return;
-                                    currentPage = page;
-                                    renderBookingTable();
-                                }
-
-                                // --- CRUD ACTIONS ---
-
-                                // editBooking — kept for future use when a staff edit form is added back.
-                                // For now it just scrolls to the top and logs a message.
-                                function editBooking(id) {
-                                    const b = bookingsData.find(x => x.bookingId === id);
-                                    if (!b)
-                                        return;
-                                    // Editing via the dashboard is reserved for a future sprint.
-                                    // Customers can cancel and rebook from the customer portal.
-                                    alert('Direct booking edits are not available in this version. Ask the customer to cancel and rebook from the customer portal.');
-                                }
-
-                                async function actionBooking(id, action) {
-                                    let cancelReason = null;
-                                    if (action === 'cancel') {
-                                        if (!confirm('Are you sure you want to cancel this reservation?'))
-                                            return;
-                                        cancelReason = prompt('Optional: Enter a reason for cancellation (visible to the customer):');
-                                    }
-
-                                    try {
-                                        const method = (action === 'checkin') ? 'POST' : 'DELETE';
-                                        let endpoint = (action === 'checkin')
-                                                ? '/api/v1/bookings/checkin'
-                                                : '/api/v1/bookings/' + action + '?bookingId=' + id;
-                                        if (action === 'cancel' && cancelReason) {
-                                            endpoint += '&reason=' + encodeURIComponent(cancelReason);
-                                        }
-                                        const fetchOptions = {
-                                            method: method,
-                                            headers: {
-                                                'Content-Type': 'application/x-www-form-urlencoded',
-                                                'Authorization': 'Bearer ' + getAuthToken()
-                                            }
-                                        };
-                                        if (action === 'checkin') {
-                                            fetchOptions.body = 'bookingId=' + id;
-                                        }
-
-                                        const res = await fetch(CONTEXT_PATH + endpoint, fetchOptions);
-
-                                        if (res.status === 401) {
-                                            sessionStorage.clear();
-                                            localStorage.clear();
-                                            window.location.href = CONTEXT_PATH + '/login.html';
-                                            return;
-                                        }
-
-                                        if (res.ok) {
-                                            showSuccessOverlay(action === 'checkin' ? 'Vehicle successfully checked in!' : 'Action completed.');
-                                            selectedBookings.delete(id);
-                                            fetchBookings();
-                                        } else {
-                                            const err = await res.text();
-                                            showAlert('Error: ' + err, 'danger');
-                                        }
-                                    } catch (error) {
-                                        showAlert('Network Error: ' + error.message, 'danger');
-                                    }
-                                }
-
-                                async function massAction(action) {
-                                    if (selectedBookings.size === 0)
-                                        return;
-
-                                    let massReason = null;
-                                    if (action === 'cancel') {
-                                        if (!confirm('Are you sure you want to cancel ' + selectedBookings.size + ' selected reservations?'))
-                                            return;
-                                        massReason = prompt('Optional: Enter a reason for cancellation (will apply to all selected):');
-                                    }
-
-                                    const method = (action === 'checkin') ? 'POST' : 'DELETE';
-                                    let successCount = 0;
-                                    let errorMsg = null;
-
-                                    // Loop through selected items and process them one by one
-                                    for (let id of selectedBookings) {
-                                        try {
-                                            let endpoint = (action === 'checkin')
-                                                    ? '/api/v1/bookings/checkin'
-                                                    : '/api/v1/bookings/' + action + '?bookingId=' + id;
-                                            if (action === 'cancel' && massReason) {
-                                                endpoint += '&reason=' + encodeURIComponent(massReason);
-                                            }
-                                            const fetchOptions = {
-                                                method: method,
-                                                headers: {
-                                                    'Content-Type': 'application/x-www-form-urlencoded',
-                                                    'Authorization': 'Bearer ' + getAuthToken()
-                                                }
-                                            };
-                                            if (action === 'checkin') {
-                                                fetchOptions.body = 'bookingId=' + id;
-                                            }
-
-                                            const res = await fetch(CONTEXT_PATH + endpoint, fetchOptions);
-
-
-                                            if (res.status === 401) {
-                                                sessionStorage.clear();
-                                                localStorage.clear();
-                                                window.location.href = CONTEXT_PATH + '/login.html';
-                                                return;
-                                            }
-
-                                            if (res.ok) {
-                                                successCount++;
-                                                selectedBookings.delete(id);
-                                            } else {
-                                                errorMsg = await res.text();
-                                            }
-                                        } catch (err) {
-                                            errorMsg = err.message;
-                                        }
-                                    }
-
-                                    if (successCount > 0) {
-                                        showSuccessOverlay(`Successfully processed ${successCount} bookings!`);
-                                    }
-                                    if (errorMsg && successCount !== selectedBookings.size) {
-                                        showAlert(`Some actions failed: ${errorMsg}`, 'warning');
-                                    }
-
-                                    fetchBookings();
-                                }
-
-
-
-                                function showAlert(msg, type) {
-                                    const alertBox = document.getElementById('booking-alert');
-                                    alertBox.className = 'alert alert-' + type;
-                                    alertBox.innerText = msg;
-                                    alertBox.classList.remove('d-none');
-                                    setTimeout(() => alertBox.classList.add('d-none'), 5000);
-                                }
-
-                                function showSuccessOverlay(msg) {
-                                    const overlay = document.createElement('div');
-                                    overlay.style.position = 'fixed';
-                                    overlay.style.top = '0';
-                                    overlay.style.left = '0';
-                                    overlay.style.width = '100vw';
-                                    overlay.style.height = '100vh';
-                                    overlay.style.backgroundColor = 'rgba(15, 118, 110, 0.9)';
-                                    overlay.style.zIndex = '9999';
-                                    overlay.style.display = 'flex';
-                                    overlay.style.flexDirection = 'column';
-                                    overlay.style.alignItems = 'center';
-                                    overlay.style.justifyContent = 'center';
-                                    overlay.style.color = 'white';
-
-                                    overlay.innerHTML = `
-                    <i class="bi bi-check-circle-fill" style="font-size: 5rem; margin-bottom: 20px;"></i>
-                    <h2 class="fw-bold">${msg}</h2>
-                    <p>Redirecting to ledger...</p>
-                `;
-
-                                    document.body.appendChild(overlay);
-
-                                    setTimeout(() => {
-                                        overlay.style.opacity = '0';
-                                        overlay.style.transition = 'opacity 0.5s ease';
-                                        setTimeout(() => document.body.removeChild(overlay), 500);
-                                    }, 1500);
-                                }
+                    setTimeout(() => {
+                        overlay.style.opacity = '0'; overlay.style.transition = 'opacity 0.5s ease';
+                        setTimeout(() => document.body.removeChild(overlay), 500);
+                    }, 1500);
+                }
         </script>
     </body>
 </html>
