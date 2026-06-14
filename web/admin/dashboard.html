@@ -1,757 +1,814 @@
-<!doctype html>
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit this template
+-->
 <html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>FPT Parking Lot Management System — Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 40%, #ccfbf1 100%);
-            color: #1e293b;
-            min-height: 100vh;
-        }
-        
-        /* Updated Sidebar to match light theme */
-        .bg-sidebar { background-color: #ffffff; min-width: 260px; max-width: 260px; }
-        .bg-card-custom { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-        .text-muted-custom { color: #64748b !important; }
-        .accent-teal { color: #0f766e; }
-        .nav-link { color: #475569; font-weight: 500; }
-        .nav-link:hover { color: #0f766e; background-color: #f1f5f9; border-radius: 8px; }
-        .nav-link.active { background-color: #ccfbf1 !important; color: #0f766e !important; font-weight: 600; border-radius: 8px; box-shadow: none; }
-        
-        .hero-eyebrow {
-            background: #fff;
-            border: 1px solid #e2e8f0;
-            color: #0f766e;
-            font-size: 0.75rem;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-        }
-        
-        /* Custom Parking Grid Map Layout styles */
-        .parking-grid {
-            display: grid;
-            grid-template-columns: repeat(10, 1fr);
-            gap: 8px;
-        }
-        .driveway-divider {
-            grid-column: span 10;
-            text-align: center;
-            padding: 12px 0;
-            color: #64748b;
-            font-size: 0.8rem;
-            letter-spacing: 4px;
-            border-top: 1px dashed #cbd5e1;
-            border-bottom: 1px dashed #cbd5e1;
-            margin: 10px 0;
-        }
-        .slot {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            padding: 12px 4px;
-            text-align: center;
-            font-size: 0.75rem;
-            font-weight: bold;
-            border-radius: 4px;
-            color: #0f766e;
-        }
-        .slot.occupied { background: #fee2e2; border-color: #fca5a5; color: #b91c1c; }
-        .slot.reserved { background: #fef3c7; border-color: #fde68a; color: #b45309; }
-        .slot.maintenance { background: #f1f5f9; border-color: #cbd5e1; color: #64748b; }
-    </style>
-</head>
-<body class="d-flex min-vh-100">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Smart Parking System - Staff Dashboard</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <aside class="bg-sidebar p-3 d-flex flex-column justify-content-between border-end border-secondary border-opacity-25">
-        <div>
-            <div class="brand mb-4 d-flex align-items-center gap-2">
-                <div class="brand-icon" style="width: 32px; height: 32px; background: #0f766e; color: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700;">P</div>
-                <div>
-                    <h2 class="h6 m-0 fw-bold">SmartParking</h2>
-                    <p class="small text-muted-custom m-0" style="font-size: 0.7rem;">Management System</p>
-                </div>
-            </div>
-            <ul class="nav flex-column gap-1" id="sidebar-nav">
-                <li class="nav-item">
-                    <a class="nav-link active" href="#" onclick="showSection('dashboard')"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a>
-                </li>
-                <!-- Appended booking section for advance reservations -->
-                <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('bookings')"><i class="bi bi-calendar-check-fill me-2"></i>Bookings</a></li>
-                <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-car-front-fill me-2"></i>Parking Management</a></li>
-                <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-geo-alt-fill me-2"></i>Vehicle Tracking</a></li>
-                <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-file-earmark-bar-graph-fill me-2"></i>Reports</a></li>
-                <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-gear-fill me-2"></i>System Config</a></li>
-            </ul>
-        </div>
-        <div>
-            <a href="#" class="btn btn-sm btn-outline-danger w-100 mb-3 fw-bold" onclick="sessionStorage.clear(); localStorage.clear(); window.location.href = CONTEXT_PATH + '/login.html';"><i class="bi bi-box-arrow-left"></i> Logout</a>
-            <button class="btn w-100 fw-bold mt-auto" style="background-color: #0f766e; color: white;">Add New Entry</button>
-        </div>
-    </aside>
+        <style>
+            body {
+                font-family: 'Inter', sans-serif;
+                background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 40%, #ccfbf1 100%);
+                color: #1e293b;
+                min-height: 100vh;
+            }
 
-    <main class="flex-grow-1 p-4 overflow-y-auto">
-        <header class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3 fw-bold text-dark m-0" id="page-title">System Overview</h1>
-            <div class="d-flex align-items-center gap-3">
-                <div class="input-group" style="width: 300px;">
-                    <span class="input-group-text bg-white border-secondary-subtle"><i class="bi bi-search text-muted"></i></span>
-                    <input type="text" class="form-control border-secondary-subtle" placeholder="Search vehicles or slots...">
-                </div>
-                <div class="bg-secondary-subtle rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                    <i class="bi bi-person-fill text-secondary"></i>
-                </div>
-            </div>
-        </header>
+            /* Updated Sidebar to match light theme */
+            .bg-sidebar {
+                background-color: #ffffff;
+                min-width: 260px;
+                max-width: 260px;
+            }
+            .bg-card-custom {
+                background-color: #ffffff;
+                border: 1px solid #e2e8f0;
+                border-radius: 16px;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            }
+            .text-muted-custom {
+                color: #64748b !important;
+            }
+            .accent-teal {
+                color: #0f766e;
+            }
+            .nav-link {
+                color: #475569;
+                font-weight: 500;
+            }
+            .nav-link:hover {
+                color: #0f766e;
+                background-color: #f1f5f9;
+                border-radius: 8px;
+            }
+            .nav-link.active {
+                background-color: #ccfbf1 !important;
+                color: #0f766e !important;
+                font-weight: 600;
+                border-radius: 8px;
+                box-shadow: none;
+            }
 
-        <div id="section-dashboard">
-            <div class="alert alert-danger bg-danger-subtle border-danger-subtle text-danger d-flex justify-content-between align-items-center p-3 mb-4 rounded-4" role="alert">
-                <div>
-                    <h6 class="alert-heading fw-bold m-0 mb-1"><i class="bi bi-exclamation-triangle-fill me-2"></i>Almost Full Alert</h6>
-                    <p class="small m-0 text-danger-emphasis">Occupancy has reached 76%. Floor 1 is currently at maximum capacity.</p>
-                </div>
-                <button class="btn btn-danger btn-sm fw-bold">Manage Capacity</button>
-            </div>
+            .hero-eyebrow {
+                background: #fff;
+                border: 1px solid #e2e8f0;
+                color: #0f766e;
+                font-size: 0.75rem;
+                font-weight: 600;
+                letter-spacing: 0.05em;
+            }
 
-            <section class="row g-3 mb-4">
-                <div class="col-md-3">
-                    <div class="bg-card-custom p-4 h-100 d-flex flex-column position-relative overflow-hidden">
-                        <span class="small text-muted fw-bold text-uppercase">Total Slots <i class="bi bi-layers ms-1"></i></span>
-                        <h3 class="fs-2 fw-bold my-2 text-break" style="color: #0f766e;">500</h3>
-                        <div class="mt-auto">
-                            <span class="small text-muted-custom">Global capacity</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="bg-card-custom p-4 h-100 d-flex flex-column position-relative overflow-hidden">
-                        <span class="small text-muted fw-bold text-uppercase">Available <i class="bi bi-check-circle-fill text-success ms-1"></i></span>
-                        <h3 class="fs-2 fw-bold my-2 text-success text-break">120</h3>
-                        <div class="mt-auto">
-                            <div class="progress bg-success-subtle mb-2" style="height: 6px;">
-                                <div class="progress-bar bg-success" style="width: 24%"></div>
-                            </div>
-                            <span class="small text-success d-block">24% Left</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="bg-card-custom p-4 h-100 d-flex flex-column position-relative overflow-hidden">
-                        <span class="small text-muted fw-bold text-uppercase">Occupied <i class="bi bi-car-front-fill ms-1"></i></span>
-                        <h3 class="fs-2 fw-bold my-2 text-danger text-break">380</h3>
-                        <div class="mt-auto">
-                            <div class="progress bg-danger-subtle mb-2" style="height: 6px;">
-                                <div class="progress-bar bg-danger" style="width: 76%"></div>
-                            </div>
-                            <span class="small text-danger d-block">76% Utilization</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="bg-card-custom p-4 h-100 d-flex flex-column position-relative overflow-hidden">
-                        <span class="small text-muted fw-bold text-uppercase">Today's Revenue <i class="bi bi-cash-coin ms-1"></i></span>
-                        <h3 class="fs-2 fw-bold my-2 text-dark text-break">$1,250.00</h3>
-                        <div class="mt-auto">
-                            <span class="badge bg-success-subtle text-success"><i class="bi bi-graph-up-arrow me-1"></i>+12% from yesterday</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            /* Custom Parking Grid Map Layout styles */
+            .parking-grid {
+                display: grid;
+                grid-template-columns: repeat(10, 1fr);
+                gap: 8px;
+            }
+            .driveway-divider {
+                grid-column: span 10;
+                text-align: center;
+                padding: 12px 0;
+                color: #64748b;
+                font-size: 0.8rem;
+                letter-spacing: 4px;
+                border-top: 1px dashed #cbd5e1;
+                border-bottom: 1px dashed #cbd5e1;
+                margin: 10px 0;
+            }
+            .slot {
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                padding: 12px 4px;
+                text-align: center;
+                font-size: 0.75rem;
+                font-weight: bold;
+                border-radius: 4px;
+                color: #0f766e;
+            }
+            .slot.occupied {
+                background: #fee2e2;
+                border-color: #fca5a5;
+                color: #b91c1c;
+            }
+            .slot.reserved {
+                background: #fef3c7;
+                border-color: #fde68a;
+                color: #b45309;
+            }
+            .slot.maintenance {
+                background: #f1f5f9;
+                border-color: #cbd5e1;
+                color: #64748b;
+            }
+        </style>
+    </head>
+    <body class="d-flex min-vh-100">
 
-            <section class="row g-3 mb-4">
-                <div class="col-md-8">
-                    <div class="bg-card-custom p-4 h-100">
-                        <h5 class="mb-4 fw-bold text-dark">Occupancy by Floor</h5>
-                        
-                        <div class="mb-4">
-                            <div class="d-flex justify-content-between small mb-2"><span class="fw-semibold">Floor 1</span><span class="text-muted-custom">180/200 Slots</span></div>
-                            <div class="progress bg-light" style="height: 12px; border-radius: 6px;">
-                                <div class="progress-bar bg-danger" style="width: 90%;"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <div class="d-flex justify-content-between small mb-2"><span class="fw-semibold">Floor 2</span><span class="text-muted-custom">120/150 Slots</span></div>
-                            <div class="progress bg-light" style="height: 12px; border-radius: 6px;">
-                                <div class="progress-bar bg-warning" style="width: 80%;"></div>
-                            </div>
-                        </div>
-
-                        <div class="mb-2">
-                            <div class="d-flex justify-content-between small mb-2"><span class="fw-semibold">Floor 3</span><span class="text-muted-custom">80/150 Slots</span></div>
-                            <div class="progress bg-light" style="height: 12px; border-radius: 6px;">
-                                <div class="progress-bar bg-success" style="width: 53%;"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="bg-card-custom p-4 h-100">
-                        <h5 class="mb-3 fw-bold text-dark">Vehicle Types</h5>
-                        <div class="p-4 text-center rounded-4 mb-4" style="background-color: #f0fdf4; border: 1px solid #bbf7d0;">
-                            <h2 class="display-5 fw-bold m-0 text-success">380</h2>
-                            <span class="small fw-semibold text-success">Total Active</span>
-                        </div>
-                        <div class="d-flex justify-content-between small mb-3 pb-2 border-bottom text-dark">
-                            <span class="fw-medium"><i class="bi bi-circle-fill text-primary me-2"></i>Cars</span><strong>266 (70%)</strong>
-                        </div>
-                        <div class="d-flex justify-content-between small text-dark">
-                            <span class="fw-medium"><i class="bi bi-circle-fill text-warning me-2"></i>Motorbikes</span><strong>114 (30%)</strong>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="bg-card-custom p-4">
-                <div class="d-flex justify-content-between align-items-center mb-4">
+        <aside class="bg-sidebar p-3 d-flex flex-column justify-content-between border-end border-secondary border-opacity-25">
+            <div>
+                <div class="brand mb-4 d-flex align-items-center gap-2">
+                    <div class="brand-icon" style="width: 32px; height: 32px; background: #0f766e; color: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700;">P</div>
                     <div>
-                        <h5 class="m-0 fw-bold text-dark">Parking Map Preview</h5>
-                        <p class="small text-muted-custom m-0">Current live status of Zone A (Main Entrance)</p>
+                        <h2 class="h6 m-0 fw-bold">SmartParking</h2>
+                        <p class="small text-muted-custom m-0" style="font-size: 0.7rem;">Management System</p>
                     </div>
-                    <button class="btn btn-light border btn-sm fw-medium text-dark">View Full Map <i class="bi bi-arrow-up-right ms-1"></i></button>
                 </div>
+                <ul class="nav flex-column gap-1" id="sidebar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" onclick="showSection('dashboard')"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a>
+                    </li>
+                    <!-- Appended booking section for advance reservations -->
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('bookings')"><i class="bi bi-calendar-check-fill me-2"></i>Bookings</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-car-front-fill me-2"></i>Parking Management</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-geo-alt-fill me-2"></i>Vehicle Tracking</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-file-earmark-bar-graph-fill me-2"></i>Reports</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-gear-fill me-2"></i>System Config</a></li>
+                </ul>
+            </div>
+            <div>
+                <a href="#" class="btn btn-sm btn-outline-danger w-100 mb-3 fw-bold" onclick="sessionStorage.clear(); localStorage.clear(); window.location.href = CONTEXT_PATH + '/login.html';"><i class="bi bi-box-arrow-left"></i> Logout</a>
+                <button class="btn w-100 fw-bold mt-auto" style="background-color: #0f766e; color: white;">Add New Entry</button>
+            </div>
+        </aside>
 
-                <div class="parking-grid mb-4">
-                    <div class="slot occupied">A-01</div>
-                    <div class="slot occupied">A-02</div>
-                    <div class="slot">A-03</div>
-                    <div class="slot occupied">A-04</div>
-                    <div class="slot occupied">A-05</div>
-                    <div class="slot reserved">A-06</div>
-                    <div class="slot occupied">A-07</div>
-                    <div class="slot">A-08</div>
-                    <div class="slot">A-09</div>
-                    <div class="slot occupied">A-10</div>
-
-                    <div class="driveway-divider">DRIVEWAY</div>
-
-                    <div class="slot occupied">B-01</div>
-                    <div class="slot maintenance">B-02</div>
-                    <div class="slot occupied">B-03</div>
-                    <div class="slot">B-04</div>
-                    <div class="slot occupied">B-05</div>
-                    <div class="slot occupied">B-06</div>
-                    <div class="slot occupied">B-07</div>
-                    <div class="slot">B-08</div>
-                    <div class="slot occupied">B-09</div>
-                    <div class="slot occupied">B-10</div>
-                </div>
-
-                <div class="d-flex flex-wrap gap-4 small text-dark fw-medium">
-                    <div class="d-flex align-items-center"><span class="badge bg-light border me-2" style="width: 16px; height: 16px;">&nbsp;</span> Available</div>
-                    <div class="d-flex align-items-center"><span class="badge me-2" style="background-color: #fee2e2; border: 1px solid #fca5a5; width: 16px; height: 16px;">&nbsp;</span> Occupied</div>
-                    <div class="d-flex align-items-center"><span class="badge me-2" style="background-color: #fef3c7; border: 1px solid #fde68a; width: 16px; height: 16px;">&nbsp;</span> Reserved</div>
-                    <div class="d-flex align-items-center"><span class="badge me-2" style="background-color: #f1f5f9; border: 1px solid #cbd5e1; width: 16px; height: 16px;">&nbsp;</span> Maintenance</div>
-                </div>
-            </section>
-        </div>
-
-        <div id="section-bookings" style="display: none;">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h4 class="fw-bold m-0 text-dark">Advance Bookings</h4>
-                <div class="d-flex gap-3">
-                    <div class="input-group" style="width: 250px;">
+        <main class="flex-grow-1 p-4 overflow-y-auto">
+            <header class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 fw-bold text-dark m-0" id="page-title">System Overview</h1>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="input-group" style="width: 300px;">
                         <span class="input-group-text bg-white border-secondary-subtle"><i class="bi bi-search text-muted"></i></span>
-                        <input type="text" class="form-control border-secondary-subtle" id="searchBookingPlate" placeholder="Search by name or plate..." oninput="filterBookings()">
+                        <input type="text" class="form-control border-secondary-subtle" placeholder="Search vehicles or slots...">
                     </div>
-                    <!-- Bookings come from the customer portal — no manual registration here -->
-                    <a href="../customer/book.html" target="_blank" class="btn text-white" style="background-color: #0f766e;"><i class="bi bi-box-arrow-up-right me-1"></i> Customer Portal</a>
+                    <div class="bg-secondary-subtle rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                        <i class="bi bi-person-fill text-secondary"></i>
+                    </div>
+                </div>
+            </header>
+
+            <div id="section-dashboard">
+                <div class="alert alert-danger bg-danger-subtle border-danger-subtle text-danger d-flex justify-content-between align-items-center p-3 mb-4 rounded-4" role="alert">
+                    <div>
+                        <h6 class="alert-heading fw-bold m-0 mb-1"><i class="bi bi-exclamation-triangle-fill me-2"></i>Almost Full Alert</h6>
+                        <p class="small m-0 text-danger-emphasis">Occupancy has reached 76%. Floor 1 is currently at maximum capacity.</p>
+                    </div>
+                    <button class="btn btn-danger btn-sm fw-bold">Manage Capacity</button>
+                </div>
+
+                <section class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="bg-card-custom p-4 h-100 d-flex flex-column position-relative overflow-hidden">
+                            <span class="small text-muted fw-bold text-uppercase">Total Slots <i class="bi bi-layers ms-1"></i></span>
+                            <h3 class="fs-2 fw-bold my-2 text-break" style="color: #0f766e;">500</h3>
+                            <div class="mt-auto">
+                                <span class="small text-muted-custom">Global capacity</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="bg-card-custom p-4 h-100 d-flex flex-column position-relative overflow-hidden">
+                            <span class="small text-muted fw-bold text-uppercase">Available <i class="bi bi-check-circle-fill text-success ms-1"></i></span>
+                            <h3 class="fs-2 fw-bold my-2 text-success text-break">120</h3>
+                            <div class="mt-auto">
+                                <div class="progress bg-success-subtle mb-2" style="height: 6px;">
+                                    <div class="progress-bar bg-success" style="width: 24%"></div>
+                                </div>
+                                <span class="small text-success d-block">24% Left</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="bg-card-custom p-4 h-100 d-flex flex-column position-relative overflow-hidden">
+                            <span class="small text-muted fw-bold text-uppercase">Occupied <i class="bi bi-car-front-fill ms-1"></i></span>
+                            <h3 class="fs-2 fw-bold my-2 text-danger text-break">380</h3>
+                            <div class="mt-auto">
+                                <div class="progress bg-danger-subtle mb-2" style="height: 6px;">
+                                    <div class="progress-bar bg-danger" style="width: 76%"></div>
+                                </div>
+                                <span class="small text-danger d-block">76% Utilization</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="bg-card-custom p-4 h-100 d-flex flex-column position-relative overflow-hidden">
+                            <span class="small text-muted fw-bold text-uppercase">Today's Revenue <i class="bi bi-cash-coin ms-1"></i></span>
+                            <h3 class="fs-2 fw-bold my-2 text-dark text-break">$1,250.00</h3>
+                            <div class="mt-auto">
+                                <span class="badge bg-success-subtle text-success"><i class="bi bi-graph-up-arrow me-1"></i>+12% from yesterday</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="row g-3 mb-4">
+                    <div class="col-md-8">
+                        <div class="bg-card-custom p-4 h-100">
+                            <h5 class="mb-4 fw-bold text-dark">Occupancy by Floor</h5>
+
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between small mb-2"><span class="fw-semibold">Floor 1</span><span class="text-muted-custom">180/200 Slots</span></div>
+                                <div class="progress bg-light" style="height: 12px; border-radius: 6px;">
+                                    <div class="progress-bar bg-danger" style="width: 90%;"></div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between small mb-2"><span class="fw-semibold">Floor 2</span><span class="text-muted-custom">120/150 Slots</span></div>
+                                <div class="progress bg-light" style="height: 12px; border-radius: 6px;">
+                                    <div class="progress-bar bg-warning" style="width: 80%;"></div>
+                                </div>
+                            </div>
+
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between small mb-2"><span class="fw-semibold">Floor 3</span><span class="text-muted-custom">80/150 Slots</span></div>
+                                <div class="progress bg-light" style="height: 12px; border-radius: 6px;">
+                                    <div class="progress-bar bg-success" style="width: 53%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="bg-card-custom p-4 h-100">
+                            <h5 class="mb-3 fw-bold text-dark">Vehicle Types</h5>
+                            <div class="p-4 text-center rounded-4 mb-4" style="background-color: #f0fdf4; border: 1px solid #bbf7d0;">
+                                <h2 class="display-5 fw-bold m-0 text-success">380</h2>
+                                <span class="small fw-semibold text-success">Total Active</span>
+                            </div>
+                            <div class="d-flex justify-content-between small mb-3 pb-2 border-bottom text-dark">
+                                <span class="fw-medium"><i class="bi bi-circle-fill text-primary me-2"></i>Cars</span><strong>266 (70%)</strong>
+                            </div>
+                            <div class="d-flex justify-content-between small text-dark">
+                                <span class="fw-medium"><i class="bi bi-circle-fill text-warning me-2"></i>Motorbikes</span><strong>114 (30%)</strong>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="bg-card-custom p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h5 class="m-0 fw-bold text-dark">Parking Map Preview</h5>
+                            <p class="small text-muted-custom m-0">Current live status of Zone A (Main Entrance)</p>
+                        </div>
+                        <button class="btn btn-light border btn-sm fw-medium text-dark">View Full Map <i class="bi bi-arrow-up-right ms-1"></i></button>
+                    </div>
+
+                    <div class="parking-grid mb-4">
+                        <div class="slot occupied">A-01</div>
+                        <div class="slot occupied">A-02</div>
+                        <div class="slot">A-03</div>
+                        <div class="slot occupied">A-04</div>
+                        <div class="slot occupied">A-05</div>
+                        <div class="slot reserved">A-06</div>
+                        <div class="slot occupied">A-07</div>
+                        <div class="slot">A-08</div>
+                        <div class="slot">A-09</div>
+                        <div class="slot occupied">A-10</div>
+
+                        <div class="driveway-divider">DRIVEWAY</div>
+
+                        <div class="slot occupied">B-01</div>
+                        <div class="slot maintenance">B-02</div>
+                        <div class="slot occupied">B-03</div>
+                        <div class="slot">B-04</div>
+                        <div class="slot occupied">B-05</div>
+                        <div class="slot occupied">B-06</div>
+                        <div class="slot occupied">B-07</div>
+                        <div class="slot">B-08</div>
+                        <div class="slot occupied">B-09</div>
+                        <div class="slot occupied">B-10</div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-4 small text-dark fw-medium">
+                        <div class="d-flex align-items-center"><span class="badge bg-light border me-2" style="width: 16px; height: 16px;">&nbsp;</span> Available</div>
+                        <div class="d-flex align-items-center"><span class="badge me-2" style="background-color: #fee2e2; border: 1px solid #fca5a5; width: 16px; height: 16px;">&nbsp;</span> Occupied</div>
+                        <div class="d-flex align-items-center"><span class="badge me-2" style="background-color: #fef3c7; border: 1px solid #fde68a; width: 16px; height: 16px;">&nbsp;</span> Reserved</div>
+                        <div class="d-flex align-items-center"><span class="badge me-2" style="background-color: #f1f5f9; border: 1px solid #cbd5e1; width: 16px; height: 16px;">&nbsp;</span> Maintenance</div>
+                    </div>
+                </section>
+            </div>
+
+            <div id="section-bookings" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold m-0 text-dark">Advance Bookings</h4>
+                    <div class="d-flex gap-3">
+                        <div class="input-group" style="width: 250px;">
+                            <span class="input-group-text bg-white border-secondary-subtle"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" class="form-control border-secondary-subtle" id="searchBookingPlate" placeholder="Search by name or plate..." oninput="filterBookings()">
+                        </div>
+                        <!-- Bookings come from the customer portal — no manual registration here -->
+                        <a href="../customer/book.html" target="_blank" class="btn text-white" style="background-color: #0f766e;"><i class="bi bi-box-arrow-up-right me-1"></i> Customer Portal</a>
+                    </div>
+                </div>
+
+
+                <div id="booking-alert" class="alert d-none" role="alert"></div>
+
+                <!-- Booking Ledger Data Grid -->
+                <div id="booking-ledger-container" class="bg-card-custom overflow-hidden position-relative">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" id="bookingTable">
+                            <thead class="bg-light text-muted small">
+                                <tr>
+                                    <th class="ps-4 py-3 fw-semibold border-bottom-0" style="width: 40px;">
+                                        <input class="form-check-input" type="checkbox" id="selectAllBookings" onchange="toggleSelectAll(this)">
+                                    </th>
+                                    <th class="py-3 fw-semibold border-bottom-0">ID</th>
+                                    <th class="py-3 fw-semibold border-bottom-0">Customer</th>
+                                    <th class="py-3 fw-semibold border-bottom-0">License Plate</th>
+                                    <th class="py-3 fw-semibold border-bottom-0">Vehicle</th>
+                                    <th class="py-3 fw-semibold border-bottom-0">Slot</th>
+                                    <th class="py-3 fw-semibold border-bottom-0">Target Time</th>
+                                    <th class="py-3 fw-semibold border-bottom-0">Payment</th>
+                                    <th class="pe-4 py-3 fw-semibold border-bottom-0 text-end">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bookingTableBody" class="border-top-0">
+                                <!-- Rows rendered via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="p-3 border-top d-flex justify-content-center bg-white" id="bookingPagination">
+                        <!-- Pagination rendered via JS -->
+                    </div>
+
+                    <!-- Mass Action Taskbar -->
+                    <div id="massActionBar" class="bg-dark text-white p-3 d-flex justify-content-between align-items-center position-absolute bottom-0 w-100" style="display: none !important; z-index: 10;">
+                        <div class="fw-bold"><span id="massSelectCount">0</span> rows selected</div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-success fw-semibold" onclick="massAction('checkin')"><i class="bi bi-box-arrow-in-right"></i> Check-In</button>
+                            <button class="btn btn-sm btn-warning text-dark fw-semibold" onclick="massAction('cancel')"><i class="bi bi-x-circle"></i> Cancel</button>
+                            <button class="btn btn-sm btn-danger fw-semibold" onclick="massAction('remove')"><i class="bi bi-trash"></i> Remove Selected</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
+        </main>
 
-            <div id="booking-alert" class="alert d-none" role="alert"></div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-            <!-- Booking Ledger Data Grid -->
-            <div id="booking-ledger-container" class="bg-card-custom overflow-hidden position-relative">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0" id="bookingTable">
-                        <thead class="bg-light text-muted small">
-                            <tr>
-                                <th class="ps-4 py-3 fw-semibold border-bottom-0" style="width: 40px;">
-                                    <input class="form-check-input" type="checkbox" id="selectAllBookings" onchange="toggleSelectAll(this)">
-                                </th>
-                                <th class="py-3 fw-semibold border-bottom-0">ID</th>
-                                <th class="py-3 fw-semibold border-bottom-0">Customer</th>
-                                <th class="py-3 fw-semibold border-bottom-0">License Plate</th>
-                                <th class="py-3 fw-semibold border-bottom-0">Vehicle</th>
-                                <th class="py-3 fw-semibold border-bottom-0">Slot</th>
-                                <th class="py-3 fw-semibold border-bottom-0">Target Time</th>
-                                <th class="py-3 fw-semibold border-bottom-0">Payment</th>
-                                <th class="pe-4 py-3 fw-semibold border-bottom-0 text-end">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="bookingTableBody" class="border-top-0">
-                            <!-- Rows rendered via JS -->
-                        </tbody>
-                    </table>
-                </div>
-                <div class="p-3 border-top d-flex justify-content-center bg-white" id="bookingPagination">
-                    <!-- Pagination rendered via JS -->
-                </div>
-                
-                <!-- Mass Action Taskbar -->
-                <div id="massActionBar" class="bg-dark text-white p-3 d-flex justify-content-between align-items-center position-absolute bottom-0 w-100" style="display: none !important; z-index: 10;">
-                    <div class="fw-bold"><span id="massSelectCount">0</span> rows selected</div>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-success fw-semibold" onclick="massAction('checkin')"><i class="bi bi-box-arrow-in-right"></i> Check-In</button>
-                        <button class="btn btn-sm btn-warning text-dark fw-semibold" onclick="massAction('cancel')"><i class="bi bi-x-circle"></i> Cancel</button>
-                        <button class="btn btn-sm btn-danger fw-semibold" onclick="massAction('remove')"><i class="bi bi-trash"></i> Remove Selected</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <script>
+                                // Dynamic Context Path Resolution
+                                const CONTEXT_PATH = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 2));
 
-    </main>
+                                // State for Bookings
+                                let bookingsData = [];
+                                let filteredBookings = [];
+                                let currentPage = 1;
+                                const rowsPerPage = 10;
+                                let expandedRowId = null;
+                                let selectedBookings = new Set(); // Stores booking IDs
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <script>
-        // Dynamic Context Path Resolution
-        const CONTEXT_PATH = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 2));
-        
-        // State for Bookings
-        let bookingsData = [];
-        let filteredBookings = [];
-        let currentPage = 1;
-        const rowsPerPage = 10;
-        let expandedRowId = null;
-        let selectedBookings = new Set(); // Stores booking IDs
+                                (function () {
+                                    const SESSION_KEY = 'sp_session';
+                                    try {
+                                        const raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
+                                        if (raw) {
+                                            const session = JSON.parse(raw);
+                                            if (session && session.authenticated) {
+                                                return;
+                                            }
+                                        }
+                                    } catch (e) {
+                                        console.error(e);
+                                    }
+                                    console.log("Rendering core layout components safely.");
+                                })();
 
-        (function() {
-            const SESSION_KEY = 'sp_session';
-            try {
-                const raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
-                if (raw) {
-                    const session = JSON.parse(raw);
-                    if (session && session.authenticated) {
-                        return; 
-                    }
-                }
-            } catch(e) { console.error(e); }
-            console.log("Rendering core layout components safely.");
-        })();
+                                // Extracts active session token
+                                function getAuthToken() {
+                                    let token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+                                    if (token)
+                                        return token;
 
-        // Extracts active session token
-        function getAuthToken() {
-            let token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
-            if (token) return token;
+                                    const SESSION_KEY = 'sp_session';
+                                    try {
+                                        const raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
+                                        if (raw) {
+                                            const session = JSON.parse(raw);
+                                            if (session && session.token)
+                                                return session.token;
+                                        }
+                                    } catch (e) {
+                                    }
+                                    return 'mock_token';
+                                }
 
-            const SESSION_KEY = 'sp_session';
-            try {
-                const raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
-                if (raw) {
-                    const session = JSON.parse(raw);
-                    if (session && session.token) return session.token;
-                }
-            } catch(e) {}
-            return 'mock_token';
-        }
+                                function showSection(sectionId) {
+                                    document.getElementById('section-dashboard').style.display = 'none';
+                                    document.getElementById('section-bookings').style.display = 'none';
 
-        function showSection(sectionId) {
-            document.getElementById('section-dashboard').style.display = 'none';
-            document.getElementById('section-bookings').style.display = 'none';
-            
-            document.querySelectorAll('#sidebar-nav .nav-link').forEach(el => {
-                el.classList.remove('active');
-            });
+                                    document.querySelectorAll('#sidebar-nav .nav-link').forEach(el => {
+                                        el.classList.remove('active');
+                                    });
 
-            if (sectionId === 'dashboard') {
-                document.getElementById('section-dashboard').style.display = 'block';
-                document.getElementById('page-title').innerText = 'System Overview';
-                document.querySelector('#sidebar-nav .nav-item:nth-child(1) .nav-link').classList.add('active');
-            } else if (sectionId === 'bookings') {
-                document.getElementById('section-bookings').style.display = 'block';
-                document.getElementById('page-title').innerText = 'Advance Reservations';
-                document.querySelector('#sidebar-nav .nav-item:nth-child(2) .nav-link').classList.add('active');
-                fetchBookings(); // Load data when tab is opened
-            }
-        }
+                                    if (sectionId === 'dashboard') {
+                                        document.getElementById('section-dashboard').style.display = 'block';
+                                        document.getElementById('page-title').innerText = 'System Overview';
+                                        document.querySelector('#sidebar-nav .nav-item:nth-child(1) .nav-link').classList.add('active');
+                                    } else if (sectionId === 'bookings') {
+                                        document.getElementById('section-bookings').style.display = 'block';
+                                        document.getElementById('page-title').innerText = 'Advance Reservations';
+                                        document.querySelector('#sidebar-nav .nav-item:nth-child(2) .nav-link').classList.add('active');
+                                        fetchBookings(); // Load data when tab is opened
+                                    }
+                                }
 
 
-        // --- BOOKING API & RENDER PIPELINE ---
+                                // --- BOOKING API & RENDER PIPELINE ---
 
-        async function fetchBookings() {
-            try {
-                const res = await fetch(CONTEXT_PATH + '/api/v1/bookings/list', {
-                    headers: { 'Authorization': 'Bearer ' + getAuthToken() }
-                });
+                                async function fetchBookings() {
+                                    try {
+                                        const res = await fetch(CONTEXT_PATH + '/api/v1/bookings/list', {
+                                            headers: {'Authorization': 'Bearer ' + getAuthToken()}
+                                        });
 
-                if (res.status === 401) {
-                    sessionStorage.clear();
-                    localStorage.clear();
-                    window.location.href = CONTEXT_PATH + '/login.html';
-                    return;
-                }
+                                        if (res.status === 401) {
+                                            sessionStorage.clear();
+                                            localStorage.clear();
+                                            window.location.href = CONTEXT_PATH + '/login.html';
+                                            return;
+                                        }
 
-                if (res.ok) {
-                    bookingsData = await res.json();
-                    
-                    // Sort descending by target time (most recent upcoming first)
-                    bookingsData.sort((a, b) => new Date(b.targetTime) - new Date(a.targetTime));
-                    
-                    // Ensure selectedBookings only keeps IDs that actually exist
-                    const activeIds = new Set(bookingsData.map(b => b.bookingId));
-                    selectedBookings.forEach(id => {
-                        if (!activeIds.has(id)) selectedBookings.delete(id);
-                    });
+                                        if (res.ok) {
+                                            bookingsData = await res.json();
 
-                    filterBookings();
-                }
-            } catch (err) {
-                console.error("Failed to fetch bookings:", err);
-            }
-        }
+                                            // Sort descending by target time (most recent upcoming first)
+                                            bookingsData.sort((a, b) => new Date(b.targetTime) - new Date(a.targetTime));
 
-        function filterBookings() {
-            const query = document.getElementById('searchBookingPlate').value.toLowerCase();
-            filteredBookings = bookingsData.filter(b =>
-                b.licensePlate.toLowerCase().includes(query) ||
-                (b.customerName && b.customerName.toLowerCase().includes(query))
-            );
-            currentPage = 1;
-            renderBookingTable();
-        }
+                                            // Ensure selectedBookings only keeps IDs that actually exist
+                                            const activeIds = new Set(bookingsData.map(b => b.bookingId));
+                                            selectedBookings.forEach(id => {
+                                                if (!activeIds.has(id))
+                                                    selectedBookings.delete(id);
+                                            });
 
-        function toggleSelectAll(checkbox) {
-            if (checkbox.checked) {
-                // Select all in current view, or all filtered? Let's do all filtered.
-                filteredBookings.forEach(b => selectedBookings.add(b.bookingId));
-            } else {
-                selectedBookings.clear();
-            }
-            renderBookingTable();
-        }
+                                            filterBookings();
+                                        }
+                                    } catch (err) {
+                                        console.error("Failed to fetch bookings:", err);
+                                    }
+                                }
 
-        function toggleRowSelection(id, event) {
-            event.stopPropagation(); // Prevents expanding the row
-            if (selectedBookings.has(id)) {
-                selectedBookings.delete(id);
-            } else {
-                selectedBookings.add(id);
-            }
-            renderBookingTable();
-        }
+                                function filterBookings() {
+                                    const query = document.getElementById('searchBookingPlate').value.toLowerCase();
+                                    filteredBookings = bookingsData.filter(b =>
+                                        b.licensePlate.toLowerCase().includes(query) ||
+                                                (b.customerName && b.customerName.toLowerCase().includes(query))
+                                    );
+                                    currentPage = 1;
+                                    renderBookingTable();
+                                }
 
-        function renderBookingTable() {
-            const tbody = document.getElementById('bookingTableBody');
-            tbody.innerHTML = '';
-            
-            const start = (currentPage - 1) * rowsPerPage;
-            const end = start + rowsPerPage;
-            const paginated = filteredBookings.slice(start, end);
+                                function toggleSelectAll(checkbox) {
+                                    if (checkbox.checked) {
+                                        // Select all in current view, or all filtered? Let's do all filtered.
+                                        filteredBookings.forEach(b => selectedBookings.add(b.bookingId));
+                                    } else {
+                                        selectedBookings.clear();
+                                    }
+                                    renderBookingTable();
+                                }
 
-            // Update Header Checkbox State
-            const selectAllCb = document.getElementById('selectAllBookings');
-            if (filteredBookings.length > 0 && filteredBookings.every(b => selectedBookings.has(b.bookingId))) {
-                selectAllCb.checked = true;
-            } else {
-                selectAllCb.checked = false;
-            }
+                                function toggleRowSelection(id, event) {
+                                    event.stopPropagation(); // Prevents expanding the row
+                                    if (selectedBookings.has(id)) {
+                                        selectedBookings.delete(id);
+                                    } else {
+                                        selectedBookings.add(id);
+                                    }
+                                    renderBookingTable();
+                                }
 
-            if (paginated.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No reservations found.</td></tr>';
-                renderPagination();
-                renderMassActionBar();
-                return;
-            }
+                                function renderBookingTable() {
+                                    const tbody = document.getElementById('bookingTableBody');
+                                    tbody.innerHTML = '';
 
-            paginated.forEach(b => {
-                const tr = document.createElement('tr');
-                tr.style.cursor = 'pointer';
-                const isSelected = selectedBookings.has(b.bookingId);
-                if (isSelected) tr.classList.add('bg-light');
+                                    const start = (currentPage - 1) * rowsPerPage;
+                                    const end = start + rowsPerPage;
+                                    const paginated = filteredBookings.slice(start, end);
 
-                tr.onclick = () => {
-                    if (selectedBookings.size === 0) toggleRowAction(b.bookingId);
-                };
-                
-                // Determine Professional Status Badging
-                let badgeClass = 'bg-secondary';
-                let statusText = 'Unknown';
+                                    // Update Header Checkbox State
+                                    const selectAllCb = document.getElementById('selectAllBookings');
+                                    if (filteredBookings.length > 0 && filteredBookings.every(b => selectedBookings.has(b.bookingId))) {
+                                        selectAllCb.checked = true;
+                                    } else {
+                                        selectAllCb.checked = false;
+                                    }
 
-                if (b.status === 'active') {
-                    const target = new Date(b.targetTime);
-                    const now = new Date();
-                    if (target < now) {
-                        badgeClass = 'bg-warning text-dark';
-                        statusText = 'Overdue';
-                    } else {
-                        badgeClass = 'bg-primary';
-                        statusText = 'Pending';
-                    }
-                } else if (b.status === 'occupied') {
-                    badgeClass = 'bg-success';
-                    statusText = 'Occupied';
-                } else if (b.status === 'canceled') {
-                    badgeClass = 'bg-danger';
-                    statusText = 'Canceled';
-                }
+                                    if (paginated.length === 0) {
+                                        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No reservations found.</td></tr>';
+                                        renderPagination();
+                                        renderMassActionBar();
+                                        return;
+                                    }
 
-                tr.innerHTML = `
-                    <td class="ps-4" onclick="event.stopPropagation()">
-                        <input class="form-check-input" type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleRowSelection(${b.bookingId}, event)">
-                    </td>
-                    <td class="fw-medium">#${b.bookingId}</td>
-                    <td class="fw-semibold text-dark" style="font-size:0.82rem;">${b.customerName || '—'}<div class="text-muted fw-normal" style="font-size:0.7rem;">${b.customerPhone || ''}</div></td>
-                    <td class="fw-bold text-dark">${b.licensePlate}</td>
-                    <td>${b.vehicleTypeName}</td>
-                    <td><span class="badge bg-light text-dark border">${b.slotCode}</span> <small class="text-muted">${b.areaCode || ''}</small></td>
-                    <td class="small text-muted">${new Date(b.targetTime).toLocaleString('vi-VN')}</td>
-                    <td><span class="badge ${b.paymentMethod === 'VNPay' ? 'bg-warning-subtle text-warning border border-warning-subtle' : 'bg-light text-secondary border'}" style="font-size:0.68rem;">${b.paymentMethod || 'Cash'}</span></td>
-                    <td class="pe-4 text-end"><span class="badge ${badgeClass}">${statusText}</span></td>
+                                    paginated.forEach(b => {
+                                        const tr = document.createElement('tr');
+                                        tr.style.cursor = 'pointer';
+                                        const isSelected = selectedBookings.has(b.bookingId);
+                                        if (isSelected)
+                                            tr.classList.add('bg-light');
+
+                                        tr.onclick = () => {
+                                            if (selectedBookings.size === 0)
+                                                toggleRowAction(b.bookingId);
+                                        };
+
+                                        // Determine Professional Status Badging
+                                        let badgeClass = 'bg-secondary';
+                                        let statusText = 'Unknown';
+
+                                        if (b.status === 'active') {
+                                            const target = new Date(b.targetTime);
+                                            const now = new Date();
+                                            if (target < now) {
+                                                badgeClass = 'bg-warning text-dark';
+                                                statusText = 'Overdue';
+                                            } else {
+                                                badgeClass = 'bg-primary';
+                                                statusText = 'Pending';
+                                            }
+                                        } else if (b.status === 'occupied') {
+                                            badgeClass = 'bg-success';
+                                            statusText = 'Occupied';
+                                        } else if (b.status === 'canceled') {
+                                            badgeClass = 'bg-danger';
+                                            statusText = 'Canceled';
+                                        }
+
+                                        tr.innerHTML = `
+                        <td class="ps-4" onclick="event.stopPropagation()">
+                            <input class="form-check-input" type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleRowSelection(${b.bookingId}, event)">
+                        </td>
+                        <td class="fw-medium">#${b.bookingId}</td>
+                        <td class="fw-semibold text-dark" style="font-size:0.82rem;">${b.customerName || '—'}<div class="text-muted fw-normal" style="font-size:0.7rem;">${b.customerPhone || ''}</div></td>
+                        <td class="fw-bold text-dark">${b.licensePlate}</td>
+                        <td>${b.vehicleTypeName}</td>
+                        <td><span class="badge bg-light text-dark border">${b.slotCode}</span> <small class="text-muted">${b.areaCode || ''}</small></td>
+                        <td class="small text-muted">${new Date(b.targetTime).toLocaleString('vi-VN')}</td>
+                        <td><span class="badge ${b.paymentMethod === 'VNPay' ? 'bg-warning-subtle text-warning border border-warning-subtle' : 'bg-light text-secondary border'}" style="font-size:0.68rem;">${b.paymentMethod || 'Cash'}</span></td>
+                        <td class="pe-4 text-end"><span class="badge ${badgeClass}">${statusText}</span></td>
+                    `;
+                                        tbody.appendChild(tr);
+
+                                        // Inline Action Taskbar (Hidden by default, or disabled if mass selecting)
+                                        if (selectedBookings.size === 0) {
+                                            const actionTr = document.createElement('tr');
+                                            actionTr.id = 'action-row-' + b.bookingId;
+                                            actionTr.style.display = (expandedRowId === b.bookingId) ? 'table-row' : 'none';
+                                            actionTr.style.backgroundColor = '#f8fafc';
+
+                                            let actionsHtml = `<div class="d-flex gap-2 justify-content-end p-2">`;
+                                            if (b.status === 'active') {
+                                                actionsHtml += `<button class="btn btn-sm btn-success" onclick="actionBooking(${b.bookingId}, 'checkin')"><i class="bi bi-box-arrow-in-right"></i> Check-In</button>`;
+                                                actionsHtml += `<button class="btn btn-sm btn-outline-primary" onclick="editBooking(${b.bookingId})"><i class="bi bi-pencil"></i> Edit</button>`;
+                                                actionsHtml += `<button class="btn btn-sm btn-outline-danger" onclick="actionBooking(${b.bookingId}, 'cancel')"><i class="bi bi-x-circle"></i> Cancel</button>`;
+                                            } else {
+                                                actionsHtml += `<button class="btn btn-sm btn-outline-secondary" onclick="actionBooking(${b.bookingId}, 'remove')"><i class="bi bi-trash"></i> Remove from History</button>`;
+                                            }
+                                            actionsHtml += `</div>`;
+
+                                            actionTr.innerHTML = `<td colspan="9" class="p-0 border-bottom-0">${actionsHtml}</td>`;
+                                            tbody.appendChild(actionTr);
+                                        } else {
+                                            // Reset expanded state if we start multi-selecting
+                                            expandedRowId = null;
+                                        }
+                                    });
+
+                                    renderPagination();
+                                    renderMassActionBar();
+                                }
+
+                                function renderMassActionBar() {
+                                    const bar = document.getElementById('massActionBar');
+                                    const countLabel = document.getElementById('massSelectCount');
+                                    const tableContainer = document.querySelector('.table-responsive');
+                                    if (selectedBookings.size > 0) {
+                                        countLabel.innerText = selectedBookings.size;
+                                        bar.style.setProperty('display', 'flex', 'important');
+                                        if (tableContainer)
+                                            tableContainer.style.paddingBottom = '70px'; // Prevent overlap with the absolute taskbar
+                                    } else {
+                                        bar.style.setProperty('display', 'none', 'important');
+                                        if (tableContainer)
+                                            tableContainer.style.paddingBottom = '0px';
+                                    }
+                                }
+
+                                function toggleRowAction(id) {
+                                    if (expandedRowId === id) {
+                                        expandedRowId = null; // collapse
+                                    } else {
+                                        expandedRowId = id; // expand
+                                    }
+                                    renderBookingTable();
+                                }
+
+                                function renderPagination() {
+                                    const totalPages = Math.ceil(filteredBookings.length / rowsPerPage);
+                                    const pagBox = document.getElementById('bookingPagination');
+                                    if (totalPages <= 1) {
+                                        pagBox.innerHTML = '';
+                                        return;
+                                    }
+
+                                    let html = `<ul class="pagination pagination-sm m-0">`;
+                                    html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage - 1})">&laquo;</a></li>`;
+
+                                    for (let i = 1; i <= totalPages; i++) {
+                                        html += `<li class="page-item ${currentPage === i ? 'active' : ''}"><a class="page-link" href="#" onclick="changePage(${i})">${i}</a></li>`;
+                                    }
+
+                                    html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage + 1})">&raquo;</a></li>`;
+                                    html += `</ul>`;
+                                    pagBox.innerHTML = html;
+                                }
+
+                                function changePage(page) {
+                                    const totalPages = Math.ceil(filteredBookings.length / rowsPerPage);
+                                    if (page < 1 || page > totalPages)
+                                        return;
+                                    currentPage = page;
+                                    renderBookingTable();
+                                }
+
+                                // --- CRUD ACTIONS ---
+
+                                // editBooking — kept for future use when a staff edit form is added back.
+                                // For now it just scrolls to the top and logs a message.
+                                function editBooking(id) {
+                                    const b = bookingsData.find(x => x.bookingId === id);
+                                    if (!b)
+                                        return;
+                                    // Editing via the dashboard is reserved for a future sprint.
+                                    // Customers can cancel and rebook from the customer portal.
+                                    alert('Direct booking edits are not available in this version. Ask the customer to cancel and rebook from the customer portal.');
+                                }
+
+                                async function actionBooking(id, action) {
+                                    let cancelReason = null;
+                                    if (action === 'cancel') {
+                                        if (!confirm('Are you sure you want to cancel this reservation?'))
+                                            return;
+                                        cancelReason = prompt('Optional: Enter a reason for cancellation (visible to the customer):');
+                                    }
+
+                                    try {
+                                        const method = (action === 'checkin') ? 'POST' : 'DELETE';
+                                        let endpoint = (action === 'checkin')
+                                                ? '/api/v1/bookings/checkin'
+                                                : '/api/v1/bookings/' + action + '?bookingId=' + id;
+                                        if (action === 'cancel' && cancelReason) {
+                                            endpoint += '&reason=' + encodeURIComponent(cancelReason);
+                                        }
+                                        const fetchOptions = {
+                                            method: method,
+                                            headers: {
+                                                'Content-Type': 'application/x-www-form-urlencoded',
+                                                'Authorization': 'Bearer ' + getAuthToken()
+                                            }
+                                        };
+                                        if (action === 'checkin') {
+                                            fetchOptions.body = 'bookingId=' + id;
+                                        }
+
+                                        const res = await fetch(CONTEXT_PATH + endpoint, fetchOptions);
+
+                                        if (res.status === 401) {
+                                            sessionStorage.clear();
+                                            localStorage.clear();
+                                            window.location.href = CONTEXT_PATH + '/login.html';
+                                            return;
+                                        }
+
+                                        if (res.ok) {
+                                            showSuccessOverlay(action === 'checkin' ? 'Vehicle successfully checked in!' : 'Action completed.');
+                                            selectedBookings.delete(id);
+                                            fetchBookings();
+                                        } else {
+                                            const err = await res.text();
+                                            showAlert('Error: ' + err, 'danger');
+                                        }
+                                    } catch (error) {
+                                        showAlert('Network Error: ' + error.message, 'danger');
+                                    }
+                                }
+
+                                async function massAction(action) {
+                                    if (selectedBookings.size === 0)
+                                        return;
+
+                                    let massReason = null;
+                                    if (action === 'cancel') {
+                                        if (!confirm('Are you sure you want to cancel ' + selectedBookings.size + ' selected reservations?'))
+                                            return;
+                                        massReason = prompt('Optional: Enter a reason for cancellation (will apply to all selected):');
+                                    }
+
+                                    const method = (action === 'checkin') ? 'POST' : 'DELETE';
+                                    let successCount = 0;
+                                    let errorMsg = null;
+
+                                    // Loop through selected items and process them one by one
+                                    for (let id of selectedBookings) {
+                                        try {
+                                            let endpoint = (action === 'checkin')
+                                                    ? '/api/v1/bookings/checkin'
+                                                    : '/api/v1/bookings/' + action + '?bookingId=' + id;
+                                            if (action === 'cancel' && massReason) {
+                                                endpoint += '&reason=' + encodeURIComponent(massReason);
+                                            }
+                                            const fetchOptions = {
+                                                method: method,
+                                                headers: {
+                                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                                    'Authorization': 'Bearer ' + getAuthToken()
+                                                }
+                                            };
+                                            if (action === 'checkin') {
+                                                fetchOptions.body = 'bookingId=' + id;
+                                            }
+
+                                            const res = await fetch(CONTEXT_PATH + endpoint, fetchOptions);
+
+
+                                            if (res.status === 401) {
+                                                sessionStorage.clear();
+                                                localStorage.clear();
+                                                window.location.href = CONTEXT_PATH + '/login.html';
+                                                return;
+                                            }
+
+                                            if (res.ok) {
+                                                successCount++;
+                                                selectedBookings.delete(id);
+                                            } else {
+                                                errorMsg = await res.text();
+                                            }
+                                        } catch (err) {
+                                            errorMsg = err.message;
+                                        }
+                                    }
+
+                                    if (successCount > 0) {
+                                        showSuccessOverlay(`Successfully processed ${successCount} bookings!`);
+                                    }
+                                    if (errorMsg && successCount !== selectedBookings.size) {
+                                        showAlert(`Some actions failed: ${errorMsg}`, 'warning');
+                                    }
+
+                                    fetchBookings();
+                                }
+
+
+
+                                function showAlert(msg, type) {
+                                    const alertBox = document.getElementById('booking-alert');
+                                    alertBox.className = 'alert alert-' + type;
+                                    alertBox.innerText = msg;
+                                    alertBox.classList.remove('d-none');
+                                    setTimeout(() => alertBox.classList.add('d-none'), 5000);
+                                }
+
+                                function showSuccessOverlay(msg) {
+                                    const overlay = document.createElement('div');
+                                    overlay.style.position = 'fixed';
+                                    overlay.style.top = '0';
+                                    overlay.style.left = '0';
+                                    overlay.style.width = '100vw';
+                                    overlay.style.height = '100vh';
+                                    overlay.style.backgroundColor = 'rgba(15, 118, 110, 0.9)';
+                                    overlay.style.zIndex = '9999';
+                                    overlay.style.display = 'flex';
+                                    overlay.style.flexDirection = 'column';
+                                    overlay.style.alignItems = 'center';
+                                    overlay.style.justifyContent = 'center';
+                                    overlay.style.color = 'white';
+
+                                    overlay.innerHTML = `
+                    <i class="bi bi-check-circle-fill" style="font-size: 5rem; margin-bottom: 20px;"></i>
+                    <h2 class="fw-bold">${msg}</h2>
+                    <p>Redirecting to ledger...</p>
                 `;
-                tbody.appendChild(tr);
 
-                // Inline Action Taskbar (Hidden by default, or disabled if mass selecting)
-                if (selectedBookings.size === 0) {
-                    const actionTr = document.createElement('tr');
-                    actionTr.id = 'action-row-' + b.bookingId;
-                    actionTr.style.display = (expandedRowId === b.bookingId) ? 'table-row' : 'none';
-                    actionTr.style.backgroundColor = '#f8fafc';
-                    
-                    let actionsHtml = `<div class="d-flex gap-2 justify-content-end p-2">`;
-                    if (b.status === 'active') {
-                        actionsHtml += `<button class="btn btn-sm btn-success" onclick="actionBooking(${b.bookingId}, 'checkin')"><i class="bi bi-box-arrow-in-right"></i> Check-In</button>`;
-                        actionsHtml += `<button class="btn btn-sm btn-outline-primary" onclick="editBooking(${b.bookingId})"><i class="bi bi-pencil"></i> Edit</button>`;
-                        actionsHtml += `<button class="btn btn-sm btn-outline-danger" onclick="actionBooking(${b.bookingId}, 'cancel')"><i class="bi bi-x-circle"></i> Cancel</button>`;
-                    } else {
-                        actionsHtml += `<button class="btn btn-sm btn-outline-secondary" onclick="actionBooking(${b.bookingId}, 'remove')"><i class="bi bi-trash"></i> Remove from History</button>`;
-                    }
-                    actionsHtml += `</div>`;
-                    
-                    actionTr.innerHTML = `<td colspan="9" class="p-0 border-bottom-0">${actionsHtml}</td>`;
-                    tbody.appendChild(actionTr);
-                } else {
-                    // Reset expanded state if we start multi-selecting
-                    expandedRowId = null;
-                }
-            });
+                                    document.body.appendChild(overlay);
 
-            renderPagination();
-            renderMassActionBar();
-        }
-
-        function renderMassActionBar() {
-            const bar = document.getElementById('massActionBar');
-            const countLabel = document.getElementById('massSelectCount');
-            const tableContainer = document.querySelector('.table-responsive');
-            if (selectedBookings.size > 0) {
-                countLabel.innerText = selectedBookings.size;
-                bar.style.setProperty('display', 'flex', 'important');
-                if (tableContainer) tableContainer.style.paddingBottom = '70px'; // Prevent overlap with the absolute taskbar
-            } else {
-                bar.style.setProperty('display', 'none', 'important');
-                if (tableContainer) tableContainer.style.paddingBottom = '0px';
-            }
-        }
-
-        function toggleRowAction(id) {
-            if (expandedRowId === id) {
-                expandedRowId = null; // collapse
-            } else {
-                expandedRowId = id; // expand
-            }
-            renderBookingTable();
-        }
-
-        function renderPagination() {
-            const totalPages = Math.ceil(filteredBookings.length / rowsPerPage);
-            const pagBox = document.getElementById('bookingPagination');
-            if (totalPages <= 1) {
-                pagBox.innerHTML = '';
-                return;
-            }
-
-            let html = `<ul class="pagination pagination-sm m-0">`;
-            html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage - 1})">&laquo;</a></li>`;
-            
-            for (let i = 1; i <= totalPages; i++) {
-                html += `<li class="page-item ${currentPage === i ? 'active' : ''}"><a class="page-link" href="#" onclick="changePage(${i})">${i}</a></li>`;
-            }
-
-            html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage + 1})">&raquo;</a></li>`;
-            html += `</ul>`;
-            pagBox.innerHTML = html;
-        }
-
-        function changePage(page) {
-            const totalPages = Math.ceil(filteredBookings.length / rowsPerPage);
-            if (page < 1 || page > totalPages) return;
-            currentPage = page;
-            renderBookingTable();
-        }
-
-        // --- CRUD ACTIONS ---
-
-        // editBooking — kept for future use when a staff edit form is added back.
-        // For now it just scrolls to the top and logs a message.
-        function editBooking(id) {
-            const b = bookingsData.find(x => x.bookingId === id);
-            if (!b) return;
-            // Editing via the dashboard is reserved for a future sprint.
-            // Customers can cancel and rebook from the customer portal.
-            alert('Direct booking edits are not available in this version. Ask the customer to cancel and rebook from the customer portal.');
-        }
-
-        async function actionBooking(id, action) {
-            let cancelReason = null;
-            if (action === 'cancel') {
-                if (!confirm('Are you sure you want to cancel this reservation?')) return;
-                cancelReason = prompt('Optional: Enter a reason for cancellation (visible to the customer):');
-            }
-
-            try {
-                const method = (action === 'checkin') ? 'POST' : 'DELETE';
-                let endpoint = (action === 'checkin')
-                    ? '/api/v1/bookings/checkin'
-                    : '/api/v1/bookings/' + action + '?bookingId=' + id;
-                if (action === 'cancel' && cancelReason) {
-                    endpoint += '&reason=' + encodeURIComponent(cancelReason);
-                }
-                const fetchOptions = {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'Authorization': 'Bearer ' + getAuthToken()
-                    }
-                };
-                if (action === 'checkin') {
-                    fetchOptions.body = 'bookingId=' + id;
-                }
-
-                const res = await fetch(CONTEXT_PATH + endpoint, fetchOptions);
-
-                if (res.status === 401) {
-                    sessionStorage.clear();
-                    localStorage.clear();
-                    window.location.href = CONTEXT_PATH + '/login.html';
-                    return;
-                }
-
-                if (res.ok) {
-                    showSuccessOverlay(action === 'checkin' ? 'Vehicle successfully checked in!' : 'Action completed.');
-                    selectedBookings.delete(id);
-                    fetchBookings();
-                } else {
-                    const err = await res.text();
-                    showAlert('Error: ' + err, 'danger');
-                }
-            } catch (error) {
-                showAlert('Network Error: ' + error.message, 'danger');
-            }
-        }
-
-        async function massAction(action) {
-            if (selectedBookings.size === 0) return;
-            
-            let massReason = null;
-            if (action === 'cancel') {
-                if (!confirm('Are you sure you want to cancel ' + selectedBookings.size + ' selected reservations?')) return;
-                massReason = prompt('Optional: Enter a reason for cancellation (will apply to all selected):');
-            }
-
-            const method = (action === 'checkin') ? 'POST' : 'DELETE';
-            let successCount = 0;
-            let errorMsg = null;
-
-            // Loop through selected items and process them one by one
-            for (let id of selectedBookings) {
-                try {
-                    let endpoint = (action === 'checkin')
-                        ? '/api/v1/bookings/checkin'
-                        : '/api/v1/bookings/' + action + '?bookingId=' + id;
-                    if (action === 'cancel' && massReason) {
-                        endpoint += '&reason=' + encodeURIComponent(massReason);
-                    }
-                    const fetchOptions = {
-                        method: method,
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            'Authorization': 'Bearer ' + getAuthToken()
-                        }
-                    };
-                    if (action === 'checkin') {
-                        fetchOptions.body = 'bookingId=' + id;
-                    }
-
-                    const res = await fetch(CONTEXT_PATH + endpoint, fetchOptions);
-
-
-                    if (res.status === 401) {
-                        sessionStorage.clear();
-                        localStorage.clear();
-                        window.location.href = CONTEXT_PATH + '/login.html';
-                        return;
-                    }
-
-                    if (res.ok) {
-                        successCount++;
-                        selectedBookings.delete(id);
-                    } else {
-                        errorMsg = await res.text();
-                    }
-                } catch (err) {
-                    errorMsg = err.message;
-                }
-            }
-
-            if (successCount > 0) {
-                showSuccessOverlay(`Successfully processed ${successCount} bookings!`);
-            }
-            if (errorMsg && successCount !== selectedBookings.size) {
-                showAlert(`Some actions failed: ${errorMsg}`, 'warning');
-            }
-
-            fetchBookings();
-        }
-
-
-
-        function showAlert(msg, type) {
-            const alertBox = document.getElementById('booking-alert');
-            alertBox.className = 'alert alert-' + type;
-            alertBox.innerText = msg;
-            alertBox.classList.remove('d-none');
-            setTimeout(() => alertBox.classList.add('d-none'), 5000);
-        }
-
-        function showSuccessOverlay(msg) {
-            const overlay = document.createElement('div');
-            overlay.style.position = 'fixed';
-            overlay.style.top = '0';
-            overlay.style.left = '0';
-            overlay.style.width = '100vw';
-            overlay.style.height = '100vh';
-            overlay.style.backgroundColor = 'rgba(15, 118, 110, 0.9)';
-            overlay.style.zIndex = '9999';
-            overlay.style.display = 'flex';
-            overlay.style.flexDirection = 'column';
-            overlay.style.alignItems = 'center';
-            overlay.style.justifyContent = 'center';
-            overlay.style.color = 'white';
-            
-            overlay.innerHTML = `
-                <i class="bi bi-check-circle-fill" style="font-size: 5rem; margin-bottom: 20px;"></i>
-                <h2 class="fw-bold">${msg}</h2>
-                <p>Redirecting to ledger...</p>
-            `;
-            
-            document.body.appendChild(overlay);
-            
-            setTimeout(() => {
-                overlay.style.opacity = '0';
-                overlay.style.transition = 'opacity 0.5s ease';
-                setTimeout(() => document.body.removeChild(overlay), 500);
-            }, 1500);
-        }
-    </script>
-</body>
+                                    setTimeout(() => {
+                                        overlay.style.opacity = '0';
+                                        overlay.style.transition = 'opacity 0.5s ease';
+                                        setTimeout(() => document.body.removeChild(overlay), 500);
+                                    }, 1500);
+                                }
+        </script>
+    </body>
 </html>

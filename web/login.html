@@ -1,9 +1,13 @@
 <!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit this template
+-->
 <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>FPT Parking Lot Management System — Staff Login</title>
+        <title>Smart Parking System - Staff Login</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
         <style>
@@ -280,7 +284,9 @@
                 display: block;
             }
             @keyframes spin {
-                to { transform: rotate(360deg); }
+                to {
+                    transform: rotate(360deg);
+                }
             }
 
             /* Divider */
@@ -301,17 +307,27 @@
 
             /* Footer link */
             .btn-nav {
-                display: inline-flex; align-items: center; gap: 5px;
-                padding: 6px 13px; border-radius: 8px;
-                font-size: 12px; font-weight: 600; cursor: pointer;
-                text-decoration: none; transition: all 0.18s;
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                padding: 6px 13px;
+                border-radius: 8px;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                text-decoration: none;
+                transition: all 0.18s;
                 border: 1.5px solid transparent;
             }
             .btn-nav.secondary {
-                background: #fff; color: #4B5563;
+                background: #fff;
+                color: #4B5563;
                 border-color: #E5E7EB;
             }
-            .btn-nav.secondary:hover { background: #F9FAFB; border-color: #D1D5DB; }
+            .btn-nav.secondary:hover {
+                background: #F9FAFB;
+                border-color: #D1D5DB;
+            }
 
             /* Redirect overlay */
             .overlay {
@@ -345,8 +361,14 @@
                 animation: popIn 0.4s cubic-bezier(0.22,1,0.36,1) both;
             }
             @keyframes popIn {
-                from{ opacity:0; transform:scale(0.6) }
-                to{ opacity:1; transform:scale(1) }
+                from{
+                    opacity:0;
+                    transform:scale(0.6)
+                }
+                to{
+                    opacity:1;
+                    transform:scale(1)
+                }
             }
             .overlay p {
                 font-size: 15px;
@@ -379,7 +401,7 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 <span id="alertErrText">Invalid credentials.</span>
             </div>
-            
+
             <form id="loginForm" novalidate>
                 <div class="field" id="fName">
                     <label for="name">Username</label>
@@ -403,7 +425,7 @@
                         <input type="password" id="password" name="password" placeholder="Enter your password" maxlength="30" autocomplete="current-password" aria-required="true"/>
                         <button type="button" class="toggle-pass" id="togglePass" aria-label="Show password">
                             <svg id="eyeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                             </svg>
                         </button>
                     </div>
@@ -427,8 +449,8 @@
                 <div style="display: flex; justify-content: center; margin-top: 1.5rem;">
                     <a href="main-home.html" class="btn-nav secondary">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                            <polyline points="9 22 9 12 15 12 15 22"/>
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9 22 9 12 15 12 15 22"/>
                         </svg>
                         Back to Home
                     </a>
@@ -437,22 +459,24 @@
         </div>
 
         <script>
-    const API_URL = 'api/v1/auth/login';
+            const API_URL = 'api/v1/auth/login';
             const SESSION_KEY = 'sp_session';
 
             /* ── FIXED REDIRECT LOOP: Relative path mapping to prevent context loss ── */
-function getDashUrl(role) {
-    return 'dashboard';
-}
+            function getDashUrl(role) {
+                return 'dashboard';
+            }
             /* ── Auto login check ── */
             (function () {
                 try {
                     const raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
                     if (raw) {
                         const s = JSON.parse(raw);
-                        if (s && s.authenticated) window.location.href = getDashUrl(s.role);
+                        if (s && s.authenticated)
+                            window.location.href = getDashUrl(s.role);
                     }
-                } catch (e) {}
+                } catch (e) {
+                }
             })();
 
             const nameInput = document.getElementById('name');
@@ -480,14 +504,18 @@ function getDashUrl(role) {
 
             function validateName() {
                 const v = nameInput.value.trim();
-                if (!v) return setErr(fName, nameErrTxt, 'Username is required.');
-                setOk(fName); return true;
+                if (!v)
+                    return setErr(fName, nameErrTxt, 'Username is required.');
+                setOk(fName);
+                return true;
             }
 
             function validatePass() {
                 const v = passInput.value.trim();
-                if (!v) return setErr(fPass, passErrTxt, 'Password is required.');
-                setOk(fPass); return true;
+                if (!v)
+                    return setErr(fPass, passErrTxt, 'Password is required.');
+                setOk(fPass);
+                return true;
             }
 
             function setErr(field, el, msg) {
@@ -506,7 +534,8 @@ function getDashUrl(role) {
 
             document.getElementById('loginForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                if (!validateName() || !validatePass()) return;
+                if (!validateName() || !validatePass())
+                    return;
 
                 submitBtn.disabled = true;
                 submitBtn.classList.add('loading');

@@ -7,7 +7,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Register - Smart Parking</title>
+        <title>Smart Parking System - Register</title>
         <!-- Google Fonts: Inter — same font used across all pages in this project -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -224,13 +224,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
             .alert.show {
                 display: flex;
             }
-            
+
             .alert-error {
                 background: #FEF2F2;
                 border: 1px solid #FECACA;
                 color: #DC2626;
             }
-            
+
             .alert-success {
                 background: #F0FDF4;
                 border: 1px solid #BBF7D0;
@@ -241,7 +241,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
             .field {
                 margin-bottom: 1rem;
             }
-            
+
             label {
                 display: block;
                 font-size: 12px;
@@ -315,7 +315,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
             }
 
             /* ── Validation state classes ── */
-            
+
             .field-error input {
                 border-color: #EF4444;
                 background: #FFF9F9;
@@ -323,7 +323,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
             .field-error input:focus {
                 box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
             }
-            
+
             .field-ok input {
                 border-color: #10B981;
             }
@@ -1002,9 +1002,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
             // Full Name: required, max 100 chars, no illegal chars
             function validateFullName() {
                 const v = inFullName.value.trim();
-                if (!v) return setErr(fFullName, fullNameErrTxt, 'Driver name is required.');
-                if (v.length > 100) return setErr(fFullName, fullNameErrTxt, 'Too long (max 100 characters).');
-                if (hasIllegal(v)) return setErr(fFullName, fullNameErrTxt, 'Contains invalid characters.');
+                if (!v)
+                    return setErr(fFullName, fullNameErrTxt, 'Driver name is required.');
+                if (v.length > 100)
+                    return setErr(fFullName, fullNameErrTxt, 'Too long (max 100 characters).');
+                if (hasIllegal(v))
+                    return setErr(fFullName, fullNameErrTxt, 'Contains invalid characters.');
                 setOk(fFullName);
                 return true;
             }
@@ -1012,8 +1015,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
             // Phone: required, 10–15 digits (accepts leading 0 or +84 prefix), no illegal chars
             function validatePhone() {
                 const v = inPhone.value.trim();
-                if (!v) return setErr(fPhone, phoneErrTxt, 'Phone number is required.');
-                if (hasIllegal(v)) return setErr(fPhone, phoneErrTxt, 'Contains invalid characters.');
+                if (!v)
+                    return setErr(fPhone, phoneErrTxt, 'Phone number is required.');
+                if (hasIllegal(v))
+                    return setErr(fPhone, phoneErrTxt, 'Contains invalid characters.');
                 // Basic numeric check: digits only (with optional leading + for international)
                 const cleaned = v.replace(/\s+/g, ''); // strip whitespace
                 if (!/^\+?\d{10,15}$/.test(cleaned))
@@ -1030,8 +1035,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                     clearField(fEmail);
                     return true;
                 }
-                if (hasIllegal(v)) return setErr(fEmail, emailErrTxt, 'Contains invalid characters.');
-                if (v.length > 100) return setErr(fEmail, emailErrTxt, 'Too long (max 100 characters).');
+                if (hasIllegal(v))
+                    return setErr(fEmail, emailErrTxt, 'Contains invalid characters.');
+                if (v.length > 100)
+                    return setErr(fEmail, emailErrTxt, 'Too long (max 100 characters).');
                 // Simple email pattern check (server will also validate via DB constraint)
                 if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))
                     return setErr(fEmail, emailErrTxt, 'Enter a valid email address (e.g. name@example.com).');
@@ -1047,8 +1054,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                     clearField(fAddress);
                     return true;
                 }
-                if (hasIllegal(v)) return setErr(fAddress, addressErrTxt, 'Contains invalid characters.');
-                if (v.length > 255) return setErr(fAddress, addressErrTxt, 'Too long (max 255 characters).');
+                if (hasIllegal(v))
+                    return setErr(fAddress, addressErrTxt, 'Contains invalid characters.');
+                if (v.length > 255)
+                    return setErr(fAddress, addressErrTxt, 'Too long (max 255 characters).');
                 setOk(fAddress);
                 return true;
             }
@@ -1057,9 +1066,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
             // (format hint shown beneath field; strict format enforcement left to the server)
             function validatePlate() {
                 const v = inPlate.value.trim();
-                if (!v) return setErr(fPlate, plateErrTxt, 'License plate is required.');
-                if (v.length > 20) return setErr(fPlate, plateErrTxt, 'Too long (max 20 characters).');
-                if (hasIllegal(v)) return setErr(fPlate, plateErrTxt, 'Contains invalid characters.');
+                if (!v)
+                    return setErr(fPlate, plateErrTxt, 'License plate is required.');
+                if (v.length > 20)
+                    return setErr(fPlate, plateErrTxt, 'Too long (max 20 characters).');
+                if (hasIllegal(v))
+                    return setErr(fPlate, plateErrTxt, 'Contains invalid characters.');
                 setOk(fPlate);
                 return true;
             }
@@ -1131,7 +1143,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 // validator runs even if an earlier one already returned false —
                 // this way all fields show their errors simultaneously.
                 const valid = validateFullName() & validatePhone() & validateEmail() & validateAddress() & validatePlate();
-                if (!valid) return; // at least one field has an error — stop here
+                if (!valid)
+                    return; // at least one field has an error — stop here
 
                 // ── Build the form payload ──
                 // DriverAPIController reads parameters with request.getParameter(),
@@ -1176,7 +1189,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                             const txt = await res.text();
                             if (txt)
                                 msg = txt;
-                        } catch (_) { /* ignore read errors */ }
+                        } catch (_) { /* ignore read errors */
+                        }
                         alertErrT.textContent = msg;
                         alertErr.classList.add('show');
                     }

@@ -7,6 +7,7 @@ package dto;
  * and payment fields to track whether someone paid via Cash or VNPay.
  */
 public class Booking {
+
     private int bookingId;
     private String customerName;
     private String customerPhone;
@@ -23,48 +24,123 @@ public class Booking {
     private String vnpayTxnRef;       // VNPay order reference, null for cash bookings
     private String cancellationReason;
 
-    public int getBookingId() { return bookingId; }
-    public void setBookingId(int bookingId) { this.bookingId = bookingId; }
+    public int getBookingId() {
+        return bookingId;
+    }
 
-    public String getCustomerName() { return customerName; }
-    public void setCustomerName(String customerName) { this.customerName = customerName; }
+    public void setBookingId(int bookingId) {
+        this.bookingId = bookingId;
+    }
 
-    public String getCustomerPhone() { return customerPhone; }
-    public void setCustomerPhone(String customerPhone) { this.customerPhone = customerPhone; }
+    public String getCustomerName() {
+        return customerName;
+    }
 
-    public String getLicensePlate() { return licensePlate; }
-    public void setLicensePlate(String licensePlate) { this.licensePlate = licensePlate; }
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
 
-    public int getVehicleTypeId() { return vehicleTypeId; }
-    public void setVehicleTypeId(int vehicleTypeId) { this.vehicleTypeId = vehicleTypeId; }
+    public String getCustomerPhone() {
+        return customerPhone;
+    }
 
-    public String getVehicleTypeName() { return vehicleTypeName; }
-    public void setVehicleTypeName(String vehicleTypeName) { this.vehicleTypeName = vehicleTypeName; }
+    public void setCustomerPhone(String customerPhone) {
+        this.customerPhone = customerPhone;
+    }
 
-    public int getSlotId() { return slotId; }
-    public void setSlotId(int slotId) { this.slotId = slotId; }
+    public String getLicensePlate() {
+        return licensePlate;
+    }
 
-    public String getSlotCode() { return slotCode; }
-    public void setSlotCode(String slotCode) { this.slotCode = slotCode; }
+    public void setLicensePlate(String licensePlate) {
+        this.licensePlate = licensePlate;
+    }
 
-    public String getAreaCode() { return areaCode; }
-    public void setAreaCode(String areaCode) { this.areaCode = areaCode; }
+    public int getVehicleTypeId() {
+        return vehicleTypeId;
+    }
 
-    public String getTargetTime() { return targetTime; }
-    public void setTargetTime(String targetTime) { this.targetTime = targetTime; }
+    public void setVehicleTypeId(int vehicleTypeId) {
+        this.vehicleTypeId = vehicleTypeId;
+    }
 
-    public String getCreatedAt() { return createdAt; }
-    public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
+    public String getVehicleTypeName() {
+        return vehicleTypeName;
+    }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public void setVehicleTypeName(String vehicleTypeName) {
+        this.vehicleTypeName = vehicleTypeName;
+    }
 
-    public String getPaymentMethod() { return paymentMethod; }
-    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+    public int getSlotId() {
+        return slotId;
+    }
 
-    public String getVnpayTxnRef() { return vnpayTxnRef; }
-    public void setVnpayTxnRef(String vnpayTxnRef) { this.vnpayTxnRef = vnpayTxnRef; }
+    public void setSlotId(int slotId) {
+        this.slotId = slotId;
+    }
 
-    public String getCancellationReason() { return cancellationReason; }
-    public void setCancellationReason(String cancellationReason) { this.cancellationReason = cancellationReason; }
+    public String getSlotCode() {
+        return slotCode;
+    }
+
+    public void setSlotCode(String slotCode) {
+        this.slotCode = slotCode;
+    }
+
+    public String getAreaCode() {
+        return areaCode;
+    }
+
+    public void setAreaCode(String areaCode) {
+        this.areaCode = areaCode;
+    }
+
+    public String getTargetTime() {
+        return targetTime;
+    }
+
+    public void setTargetTime(String targetTime) {
+        this.targetTime = targetTime;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public String getVnpayTxnRef() {
+        return vnpayTxnRef;
+    }
+
+    public void setVnpayTxnRef(String vnpayTxnRef) {
+        this.vnpayTxnRef = vnpayTxnRef;
+    }
+
+    public String getCancellationReason() {
+        return cancellationReason;
+    }
+
+    public void setCancellationReason(String cancellationReason) {
+        this.cancellationReason = cancellationReason;
+    }
 }

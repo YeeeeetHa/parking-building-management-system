@@ -81,7 +81,6 @@ public class VNPayService {
         if (rawDataStr.endsWith("&")) rawDataStr = rawDataStr.substring(0, rawDataStr.length() - 1);
         String queryStr = query.toString();
         if (queryStr.endsWith("&")) queryStr = queryStr.substring(0, queryStr.length() - 1);
-
         String secureHash = hmacSHA512(VNP_HASH_SECRET, rawDataStr);
         return VNP_URL + "?" + queryStr + "&vnp_SecureHash=" + secureHash;
     }
@@ -94,19 +93,16 @@ public class VNPayService {
     public static boolean verifyReturnHash(Map<String, String> params) throws Exception {
         String receivedHash = params.get("vnp_SecureHash");
         if (receivedHash == null) return false;
-
         // Rebuild the signed params WITHOUT the hash fields themselves
         Map<String, String> signParams = new TreeMap<>(params);
         signParams.remove("vnp_SecureHash");
         signParams.remove("vnp_SecureHashType");
-
         StringBuilder rawData = new StringBuilder();
         for (Map.Entry<String, String> entry : signParams.entrySet()) {
             rawData.append(entry.getKey()).append("=").append(URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII.toString())).append("&");
         }
         String rawDataStr = rawData.toString();
         if (rawDataStr.endsWith("&")) rawDataStr = rawDataStr.substring(0, rawDataStr.length() - 1);
-
         String expectedHash = hmacSHA512(VNP_HASH_SECRET, rawDataStr);
         return expectedHash.equalsIgnoreCase(receivedHash);
     }
