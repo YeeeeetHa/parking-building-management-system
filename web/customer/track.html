@@ -4,26 +4,33 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to c
 Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit this template
 -->
 <html lang="en">
+
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Smart Parking System - Track My Booking</title>
-        <meta name="description" content="Track the status of your parking reservation using your phone number and license plate.">
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <meta name="description"
+              content="Track the status of your parking reservation using your phone number and license plate." />
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
         <style>
             body {
-                font-family: 'Inter', sans-serif;
-                background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 40%, #ccfbf1 100%);
+                font-family: "Inter", sans-serif;
+                background: linear-gradient(135deg,
+                        #f0f9ff 0%,
+                        #e0f2fe 40%,
+                        #ccfbf1 100%);
                 min-height: 100vh;
                 color: #1e293b;
             }
+
             .navbar-blur {
-                background: rgba(255,255,255,0.85);
+                background: rgba(255, 255, 255, 0.85);
                 backdrop-filter: blur(12px);
                 border-bottom: 1px solid #e2e8f0;
             }
+
             .brand-icon {
                 width: 34px;
                 height: 34px;
@@ -36,34 +43,40 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 font-weight: 700;
                 font-size: 15px;
             }
+
             .lookup-card {
                 background: #fff;
                 border-radius: 16px;
-                box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+                box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
                 padding: 2rem;
             }
+
             /* Status badge colors to match the staff dashboard */
-            .badge-active    {
+            .badge-active {
                 background: #eff6ff;
                 color: #1d4ed8;
                 border: 1px solid #bfdbfe;
             }
-            .badge-occupied  {
+
+            .badge-occupied {
                 background: #f0fdf4;
                 color: #166534;
                 border: 1px solid #bbf7d0;
             }
-            .badge-canceled  {
+
+            .badge-canceled {
                 background: #fef2f2;
                 color: #991b1b;
                 border: 1px solid #fecaca;
             }
+
             .badge-checked-out {
                 background: #f1f5f9;
                 color: #475569;
                 border: 1px solid #cbd5e1;
             }
-            .badge-overdue   {
+
+            .badge-overdue {
                 background: #fffbeb;
                 color: #92400e;
                 border: 1px solid #fde68a;
@@ -76,27 +89,34 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 background: #fff;
                 transition: box-shadow 0.2s;
             }
+
             .booking-card:hover {
-                box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
             }
+
             .booking-card .status-stripe {
                 width: 4px;
                 border-radius: 4px;
                 align-self: stretch;
             }
-            .stripe-active   {
+
+            .stripe-active {
                 background: #3b82f6;
             }
+
             .stripe-occupied {
                 background: #22c55e;
             }
+
             .stripe-canceled {
                 background: #ef4444;
             }
+
             .stripe-checked-out {
                 background: #64748b;
             }
-            .stripe-overdue  {
+
+            .stripe-overdue {
                 background: #f59e0b;
             }
 
@@ -106,52 +126,66 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 font-size: 0.8rem;
                 margin-bottom: 4px;
             }
+
             .info-row .label {
                 color: #94a3b8;
             }
+
             .info-row .value {
                 font-weight: 600;
                 color: #1e293b;
             }
         </style>
     </head>
-    <body>
 
+    <body>
         <!-- Navbar -->
         <nav class="navbar navbar-expand-lg sticky-top navbar-blur py-2">
             <div class="container px-4 d-flex justify-content-between align-items-center">
                 <a href="../main-home.html" class="d-flex align-items-center gap-2 text-decoration-none">
                     <div class="brand-icon">P</div>
                     <div>
-                        <div class="fw-bold text-dark lh-1" style="font-size:0.9rem;">SmartParking</div>
-                        <div class="text-muted lh-1" style="font-size:0.65rem;">Management System</div>
+                        <div class="fw-bold text-dark lh-1" style="font-size: 0.9rem">
+                            SmartParking
+                        </div>
+                        <div class="text-muted lh-1" style="font-size: 0.65rem">
+                            Management System
+                        </div>
                     </div>
                 </a>
                 <div class="d-flex gap-2">
-                    <a href="book.html" class="btn btn-sm text-white fw-semibold" style="background:#0f766e; font-size:0.75rem;"><i class="bi bi-calendar-plus me-1"></i>Book a Space</a>
-                    <a href="index.html" class="btn btn-sm btn-outline-secondary" style="font-size:0.75rem;"><i class="bi bi-house me-1"></i>Home</a>
+                    <a href="book.html" class="btn btn-sm text-white fw-semibold"
+                       style="background: #0f766e; font-size: 0.75rem"><i class="bi bi-calendar-plus me-1"></i>Book a
+                        Space</a>
+                    <a href="index.html" class="btn btn-sm btn-outline-secondary" style="font-size: 0.75rem"><i
+                            class="bi bi-house me-1"></i>Home</a>
                 </div>
             </div>
         </nav>
 
-        <div class="container py-5" style="max-width:560px;">
+        <div class="container py-5" style="max-width: 560px">
             <div class="text-center mb-4">
-                <h1 class="fw-bold" style="font-size:1.5rem;">Track Your Parking</h1>
-                <p class="text-muted" style="font-size:0.85rem;">Enter the phone number and license plate you used when booking.</p>
+                <h1 class="fw-bold" style="font-size: 1.5rem">Track Your Parking</h1>
+                <p class="text-muted" style="font-size: 0.85rem">
+                    Enter the phone number and license plate you used when booking.
+                </p>
             </div>
 
             <!-- Lookup form -->
             <div class="lookup-card mb-4">
                 <div class="mb-3">
-                    <label class="form-label fw-semibold" style="font-size:0.8rem;">Phone Number <span class="text-danger">*</span></label>
-                    <input type="tel" class="form-control" id="phoneInput" placeholder="e.g. 0901234567" maxlength="15">
+                    <label class="form-label fw-semibold" style="font-size: 0.8rem">Phone Number <span
+                            class="text-danger">*</span></label>
+                    <input type="tel" class="form-control" id="phoneInput" placeholder="e.g. 0901234567" maxlength="15" />
                 </div>
                 <div class="mb-4">
-                    <label class="form-label fw-semibold" style="font-size:0.8rem;">License Plate <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="plateInput" placeholder="e.g. 59A-123.45">
+                    <label class="form-label fw-semibold" style="font-size: 0.8rem">License Plate <span
+                            class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="plateInput" placeholder="e.g. 59A-123.45" />
                 </div>
                 <div id="lookupAlert" class="alert d-none mb-3"></div>
-                <button class="btn text-white w-100 fw-semibold" style="background:#0f766e;" onclick="lookupBookings()" id="lookupBtn">
+                <button class="btn text-white w-100 fw-semibold" style="background: #0f766e" onclick="lookupBookings()"
+                        id="lookupBtn">
                     <i class="bi bi-search me-2"></i>Find My Bookings
                 </button>
             </div>
@@ -167,120 +201,107 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
 
             <div id="emptyState" class="d-none text-center py-5">
                 <i class="bi bi-calendar-x display-5 text-muted"></i>
-                <p class="mt-3 text-muted">No bookings found for that phone and plate combination.</p>
-                <a href="book.html" class="btn btn-sm text-white mt-1" style="background:#0f766e;">Make a Booking</a>
+                <p class="mt-3 text-muted">
+                    No bookings found for that phone and plate combination.
+                </p>
+                <a href="book.html" class="btn btn-sm text-white mt-1" style="background: #0f766e">Make a Booking</a>
             </div>
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-                    const ctxPath = window.location.pathname.split('/customer/')[0];
+            const ctxPath = window.location.pathname.split("/customer/")[0];
 
-                    async function lookupBookings() {
-                        const phone = document.getElementById('phoneInput').value.trim();
-                        const plate = document.getElementById('plateInput').value.trim();
-                        const alertBox = document.getElementById('lookupAlert');
-
-                        if (!phone || !plate) {
-                            alertBox.textContent = 'Please enter both your phone number and license plate.';
-                            alertBox.className = 'alert alert-danger mb-3';
-                            return;
-                        }
-
-                        alertBox.className = 'alert d-none mb-3';
-                        const btn = document.getElementById('lookupBtn');
-                        btn.disabled = true;
-                        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Searching…';
-
-                        try {
-                            const res = await fetch(`${ctxPath}/api/v1/bookings/track?phone=${encodeURIComponent(phone)}&licensePlate=${encodeURIComponent(plate)}`);
-                            const data = await res.json();
-
-                            btn.disabled = false;
-                            btn.innerHTML = '<i class="bi bi-search me-2"></i>Find My Bookings';
-
-                            if (data.success && data.bookings.length > 0) {
-                                renderBookings(data.bookings);
-                            } else if (data.success && data.bookings.length === 0) {
-                                document.getElementById('resultsArea').classList.add('d-none');
-                                document.getElementById('emptyState').classList.remove('d-none');
-                            } else {
-                                alertBox.textContent = data.message || 'Could not retrieve bookings.';
-                                alertBox.className = 'alert alert-danger mb-3';
-                            }
-                        } catch (e) {
-                            btn.disabled = false;
-                            btn.innerHTML = '<i class="bi bi-search me-2"></i>Find My Bookings';
-                            alertBox.textContent = 'Network error. Please try again.';
-                            alertBox.className = 'alert alert-danger mb-3';
-                        }
+            async function lookupBookings() {
+                const phone = document.getElementById("phoneInput").value.trim();
+                const plate = document.getElementById("plateInput").value.trim();
+                const alertBox = document.getElementById("lookupAlert");
+                if (!phone || !plate) {
+                    alertBox.textContent = "Please enter both your phone number and license plate.";
+                    alertBox.className = "alert alert-danger mb-3";
+                    return;
+                }
+                
+                alertBox.className = "alert d-none mb-3";
+                const btn = document.getElementById("lookupBtn");
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Searching…';
+                try {
+                    const res = await fetch(
+                            `${ctxPath}/api/v1/bookings/track?phone=${encodeURIComponent(phone)}&licensePlate=${encodeURIComponent(plate)}`,);
+                    const data = await res.json();
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-search me-2"></i>Find My Bookings';
+                    if (data.success && data.bookings.length > 0) {
+                        renderBookings(data.bookings);
+                    } else if (data.success && data.bookings.length === 0) {
+                        document.getElementById("resultsArea").classList.add("d-none");
+                        document.getElementById("emptyState").classList.remove("d-none");
+                    } else {
+                        alertBox.textContent = data.message || "Could not retrieve bookings.";
+                        alertBox.className = "alert alert-danger mb-3";
                     }
-
-                    function renderBookings(bookings) {
-                        document.getElementById('emptyState').classList.add('d-none');
-                        document.getElementById('resultsArea').classList.remove('d-none');
-                        document.getElementById('resultCount').textContent = bookings.length;
-
-                        const now = new Date();
-                        const list = document.getElementById('bookingsList');
-                        list.innerHTML = '';
-
-                        bookings.forEach(b => {
-                            const targetDate = new Date(b.targetTime);
-                            const isOverdue = b.status === 'active' && targetDate < now;
-                            const statusKey = isOverdue ? 'overdue' : b.status;
-
-                            const statusLabels = {
-                                active: 'Pending Arrival',
-                                occupied: 'Checked In',
-                                canceled: 'Cancelled',
-                                'checked-out': 'Checked Out',
-                                overdue: 'Overdue'
-                            };
-                            const stripeClass = `stripe-${statusKey}`;
-                            const badgeClass = `badge-${statusKey}`;
-                            const statusLabel = statusLabels[statusKey] || b.status;
-
-                            const cancelNote = b.cancellationReason
-                                    ? `<div class="mt-2 p-2 rounded" style="background:#fef2f2; border:1px solid #fecaca; font-size:0.75rem; color:#991b1b;">
-                            <i class="bi bi-info-circle me-1"></i>Reason: ${b.cancellationReason}</div>`
-                                    : '';
-
-                            const payIcon = b.paymentMethod === 'VNPay'
-                                    ? '<i class="bi bi-credit-card me-1 text-warning"></i>'
-                                    : '<i class="bi bi-cash me-1 text-success"></i>';
-
-                            list.innerHTML += `
-                    <div class="booking-card d-flex gap-3">
-                        <div class="status-stripe ${stripeClass}"></div>
-                        <div class="flex-fill">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div>
-                                    <span class="fw-bold" style="font-size:0.9rem;">${b.slotCode}</span>
-                                    <span class="text-muted ms-2" style="font-size:0.75rem;">${b.areaCode}</span>
-                                </div>
-                                <span class="badge rounded-pill px-2 py-1 ${badgeClass}" style="font-size:0.7rem;">${statusLabel}</span>
-                            </div>
-                            <div class="info-row"><span class="label">Vehicle Type</span><span class="value">${b.vehicleTypeName}</span></div>
-                            <div class="info-row"><span class="label">License Plate</span><span class="value">${b.licensePlate}</span></div>
-                            <div class="info-row"><span class="label">Arrival</span><span class="value">${new Date(b.targetTime).toLocaleString('vi-VN')}</span></div>
-                            <div class="info-row"><span class="label">Booked On</span><span class="value">${new Date(b.createdAt).toLocaleDateString('vi-VN')}</span></div>
-                            <div class="info-row"><span class="label">Payment</span><span class="value">${payIcon}${b.paymentMethod}</span></div>
-                            ${cancelNote}
-                        </div>
-                    </div>`;
-                        });
-                    }
+                } catch (e) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-search me-2"></i>Find My Bookings';
+                    alertBox.textContent = "Network error. Please try again.";
+                    alertBox.className = "alert alert-danger mb-3";
+                }
+            }
+            
+            function renderBookings(bookings) {
+                document.getElementById("emptyState").classList.add("d-none");
+                document.getElementById("resultsArea").classList.remove("d-none");
+                document.getElementById("resultCount").textContent = bookings.length;
+                const now = new Date();
+                const list = document.getElementById("bookingsList");
+                list.innerHTML = "";
+                
+                bookings.forEach((b) => {
+                    const targetDate = new Date(b.targetTime);
+                    const isOverdue = b.status === "active" && targetDate < now;
+                    const statusKey = isOverdue ? "overdue" : b.status;
+                    const statusLabels = {
+                        active: "Pending Arrival",
+                        occupied: "Checked In",
+                        canceled: "Cancelled",
+                        "checked-out": "Checked Out",
+                        overdue: "Overdue",
+                    };
+                    const stripeClass = `stripe-${statusKey}`;
+                    const badgeClass = `badge-${statusKey}`;
+                    const statusLabel = statusLabels[statusKey] || b.status;
+                    const cancelNote = b.cancellationReason ? 
+                    `<div class="mt-2 p-2 rounded" style="background:#fef2f2; border:1px solid #fecaca; font-size:0.75rem; color:#991b1b;">
+        <i class="bi bi-info-circle me-1"></i>Reason: ${b.cancellationReason}</div>` : "";
+                    const payIcon = b.paymentMethod === "VNPay" ? 
+                    '<i class="bi bi-credit-card me-1 text-warning"></i>' : '<i class="bi bi-cash me-1 text-success"></i>';
+                    list.innerHTML += `
+                        <div class="booking-card d-flex gap-3">
+                            <div class="status-stripe ${stripeClass}"></div>
+                            <div class="flex-fill"><div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <span class="fw-bold" style="font-size:0.9rem;">${b.slotCode}</span>
+                    <span class="text-muted ms-2" style="font-size:0.75rem;">${b.areaCode}</span>
+                </div>
+                <span class="badge rounded-pill px-2 py-1 ${badgeClass}" style="font-size:0.7rem;">${statusLabel}</span>
+            </div>
+            <div class="info-row"><span class="label">Vehicle Type</span><span class="value">${b.vehicleTypeName}</span></div>
+            <div class="info-row"><span class="label">License Plate</span><span class="value">${b.licensePlate}</span></div>
+            <div class="info-row"><span class="label">Arrival</span><span class="value">${new Date(b.targetTime).toLocaleString("vi-VN")}</span></div>
+            <div class="info-row"><span class="label">Booked On</span><span class="value">${new Date(b.createdAt).toLocaleDateString("vi-VN")}</span></div>
+            <div class="info-row"><span class="label">Payment</span><span class="value">${payIcon}${b.paymentMethod}</span></div>
+            ${cancelNote}</div></div>`;
+                });
+            }
 
                     // Allow lookup on Enter key press
-                    document.getElementById('plateInput').addEventListener('keydown', e => {
-                        if (e.key === 'Enter')
-                            lookupBookings();
-                    });
-                    document.getElementById('phoneInput').addEventListener('keydown', e => {
-                        if (e.key === 'Enter')
-                            lookupBookings();
-                    });
+            document.getElementById("plateInput").addEventListener("keydown", (e) => {
+                if (e.key === "Enter") lookupBookings();
+            });
+            document.getElementById("phoneInput").addEventListener("keydown", (e) => {
+                if (e.key === "Enter") lookupBookings();
+            });
         </script>
     </body>
 </html>

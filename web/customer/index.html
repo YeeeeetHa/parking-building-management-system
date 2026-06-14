@@ -4,26 +4,31 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to c
 Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit this template
 -->
 <html lang="en">
+
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Smart Parking System - Customer Index</title>
-        <meta name="description" content="SmartParking customer portal — book a parking space or track your existing reservation.">
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <meta name="description"
+              content="SmartParking customer portal — book a parking space or track your existing reservation." />
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+              rel="stylesheet" />
         <style>
             body {
-                font-family: 'Inter', sans-serif;
+                font-family: "Inter", sans-serif;
                 background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 40%, #ccfbf1 100%);
                 min-height: 100vh;
                 color: #1e293b;
             }
+
             .navbar-blur {
-                background: rgba(255,255,255,0.85);
+                background: rgba(255, 255, 255, 0.85);
                 backdrop-filter: blur(12px);
                 border-bottom: 1px solid #e2e8f0;
             }
+
             .brand-icon {
                 width: 34px;
                 height: 34px;
@@ -35,23 +40,28 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 justify-content: center;
                 font-weight: 700;
             }
+
             .action-card {
                 background: #fff;
                 border-radius: 20px;
-                box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+                box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
                 padding: 2rem;
                 text-decoration: none;
                 color: inherit;
-                transition: transform 0.2s, box-shadow 0.2s;
+                transition:
+                    transform 0.2s,
+                    box-shadow 0.2s;
                 display: block;
                 border: 2px solid transparent;
             }
+
             .action-card:hover {
                 transform: translateY(-4px);
-                box-shadow: 0 12px 36px rgba(0,0,0,0.1);
+                box-shadow: 0 12px 36px rgba(0, 0, 0, 0.1);
                 border-color: #0f766e;
                 color: inherit;
             }
+
             .action-icon {
                 width: 56px;
                 height: 56px;
@@ -62,6 +72,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 font-size: 24px;
                 margin-bottom: 1rem;
             }
+
             .live-dot {
                 width: 8px;
                 height: 8px;
@@ -69,16 +80,19 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 border-radius: 50%;
                 animation: pulse 2s ease-in-out infinite;
             }
+
             @keyframes pulse {
-                0%, 100% {
+                0%,
+                100% {
                     opacity: 1;
                     transform: scale(1);
                 }
-                50%       {
+                50% {
                     opacity: 0.4;
                     transform: scale(1.3);
                 }
             }
+
             .stat-pill {
                 background: #fff;
                 border: 1px solid #e2e8f0;
@@ -89,97 +103,130 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 align-items: center;
                 gap: 6px;
             }
+
             .info-strip {
-                background: rgba(255,255,255,0.6);
-                border: 1px solid rgba(255,255,255,0.9);
+                background: rgba(255, 255, 255, 0.6);
+                border: 1px solid rgba(255, 255, 255, 0.9);
                 border-radius: 16px;
                 padding: 1.25rem;
                 backdrop-filter: blur(8px);
             }
         </style>
     </head>
-    <body>
 
+    <body>
         <nav class="navbar navbar-expand-lg sticky-top navbar-blur py-2">
             <div class="container px-4 d-flex justify-content-between align-items-center">
                 <a href="../main-home.html" class="d-flex align-items-center gap-2 text-decoration-none">
                     <div class="brand-icon">P</div>
                     <div>
-                        <div class="fw-bold text-dark lh-1" style="font-size:0.9rem;">SmartParking</div>
-                        <div class="text-muted lh-1" style="font-size:0.65rem;">Customer Portal</div>
+                        <div class="fw-bold text-dark lh-1" style="font-size: 0.9rem">
+                            SmartParking
+                        </div>
+                        <div class="text-muted lh-1" style="font-size: 0.65rem">
+                            Customer Portal
+                        </div>
                     </div>
                 </a>
                 <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 d-flex align-items-center gap-2" style="font-size:0.72rem;">
+                    <span
+                        class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 d-flex align-items-center gap-2"
+                        style="font-size: 0.72rem">
                         <span class="live-dot"></span>Live
                     </span>
-                    <a href="../main-home.html" class="btn btn-sm text-white fw-semibold" style="background:#0f766e; font-size:0.72rem;"><i class="bi bi-house-door me-1"></i>Main Home</a>
+                    <a href="../main-home.html" class="btn btn-sm text-white fw-semibold"
+                       style="background: #0f766e; font-size: 0.72rem"><i class="bi bi-house-door me-1"></i>Main Home</a>
                 </div>
             </div>
         </nav>
 
-        <div class="container py-5" style="max-width:760px;">
-
+        <div class="container py-5" style="max-width: 760px">
             <!-- Hero -->
             <div class="text-center mb-5">
-                <h1 class="fw-bold mb-2" style="font-size:2rem; letter-spacing:-0.03em;">Park smarter, <span style="color:#0f766e; font-style:italic;">not harder</span></h1>
-                <p class="text-muted mx-auto" style="max-width:420px; font-size:0.88rem;">
+                <h1 class="fw-bold mb-2" style="font-size: 2rem; letter-spacing: -0.03em">
+                    Park smarter,
+                    <span style="color: #0f766e; font-style: italic">not harder</span>
+                </h1>
+                <p class="text-muted mx-auto" style="max-width: 380px; font-size: 0.88rem">
                     Book your space in under 2 minutes. No app required. Just your phone and license plate.
                 </p>
             </div>
 
             <!-- Live stats strip -->
             <div class="info-strip mb-5 d-flex flex-wrap gap-3 justify-content-center">
-                <div class="stat-pill"><i class="bi bi-check-circle-fill text-success"></i><span><strong id="availCount">—</strong> spaces available</span></div>
-                <div class="stat-pill"><i class="bi bi-geo-alt-fill" style="color:#0f766e;"></i><span>3 Parking Zones</span></div>
-                <div class="stat-pill"><i class="bi bi-clock-fill text-muted"></i><span>Open 06:00 – 22:00</span></div>
-                <div class="stat-pill"><i class="bi bi-credit-card-fill text-warning"></i><span>Cash & VNPay accepted</span></div>
+                <div class="stat-pill">
+                    <i class="bi bi-check-circle-fill text-success"></i><span><strong id="availCount">—</strong> spaces
+                        available</span>
+                </div>
+                <div class="stat-pill">
+                    <i class="bi bi-geo-alt-fill" style="color: #0f766e"></i><span>3 Parking Zones</span>
+                </div>
+                <div class="stat-pill">
+                    <i class="bi bi-clock-fill text-muted"></i><span>Open 06:00 – 22:00</span>
+                </div>
+                <div class="stat-pill">
+                    <i class="bi bi-credit-card-fill text-warning"></i><span>Cash & VNPay accepted</span>
+                </div>
             </div>
 
             <!-- Main action cards -->
             <div class="row g-4 mb-5">
                 <div class="col-md-6">
                     <a href="book.html" class="action-card h-100">
-                        <div class="action-icon" style="background:#dcfce7;">
-                            <i class="bi bi-calendar-plus-fill" style="color:#16a34a;"></i>
+                        <div class="action-icon" style="background: #dcfce7">
+                            <i class="bi bi-calendar-plus-fill" style="color: #16a34a"></i>
                         </div>
                         <h5 class="fw-bold mb-1">Book a Space</h5>
-                        <p class="text-muted mb-0" style="font-size:0.82rem;">Pick a slot on our live map, fill in your details, and choose Cash or VNPay to complete your reservation instantly.</p>
-                        <div class="mt-3 text-success fw-semibold" style="font-size:0.8rem;">Get started <i class="bi bi-arrow-right"></i></div>
+                        <p class="text-muted mb-0" style="font-size: 0.82rem">
+                            Pick a slot on our live map, fill in your details, and choose Cash
+                            or VNPay to complete your reservation instantly.
+                        </p>
+                        <div class="mt-3 text-success fw-semibold" style="font-size: 0.8rem">
+                            Get started <i class="bi bi-arrow-right"></i>
+                        </div>
                     </a>
                 </div>
                 <div class="col-md-6">
                     <a href="track.html" class="action-card h-100">
-                        <div class="action-icon" style="background:#eff6ff;">
-                            <i class="bi bi-search" style="color:#1d4ed8;"></i>
+                        <div class="action-icon" style="background: #eff6ff">
+                            <i class="bi bi-search" style="color: #1d4ed8"></i>
                         </div>
                         <h5 class="fw-bold mb-1">Track My Booking</h5>
-                        <p class="text-muted mb-0" style="font-size:0.82rem;">Check the live status of your reservation, see your assigned slot, or review past visits — just use your phone number and plate.</p>
-                        <div class="mt-3 fw-semibold" style="font-size:0.8rem; color:#1d4ed8;">Track now <i class="bi bi-arrow-right"></i></div>
+                        <p class="text-muted mb-0" style="font-size: 0.82rem">
+                            Check the live status of your reservation, see your assigned slot,
+                            or review past visits — just use your phone number and plate.
+                        </p>
+                        <div class="mt-3 fw-semibold" style="font-size: 0.8rem; color: #1d4ed8">
+                            Track now <i class="bi bi-arrow-right"></i>
+                        </div>
                     </a>
                 </div>
             </div>
 
             <!-- Pricing info -->
             <div class="info-strip">
-                <h6 class="fw-bold mb-3" style="font-size:0.85rem;"><i class="bi bi-info-circle me-2 text-muted"></i>Parking Rates</h6>
+                <h6 class="fw-bold mb-3" style="font-size: 0.85rem">
+                    <i class="bi bi-info-circle me-2 text-muted"></i>Parking Rates
+                </h6>
                 <div class="row g-2">
                     <div class="col-4">
                         <div class="text-center p-2 rounded border bg-white">
-                            <div class="fw-bold" style="color:#0f766e;">15K</div>
-                            <div class="text-muted" style="font-size:0.7rem;">Sedan / hr</div>
+                            <div class="fw-bold" style="color: #0f766e">15K</div>
+                            <div class="text-muted" style="font-size: 0.7rem">Sedan / hr</div>
                         </div>
                     </div>
                     <div class="col-4">
                         <div class="text-center p-2 rounded border bg-white">
-                            <div class="fw-bold" style="color:#f59e0b;">20K</div>
-                            <div class="text-muted" style="font-size:0.7rem;">SUV / hr</div>
+                            <div class="fw-bold" style="color: #f59e0b">20K</div>
+                            <div class="text-muted" style="font-size: 0.7rem">SUV / hr</div>
                         </div>
                     </div>
                     <div class="col-4">
                         <div class="text-center p-2 rounded border bg-white">
-                            <div class="fw-bold" style="color:#22c55e;">5K</div>
-                            <div class="text-muted" style="font-size:0.7rem;">Motorbike / hr</div>
+                            <div class="fw-bold" style="color: #22c55e">5K</div>
+                            <div class="text-muted" style="font-size: 0.7rem">
+                                Motorbike / hr
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -189,14 +236,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
         <script>
             // Load live available slot count for the hero stat pill
-            const ctxPath = window.location.pathname.split('/customer/')[0];
+            const ctxPath = window.location.pathname.split("/customer/")[0];
             async function loadAvailCount() {
                 try {
-                    const res = await fetch(ctxPath + '/api/v1/slots/summary');
+                    const res = await fetch(ctxPath + "/api/v1/slots/summary");
                     const data = await res.json();
-                    document.getElementById('availCount').textContent = data.available ?? '—';
+                    document.getElementById("availCount").textContent = data.available ?? "—";
                 } catch (e) {
-                    document.getElementById('availCount').textContent = '—';
+                    document.getElementById("availCount").textContent = "—";
                 }
             }
             loadAvailCount();

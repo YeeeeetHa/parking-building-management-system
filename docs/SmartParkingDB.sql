@@ -324,13 +324,18 @@ INSERT INTO dbo.Pricing_rules (vehicle_type_id, start_time, end_time, day_type, 
 (3, '06:00:00', '22:00:00', 'Weekday', 5000.00,  3000.00,  40000.00,  1, '2026-01-01', '2026-12-31');
 
 -- Sample booking history for testing the staff dashboard and customer tracking.
--- These represent bookings placed by customers ahead of time.
 INSERT INTO dbo.Booking (customer_name, customer_phone, license_plate, vehicle_type_id, slot_id, target_time, status, payment_method) VALUES
 (N'Tran Van Hoang', '0988777666', '59A-123.45', 1, (SELECT slot_id FROM dbo.Parking_slot WHERE slot_code = 'A-02'), '2026-08-15 10:00:00', 'active', 'Cash'),
 (N'Le Thi Mai',     '0977666555', '51G-987.65', 2, (SELECT slot_id FROM dbo.Parking_slot WHERE slot_code = 'B-02'), '2026-08-20 14:30:00', 'active', 'VNPay'),
 (N'Pham Minh Duc',  '0966555444', '59P-555.55', 3, (SELECT slot_id FROM dbo.Parking_slot WHERE slot_code = 'C-03'), '2026-08-10 09:00:00', 'occupied', 'Cash'),
-(N'Nguyen Test',    '0911000001', '59B-111.22', 1, (SELECT slot_id FROM dbo.Parking_slot WHERE slot_code = 'A-03'), '2026-09-01 08:00:00', 'canceled', 'VNPay'),
-(N'CheckedOut Test','0911000002', '59C-222.33', 1, (SELECT slot_id FROM dbo.Parking_slot WHERE slot_code = 'A-04'), '2026-06-14 07:00:00', 'checked-out', 'Cash');
+(N'Nguyen Van An',    '0911000001', '59B-111.22', 1, (SELECT slot_id FROM dbo.Parking_slot WHERE slot_code = 'A-03'), '2026-09-01 08:00:00', 'canceled', 'VNPay'),
+(N'Tran Van Binh','0911000002', '59C-222.33', 1, (SELECT slot_id FROM dbo.Parking_slot WHERE slot_code = 'A-04'), '2026-06-14 07:00:00', 'checked-out', 'Cash'),
+(N'Mai Van Chien',   '0911000003', '59A-000.01', 1, (SELECT slot_id FROM dbo.Parking_slot WHERE slot_code = 'A-01'), '2026-06-14 08:00:00', 'occupied', 'Cash'),
+(N'Dao Van Dam',   '0911000004', '59A-000.06', 1, (SELECT slot_id FROM dbo.Parking_slot WHERE slot_code = 'A-06'), '2026-06-14 08:10:00', 'occupied', 'VNPay'),
+(N'Hoang Thien Nhan',   '0911000005', '59B-000.01', 2, (SELECT slot_id FROM dbo.Parking_slot WHERE slot_code = 'B-01'), '2026-06-14 08:20:00', 'occupied', 'Cash'),
+(N'Duong Van Quang',   '0911000006', '59B-000.08', 2, (SELECT slot_id FROM dbo.Parking_slot WHERE slot_code = 'B-08'), '2026-06-14 08:30:00', 'occupied', 'Cash'),
+(N'Hoang Anh Ngoc',   '0911000007', '59C-000.01', 3, (SELECT slot_id FROM dbo.Parking_slot WHERE slot_code = 'C-01'), '2026-06-14 08:40:00', 'occupied', 'Cash'),
+(N'Mai Anh Dao',   '0911000008', '59C-000.08', 3, (SELECT slot_id FROM dbo.Parking_slot WHERE slot_code = 'C-08'), '2026-06-14 08:50:00', 'occupied', 'VNPay');
 
 -- Sample active tickets for the staff view
 INSERT INTO dbo.Ticket (vehicle_id, check_in_by, entry_time, license_plate_snapshot, qr_code, status) VALUES
